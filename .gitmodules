@@ -1,0 +1,6 @@
+[submodule "src/ArmaExt/lib/json"]
+	path = src/ArmaExt/lib/json
+	url = https://github.com/nlohmann/json.git
+[submodule "src/ArmaExt/lib/boost-cmake"]
+	path = src/ArmaExt/lib/boost-cmake
+	url = https://github.com/Orphis/boost-cmake.git

@@ -1,0 +1,16 @@
+name = "TacControl"
+prefix = "TC"
+author = "Wolf Corps - Dedmen Miller"
+files = [
+    "mod.cpp"
+]
+
+keyname = "{{prefix}}_{{version}}"
+signame = "{{prefix}}_{{version}}-{{git \"id 8\"}}"
+
+releasebuild = [
+    "@zip tc_{{semver.major}}.{{semver.minor}}.{{semver.patch}}"
+]
+
+[header_exts]
+version= "{{git \"id 8\"}}"

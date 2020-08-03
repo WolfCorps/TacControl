@@ -1,0 +1,12 @@
+name = "Tac Control";
+//picture = "logo_proj_templ_ca.paa";
+actionName = "GitHub";
+action = "https://github.com/wolfcorps/TacControl";
+description = "Tac Control";
+//logo = "logo_proj_templ_ca.paa";
+//logoOver = "logo_proj_templ_ca.paa";
+tooltip = "Tac Control";
+tooltipOwned = "Tac Control";
+overview = "Tac Control";
+author = "Wolf Corps - Dedmen";
+//overviewPicture = "logo_proj_templ_ca.paa";
