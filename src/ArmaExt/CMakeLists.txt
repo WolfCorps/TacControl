@@ -32,4 +32,5 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 
 add_subdirectory(lib/boost-cmake)
+add_subdirectory(lib/fmt EXCLUDE_FROM_ALL)
 add_subdirectory(src)

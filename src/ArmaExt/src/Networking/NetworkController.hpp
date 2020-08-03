@@ -11,4 +11,4 @@ public:
 };
 
 
-static inline NetworkController GNetworkController;
+inline NetworkController GNetworkController;

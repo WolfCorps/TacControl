@@ -9,7 +9,7 @@
             "type": "sqf",
             "request": "launch",
             "missionRoot": "${workspaceFolder}",
-            "scriptPrefix": "z\\wolf_logistics"
+            "scriptPrefix": "z\\TC"
         }
     ]
 }

@@ -2,6 +2,8 @@
 #include <string_view>
 #include <vector>
 
+using namespace std::string_view_literals;
+
 namespace Util
 {
     static std::vector<std::string_view>& split(std::string_view s, char delim, std::vector<std::string_view>& elems) {
@@ -35,6 +37,10 @@ namespace Util
 
         auto begin = string.find_first_not_of(trimChars);
         auto end = string.find_last_not_of(trimChars);
+        if (begin == std::string::npos)
+            return std::string_view();
+        if (end == std::string::npos)
+            end = string.length() - 1;
         return string.substr(begin, end - begin + 1);
     }
 

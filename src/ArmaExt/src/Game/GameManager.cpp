@@ -3,12 +3,34 @@
 #include <string>
 #include <cstring>
 #include <sstream>
+#include <type_traits>
 
 #include "Networking/NetworkController.hpp"
 #include "Util/Logger.hpp"
 #include "Util/Util.hpp"
+#include "Modules/RadioModule.hpp"
+#include "Modules/ModuleLogitechG15.hpp"
 
 int(*GameManager::extensionCallback)(char const* name, char const* function, char const* data);
+
+
+namespace detail
+{
+    template<typename T, typename C>
+    typename std::enable_if<std::is_base_of_v<IMessageReceiver, T>>::type
+    RegisterReceiver(T* module, C&& container) {
+        container.insert(std::pair<std::string, IMessageReceiver*>{ module->GetMessageReceiverName(), static_cast<IMessageReceiver*>(module) });
+    }
+
+    template<typename T, typename C>
+    typename std::enable_if<!std::is_base_of_v<IMessageReceiver, T>>::type
+    RegisterReceiver(T* module, C&& container) {
+        
+    }
+
+
+
+}
 
 
 
@@ -25,7 +47,7 @@ void RVExtension(char* output, int outputSize, const char* function)
 #define MODULES_INIT(x) (G##x).Init();
 #define MODULES_POSTINIT(x) (G##x).PostInit();
 #define MODULES_REGMSGRECV(x) \
-	if (dynamic_cast<IMessageReceiver*>(&(G##x))) GGameManager.messageReceiverLookup.insert(std::pair<std::string, IMessageReceiver*>{ (G##x).GetMessageReceiverName(), dynamic_cast<IMessageReceiver*>(&(G##x)) });
+    detail::RegisterReceiver(&(G##x), GGameManager.messageReceiverLookup);
 
 		MODULES_LIST(MODULES_PREINIT);
 		MODULES_LIST(MODULES_INIT);
@@ -75,10 +97,20 @@ void GameManager::IncomingMessage(std::string_view function, const std::vector<s
 	auto found = messageReceiverLookup.find(functionPath[0]);
     if (found == messageReceiverLookup.end()) {
 		__debugbreak();
+        return;
     }
 
 	//remove root entry
 	functionPath.erase(functionPath.begin());
 
 	found->second->OnGameMessage(functionPath, arguments);
+}
+
+void GameManager::SendMessage(std::string_view function, std::string_view arguments) {
+	auto ret = extensionCallback("TC", function.data(), arguments.data());
+    ret;
+}
+
+void GameManager::SendMessageInternal(std::string_view function, const std::vector<std::string_view>& arguments) {
+    IncomingMessage(function, arguments);
 }

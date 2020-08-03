@@ -1,1 +1,1 @@
-#include "\z\TacControl\addons\main\script_component.hpp"
+#include "\z\TC\addons\main\script_component.hpp"

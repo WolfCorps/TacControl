@@ -23,4 +23,5 @@ public:
 
 #define MODULES_LIST(X)\
     X(NetworkController) \
-    
+    X(RadioModule) \
+    X(ModuleLogitechG15)

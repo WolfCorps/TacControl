@@ -10,10 +10,13 @@ using namespace std::chrono_literals;
 class Thread : public IModule {
 protected:
     std::unique_ptr<std::thread> myThread;
+
+    bool shouldRun = true;//don't need atomic here. believe me.
+
 public:
     void Init() override;
     virtual void Run() = 0;
-    virtual void StopThread() = 0;
+    virtual void StopThread() { shouldRun = false; };
 };
 
 class ThreadQueue : public Thread {
@@ -23,7 +26,6 @@ protected:
     std::condition_variable threadWorkCondition;
     std::mutex taskQueueMutex;
 
-    bool shouldRun = true;//don't need atomic here. believe me.
 
     void Run() override;
     void StopThread() override;

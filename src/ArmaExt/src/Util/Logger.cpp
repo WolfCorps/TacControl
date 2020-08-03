@@ -1,10 +1,11 @@
 #include "Logger.hpp"
 
 #include <chrono>
+#include <iomanip>
 
 FileLogger::FileLogger(const std::string& filePath) : file(filePath) {}
 
-void FileLogger::log(const std::string& message) {
+void FileLogger::log(std::string_view message) {
     if (file.is_open()) {
         const auto now = std::chrono::system_clock::now();
         auto inTimeT = std::chrono::system_clock::to_time_t(now);

@@ -15,7 +15,7 @@ SOURCE_GROUP("src/Networking" FILES ${TCSources_Networking})
 
 
 
-#file(GLOB INTERCEPT_SOURCES "${INTERCEPT_CLIENT_PATH}/intercept/client/*.cpp"  "${INTERCEPT_CLIENT_PATH}/intercept/client/sqf/*.cpp" "${INTERCEPT_CLIENT_PATH}/intercept/shared/*.cpp")
+#file(GLOB FMT_SOURCES "${PROJECT_SOURCE_DIR}/lib/fmt/src/*.cc")
 #SOURCE_GROUP("intercept" FILES ${INTERCEPT_SOURCES})
 
 #if(CMAKE_COMPILER_IS_GNUCXX)
@@ -26,12 +26,13 @@ SOURCE_GROUP("src/Networking" FILES ${TCSources_Networking})
 
 set(library_sources ${TacControlSources})
 
-add_library(${PLUGIN_NAME} SHARED ${library_sources} "Networking/Serialize.hpp")
+add_library(${PLUGIN_NAME} SHARED ${library_sources} ${FMT_SOURCES})
 
 target_include_directories(${PLUGIN_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/lib/json/single_include/" )
 
 target_link_libraries(${PLUGIN_NAME} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(${PLUGIN_NAME} PUBLIC Boost::boost)
+target_link_libraries(${PLUGIN_NAME} PUBLIC fmt::fmt-header-only)
 
 #target_link_libraries(${PLUGIN_NAME} ${LINK_LIBS})
 

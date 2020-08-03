@@ -306,6 +306,3 @@ public:
     Serialize();
     ~Serialize();
 };
-
-
-static void from_json(const json& j, game_instruction& in) { }

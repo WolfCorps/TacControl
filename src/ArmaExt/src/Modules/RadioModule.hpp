@@ -42,6 +42,10 @@ public:
     std::string_view GetMessageReceiverName() override { return "Radio"; }
     void OnGameMessage(const std::vector<std::string_view>& function,
                        const std::vector<std::string_view>& arguments) override;
+
+
+    void DoRadioTransmit(bool transmitting);
+
 };
 
-static inline RadioModule GRadioModule;
+inline RadioModule GRadioModule;

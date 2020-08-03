@@ -4,3 +4,6 @@
 [submodule "src/ArmaExt/lib/boost-cmake"]
 	path = src/ArmaExt/lib/boost-cmake
 	url = https://github.com/Orphis/boost-cmake.git
+[submodule "src/ArmaExt/lib/fmt"]
+	path = src/ArmaExt/lib/fmt
+	url = https://github.com/fmtlib/fmt.git

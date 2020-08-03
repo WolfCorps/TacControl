@@ -38,10 +38,11 @@ class GameManager {
 public:
 
 
-
+    void SendMessage(std::string_view function, std::string_view arguments);
+    void SendMessageInternal(std::string_view function, const std::vector<std::string_view>& arguments);
 
 
 };
 
 
-static inline GameManager GGameManager;
+inline GameManager GGameManager;
