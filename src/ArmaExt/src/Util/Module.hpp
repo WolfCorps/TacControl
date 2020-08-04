@@ -1,7 +1,13 @@
 #pragma once
+#include <span>
 #include <string_view>
 #include <vector>
 
+#include "nlohmann/json.hpp"
+
+using namespace std::string_view_literals;
+
+class JsonArchive;
 
 class IModule {
 public:
@@ -15,8 +21,14 @@ class IMessageReceiver {
 public:
     virtual ~IMessageReceiver() = default;
     virtual void OnGameMessage(const std::vector<std::string_view>& function, const std::vector<std::string_view>& arguments) {}
-    virtual void OnNetMessage(const std::vector<std::string_view>& function, const std::vector<std::string_view>& arguments) {}
+    virtual void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments) {}
     virtual std::string_view GetMessageReceiverName() = 0;
+};
+
+class IStateHolder {
+public:
+    virtual std::string_view GetStateHolderName() = 0;
+    virtual void SerializeState(JsonArchive& ar) = 0;
 };
 
 

@@ -1,0 +1,42 @@
+
+
+
+
+##GameState:
+
+
+GeneralInfo
+  HasG15MonoDisp
+Radio
+  Radios
+    ID
+    DisplayName
+    CurrentChannel
+    CurrentAltChannel
+    Channels
+	  Frequency
+    incoming
+    transmitting
+GPSTracker
+  Trackers
+    Name
+	Position vec3 AGL
+	Velocity vec3
+GroupNotes
+  Groups
+    GroupName
+	AssignedGPSTrackerName
+	Notetext
+	Current target (Marker name, will display distance to marker)
+	
+json::diff(j_result, j_original);
+
+
+##StateUpdate:
+
+
+
+cmd: "StateUpdate"
+data: *GameState
+
+

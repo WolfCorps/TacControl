@@ -42,7 +42,7 @@ void ModuleLogitechG15::Run() {
 
         if (LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0) != isTransmitting) {
             isTransmitting = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0);
-            GRadioModule.DoRadioTransmit(isTransmitting);
+            //GRadioModule.DoRadioTransmit(isTransmitting);
         }
 
 

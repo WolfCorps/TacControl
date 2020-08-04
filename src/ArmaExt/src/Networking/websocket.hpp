@@ -1,24 +1,12 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
-#include <boost/asio/strand.hpp>
 #include <thread>
 
-#include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/websocket.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/bind_executor.hpp>
 #include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/signal_set.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/asio/steady_timer.hpp>
-#include <boost/make_unique.hpp>
 #include <boost/config.hpp>
 #include <nlohmann/json.hpp>
-#include <algorithm>
-#include <cstdlib>
-#include <functional>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
@@ -26,6 +14,7 @@
 #include <filesystem>
 #include <mutex>
 #include <unordered_set>
+#include "Util/SignalSlot.hpp"
 
 using json = nlohmann::json;
 using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
@@ -33,14 +22,6 @@ namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
 namespace beast = boost::beast;            // from <boost/beast/http.hpp>
 namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
-
-
-
-class Task {
-public:
-    json message;
-    bool text;
-};
 
 
 class http_session;
@@ -67,6 +48,7 @@ class shared_state
     // Keep a list of all the connected clients
     std::unordered_set<websocket_session*> sessions_;
 
+    nlohmann::json currentState;
 public:
     explicit
         shared_state(std::string doc_root);
@@ -80,6 +62,10 @@ public:
     void join(websocket_session* session);
     void leave(websocket_session* session);
     void send(std::string message);
+    void updateState(const nlohmann::json& newState);
+
+
+    Signal<void(std::string)> OnMessage;
 };
 
 class http_session : public boost::enable_shared_from_this<http_session>
@@ -115,6 +101,9 @@ class websocket_session : public boost::enable_shared_from_this<websocket_sessio
     boost::shared_ptr<shared_state> state_;
     std::vector<boost::shared_ptr<std::string const>> queue_;
 
+
+
+
     void fail(beast::error_code ec, char const* what);
     void on_accept(beast::error_code ec);
     void on_read(beast::error_code ec, std::size_t bytes_transferred);
@@ -134,6 +123,10 @@ public:
     // Send a message
     void
         send(boost::shared_ptr<std::string const> const& ss);
+
+    nlohmann::json lastState;
+
+
 
 private:
     void
@@ -194,7 +187,8 @@ class Server {
 public:
     Server();
 
+    boost::shared_ptr<shared_state> state_;
     boost::asio::io_context ioc{ 1 };
     std::vector<std::thread> iothreads;
-    std::shared_ptr<listener> httpServ;
+    boost::shared_ptr<listener> httpServ;
 };

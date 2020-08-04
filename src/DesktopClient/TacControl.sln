@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30323.103
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TacControl", "TacControl.csproj", "{463E85A0-2713-4261-9977-4A14DC950F66}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{463E85A0-2713-4261-9977-4A14DC950F66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{463E85A0-2713-4261-9977-4A14DC950F66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{463E85A0-2713-4261-9977-4A14DC950F66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{463E85A0-2713-4261-9977-4A14DC950F66}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F42F15DF-AAD4-42CC-8D3A-09EBEB69199B}
+	EndGlobalSection
+EndGlobal

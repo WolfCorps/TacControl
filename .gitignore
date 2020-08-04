@@ -45,3 +45,9 @@ Thumbs.db
 /src/ArmaExt/out
 
 .vs/
+
+src/DesktopClient/packages/
+
+src/DesktopClient/obj/
+
+src/DesktopClient/bin/

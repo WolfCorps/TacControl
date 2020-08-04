@@ -4,12 +4,15 @@
 #include <cstring>
 #include <sstream>
 #include <type_traits>
+#include <span>
 
 #include "Networking/NetworkController.hpp"
+#include "Networking/Serialize.hpp"
 #include "Util/Logger.hpp"
 #include "Util/Util.hpp"
 #include "Modules/RadioModule.hpp"
 #include "Modules/ModuleLogitechG15.hpp"
+#
 
 int(*GameManager::extensionCallback)(char const* name, char const* function, char const* data);
 
@@ -28,6 +31,25 @@ namespace detail
         
     }
 
+    template<typename T>
+    typename std::enable_if<std::is_base_of_v<IStateHolder, T>>::type
+        CollectState(T* module, JsonArchive& targetContainer) {
+
+        IStateHolder* stateHolder = static_cast<IStateHolder*>(module);
+
+        auto stateName = stateHolder->GetStateHolderName();
+
+        JsonArchive state;
+        stateHolder->SerializeState(state);
+
+        targetContainer.Serialize(stateName.data(), state);
+    }
+
+    template<typename T>
+    typename std::enable_if<!std::is_base_of_v<IStateHolder, T>>::type
+        CollectState(T* module, JsonArchive& targetContainer) {
+
+    }
 
 
 }
@@ -108,9 +130,38 @@ void GameManager::IncomingMessage(std::string_view function, const std::vector<s
 
 void GameManager::SendMessage(std::string_view function, std::string_view arguments) {
 	auto ret = extensionCallback("TC", function.data(), arguments.data());
-    ret;
+    __nop();
 }
 
 void GameManager::SendMessageInternal(std::string_view function, const std::vector<std::string_view>& arguments) {
     IncomingMessage(function, arguments);
+}
+
+void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& function, nlohmann::json&& arguments) {
+
+    //#TODO into task?
+
+    auto found = messageReceiverLookup.find(function[0]);
+    if (found == messageReceiverLookup.end()) {
+        __debugbreak();
+        return;
+    }
+
+    std::span<std::string_view> funcSpan(function.begin(), function.end());
+
+    //remove root entry
+    funcSpan = funcSpan.subspan(1);
+
+    found->second->OnNetMessage(funcSpan, arguments);
+}
+
+void GameManager::CollectGameState(JsonArchive& ar) {
+
+#define MODULES_PullState(x) \
+    detail::CollectState(&(G##x), ar);
+
+    MODULES_LIST(MODULES_PullState);
+
+#undef MODULES_PullState
+
 }

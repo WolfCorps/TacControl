@@ -10,11 +10,12 @@ void ThreadQueue::Run() {
         threadWorkCondition.wait(lock, [this] {return !taskQueue.empty() || !shouldRun; });
         if (!shouldRun) return;
 
-        const auto task(std::move(taskQueue.front()));
+        auto task(std::move(taskQueue.front()));
         taskQueue.pop();
         lock.unlock();
 
-        task();
+        task.job();
+        task.prom.set_value();
     }
 }
 
@@ -32,12 +33,19 @@ void ThreadQueue::StopThread() {
     myThread = nullptr;
 }
 
-void ThreadQueue::AddTask(std::function<void()>&& task) {
+std::future<void> ThreadQueue::AddTask(std::function<void()>&& task) {
+    std::future<void> fut;
     {
         std::lock_guard<std::mutex> lock(taskQueueMutex);
-        taskQueue.emplace(std::move(task));
+        ThreadTask newTask;
+        newTask.job = std::move(task);
+
+        fut = newTask.prom.get_future();
+
+        taskQueue.emplace(std::move(newTask));
     }
     threadWorkCondition.notify_one();
+    return fut;
 }
 
 void ThreadQueuePeriodic::Run() {
@@ -47,11 +55,12 @@ void ThreadQueuePeriodic::Run() {
         if (!shouldRun) return;
 
         if (!taskQueue.empty()) {
-            const auto task(std::move(taskQueue.front()));
+            auto task(std::move(taskQueue.front()));
             taskQueue.pop();
             lock.unlock();
 
-            task();
+            task.job();
+            task.prom.set_value();
         }
 
         auto currentTime = std::chrono::system_clock::now();

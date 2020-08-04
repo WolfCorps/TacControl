@@ -1,0 +1,11 @@
+
+statr/stop radio transmission
+
+{
+	'cmd': ['Radio', 'Transmit'],
+	'args': {
+		'radioId': {radioRef.id},
+		'channel': {channel},
+		'tx': {isTransmitting}
+	}
+}

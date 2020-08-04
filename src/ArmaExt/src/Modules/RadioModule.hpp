@@ -5,46 +5,56 @@
 
 class JsonArchive;
 
-struct RadioFrequency {
-    std::string radioClass;
-    std::string currentFreq;
-    int currentChannel;
-    bool isTransmitting;
+struct TFARRadio {
+
+    struct RadioChannel {
+        std::string frequency;
+    };
 
 
-    RadioFrequency(std::string_view radClass, std::string_view freq): radioClass(radClass), currentFreq(freq) {}
-
+    std::string id;
+    std::string displayName;
+    int8_t currentChannel = -1;
+    int8_t currentAltChannel = -1;
+    //#TODO can receive on multiple channels..
+    bool rx = false; //receiving right now
+    //-1 == not sending
+    int8_t tx = -1; //sending right now
+    std::vector<RadioChannel> channels;
 
     void Serialize(JsonArchive& ar);
 };
 
 
-class RadioModule : public ThreadQueue, public IMessageReceiver {
+class RadioModule : public ThreadQueue, public IMessageReceiver, public IStateHolder {
 
-    std::vector<RadioFrequency> radios;
+    std::vector<TFARRadio> radios;
 
-
-    void DoNetworkUpdateRadio(RadioFrequency& radio);
+    void DoNetworkUpdateRadio(TFARRadio& radio);
     void OnRadioUpdate(const std::vector<std::string_view>& arguments);
     void OnRadioTransmit(const std::vector<std::string_view>& arguments);
 
-    std::vector<RadioFrequency>::iterator FindOrCreateRadioByClassname(std::string_view classname);
-
-
-
+    std::vector<TFARRadio>::iterator FindOrCreateRadioByClassname(std::string_view classname);
 public:
 
 
 
 
 
-
-    std::string_view GetMessageReceiverName() override { return "Radio"; }
+    //IMessageReceiver
+    std::string_view GetMessageReceiverName() override { return "Radio"sv; }
     void OnGameMessage(const std::vector<std::string_view>& function,
                        const std::vector<std::string_view>& arguments) override;
 
+    void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments) override;
 
-    void DoRadioTransmit(bool transmitting);
+    //IStateHolder
+    std::string_view GetStateHolderName() override { return "Radio"sv; };
+    void SerializeState(JsonArchive& ar) override;
+
+
+
+    void DoRadioTransmit(std::string_view radioId, int8_t channel, bool transmitting);
 
 };
 

@@ -62,7 +62,7 @@ if (_startTransmit) then {
                                     ([_radio, "displayName", ""] call TFAR_fnc_getWeaponConfigProperty) select [0, 40],  //#TODO MAX_RADIONAME_LEN
                                     ([_radio, "picture", ""] call TFAR_fnc_getWeaponConfigProperty)
                                 ],
-                            (_radio call TFAR_fnc_getSwChannel) + 1,
+                            _radioChannel + 1,
                             _currentFrequency
                         ];
 

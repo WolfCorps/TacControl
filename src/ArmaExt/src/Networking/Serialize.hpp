@@ -201,7 +201,7 @@ public:
 
 
     template <class Type>
-    typename std::enable_if<!has_Serialize<Type>::value && !std::is_convertible<Type, std::nullptr_t>::value>::type
+    typename std::enable_if<!has_Serialize<Type>::value>::type
         Serialize(const char* key, Type& value) {
         if (isReading) {
             value = (*pJson)[key].get<Type>();
@@ -223,7 +223,7 @@ public:
 
 
     template <class Type>
-    typename std::enable_if<has_Serialize<Type>::value && !std::is_convertible<Type, std::nullptr_t>::value>::type
+    typename std::enable_if<has_Serialize<Type>::value>::type
         Serialize(const char* key, const Type& value) {
         if (isReading) {
             __debugbreak(); //not possible
@@ -235,17 +235,6 @@ public:
         }
     }
 
-    template <class Type>
-    typename std::enable_if<!has_Serialize<Type>::value && !std::is_convertible<Type, std::nullptr_t>::value>::type
-        Serialize(const char* key, const Type& value) {
-        if (isReading) {
-            __debugbreak(); //not possible
-        }
-        else {
-            (*pJson)[key] = value;
-        }
-    }
-
     void Serialize(const char* key, std::string& value);
     void Serialize(const char* key, const std::string& value);
 
@@ -253,7 +242,7 @@ public:
     //serializeFunction - Function that is called for every element in the Array
     //************************************
     template <class Type, class Func>
-    void Serialize(const char* key, std::vector<Type>& value, Func& serializeFunction) {
+    void Serialize(const char* key, std::vector<Type>& value, Func&& serializeFunction) {
         auto& _array = (*pJson)[key];
         if (isReading) {
             if (!_array.is_array()) __debugbreak();
@@ -262,11 +251,11 @@ public:
             }
         }
         else {
-            value.forEach([&_array, &serializeFunction](auto&& value) {
+            for (auto& it : value) {
                 JsonArchive element;
-                serializeFunction(element, value);
+                serializeFunction(element, it);
                 _array.push_back(*element.pJson);
-                });
+            };
         }
     }
 
@@ -280,11 +269,11 @@ public:
         }
         else {
             auto& _array = (*pJson)[key];
-            value.for_each([&_array, &serializeFunction](auto&& value) {
+            for (auto& it : value){
                 JsonArchive element;
-                serializeFunction(element, value);
+                serializeFunction(element, it);
                 _array.push_back(*element.pJson);
-                });
+            };
         }
     }
 

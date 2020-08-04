@@ -9,17 +9,24 @@
 
 #include <fmt/format.h>
 
+#include "Networking/NetworkController.hpp"
+
 #undef SendMessage
 //#TODO Find out how windows.h gets in here
 
-void RadioFrequency::Serialize(JsonArchive& ar) {
-    ar.Serialize("radioClass", radioClass);
-    ar.Serialize("currentFreq", currentFreq);
+void TFARRadio::Serialize(JsonArchive& ar) {
+    ar.Serialize("id", id);
+    ar.Serialize("displayName", displayName);
     ar.Serialize("currentChannel", currentChannel);
-    ar.Serialize("isTransmitting", isTransmitting);
+    ar.Serialize("currentAltChannel", currentAltChannel);
+    ar.Serialize("rx", rx);
+    ar.Serialize("tx", tx);
+    ar.Serialize("channels", channels, [](JsonArchive& element, const RadioChannel& channel) {
+        *element.getRaw() = channel.frequency;
+    });
 }
 
-void RadioModule::DoNetworkUpdateRadio(RadioFrequency& radio) {
+void RadioModule::DoNetworkUpdateRadio(TFARRadio& radio) {
     JsonArchive ar;
     radio.Serialize(ar);
 
@@ -27,16 +34,27 @@ void RadioModule::DoNetworkUpdateRadio(RadioFrequency& radio) {
 }
 
 void RadioModule::OnRadioUpdate(const std::vector<std::string_view>& arguments) {
-    auto radioClass = arguments[0];
-    auto radioChannel = Util::parseArmaNumberToInt(arguments[1]);
-    auto radioFreq = arguments[2];
+    auto radioId = arguments[0];
 
-    auto found = FindOrCreateRadioByClassname(radioClass);
-    found->currentFreq = radioFreq;
-    found->currentChannel = radioChannel;
+    auto found = FindOrCreateRadioByClassname(radioId);
 
-    //#Network
-    DoNetworkUpdateRadio(*found);
+    if (found->displayName.empty())
+        found->displayName = radioId;
+
+    found->currentChannel = Util::parseArmaNumberToInt(arguments[1]);
+    found->currentAltChannel = Util::parseArmaNumberToInt(arguments[2]);
+
+
+    found->channels.clear();
+    auto radioChannels = Util::split(arguments[3], '\n');
+    std::transform(radioChannels.begin(), radioChannels.end(), std::back_inserter(found->channels), [](std::string_view freq)
+        {
+            TFARRadio::RadioChannel res;
+            res.frequency = freq;
+            return res;
+        });
+
+    GNetworkController.SendStateUpdate();
 }
 
 void RadioModule::OnRadioTransmit(const std::vector<std::string_view>& arguments) {
@@ -44,21 +62,25 @@ void RadioModule::OnRadioTransmit(const std::vector<std::string_view>& arguments
     auto radioChannel = arguments[1];
     auto radioStart = arguments[2];
     auto found = FindOrCreateRadioByClassname(radioClass);
-    found->currentChannel = Util::parseArmaNumberToInt(radioChannel);
-    found->isTransmitting = Util::isTrue(radioStart);
+    if (!Util::isTrue(radioStart)) {
+        found->tx = -1;
+    } else {
+        found->tx = Util::parseArmaNumberToInt(radioChannel);
+    }
 
-    DoNetworkUpdateRadio(*found);
+    GNetworkController.SendStateUpdate();
 }
 
-std::vector<RadioFrequency>::iterator RadioModule::FindOrCreateRadioByClassname(std::string_view classname) {
-    auto found = std::ranges::find_if(radios, [classname](const RadioFrequency& rad) {
-        return rad.radioClass == classname;
+std::vector<TFARRadio>::iterator RadioModule::FindOrCreateRadioByClassname(std::string_view classname) {
+    auto found = std::ranges::find_if(radios, [classname](const TFARRadio& rad) {
+        return rad.id == classname;
         });
 
     if (found != radios.end()) {
         return found;
     } else {
-        radios.emplace_back(RadioFrequency{ classname, "" });
+        radios.emplace_back(TFARRadio());
+        radios.back().id = classname;
         return radios.end() - 1;
     }
 }
@@ -72,28 +94,44 @@ void RadioModule::OnGameMessage(const std::vector<std::string_view>& function, c
 
     auto func = function[0];
     if (func == "RadioUpdate") {
-
         OnRadioUpdate(arguments);
-
-
     } else if (func == "Transmit") {
-
         OnRadioTransmit(arguments);
-
-
     } else if (func == "Test") {
-        DoRadioTransmit(true);
+
+        if (radios.empty()) return;
+        auto& radio = radios.front();
+
+        DoRadioTransmit(radio.id, radio.currentChannel, true);
     }
+}
+
+void RadioModule::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments) {
+
+    if (function[0] == "Transmit") {
+        std::string_view radioId = arguments["radioId"];
+        int8_t channel = arguments["channel"];
+        bool tx = arguments["tx"];
+
+        DoRadioTransmit(radioId, channel, tx);
+    }
+}
+
+void RadioModule::SerializeState(JsonArchive& ar) {
+
+    auto fut = AddTask([this, &ar]() {
+        ar.Serialize("radios", radios, [](JsonArchive& element, TFARRadio& radio) {
+            radio.Serialize(element);
+            });
+        });
+    fut.wait();
+}
 
 
 
+void RadioModule::DoRadioTransmit(std::string_view radioId, int8_t channel, bool transmitting) {
+    GGameManager.SendMessage("Radio.Cmd.Transmit", fmt::format("{}\n{}\n{}", radioId, channel, transmitting));
 
 }
 
-void RadioModule::DoRadioTransmit(bool transmitting) {
-    if (radios.empty()) return;
-    auto& radio = radios.front();
 
-    GGameManager.SendMessage("Radio.Cmd.Transmit", fmt::format("{}\n{}\n{}", radio.radioClass, 0, transmitting));
-
-}

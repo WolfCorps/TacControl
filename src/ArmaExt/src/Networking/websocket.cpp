@@ -1,5 +1,8 @@
 #include "websocket.hpp"
 
+
+#include <boost/asio/strand.hpp>
+#include <iostream>
 #include <mutex>
 #include <set>
 
@@ -15,6 +18,17 @@ join(websocket_session* session)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     sessions_.insert(session);
+
+
+    session->lastState = currentState;
+
+    nlohmann::json stateUpdate;
+    stateUpdate["cmd"] = "StateFull";
+    stateUpdate["data"] = session->lastState;
+
+    auto const ss = boost::make_shared<std::string const>(std::move(stateUpdate.dump()));
+
+    session->send(ss);
 }
 
 void
@@ -49,6 +63,41 @@ send(std::string message)
     for (auto const& wp : v)
         if (auto sp = wp.lock())
             sp->send(ss);
+}
+
+void shared_state::updateState(const nlohmann::json& newState)
+{
+
+    // Make a local list of all the weak pointers representing
+    // the sessions, so we can do the actual sending without
+    // holding the mutex:
+    std::vector<boost::weak_ptr<websocket_session>> v;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        v.reserve(sessions_.size());
+        for (auto p : sessions_)
+            v.emplace_back(p->weak_from_this());
+    }
+
+    currentState = newState;
+
+    // For each session in our local list, try to acquire a strong
+    // pointer. If successful, then send the message on that session.
+    for (auto const& wp : v)
+        if (auto sp = wp.lock()) {
+
+            auto diff = nlohmann::json::diff(sp->lastState, newState);
+            sp->lastState = newState;
+
+            nlohmann::json stateUpdate;
+            stateUpdate["cmd"] = "StateUpdate";
+            stateUpdate["data"] = diff;
+
+            auto const ss = boost::make_shared<std::string const>(std::move(stateUpdate.dump()));
+
+            sp->send(ss);
+        }
+
 }
 
 
@@ -168,8 +217,8 @@ template<
     };
 
     // Make sure we can handle the method
-    if (req.method() != http::verb::get &&
-        req.method() != http::verb::head)
+    //if (req.method() != http::verb::get &&
+    //    req.method() != http::verb::head)
         return send(bad_request("Unknown HTTP-method"));
 
     // Request path must be absolute and not contain "..".
@@ -407,7 +456,9 @@ on_read(beast::error_code ec, std::size_t)
         return fail(ec, "read");
 
     // Send to all connections
-    state_->send(beast::buffers_to_string(buffer_.data()));
+    //state_->send(beast::buffers_to_string(buffer_.data()));
+
+    state_->OnMessage(std::move(beast::buffers_to_string(buffer_.data())));
 
     // Clear the buffer
     buffer_.consume(buffer_.size());
@@ -574,13 +625,16 @@ Server::Server() {
 
     //https://github.com/boostorg/beast/blob/develop/example/websocket/server/chat-multi/main.cpp#L56
 
+    state_ = boost::make_shared<shared_state>(docroot);
+
+
     // Create and launch a listening port
     httpServ =
-        std::make_shared<listener>(
+        boost::make_shared<listener>(
             ioc,
             tcp::endpoint(tcp::v6(), 8082),
             //tcp::endpoint{ address, port },
-            boost::make_shared<shared_state>(docroot));
+            state_);
     httpServ->run();
 
     // Run the I/O service on the requested number of threads

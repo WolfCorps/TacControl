@@ -1,9 +1,13 @@
 #pragma once
 
+#include <span>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
 
+#include "nlohmann/json.hpp"
+
+class JsonArchive;
 class IMessageReceiver;
 
 extern "C"
@@ -40,8 +44,9 @@ public:
 
     void SendMessage(std::string_view function, std::string_view arguments);
     void SendMessageInternal(std::string_view function, const std::vector<std::string_view>& arguments);
+    void TransferNetworkMessage(std::vector<std::string_view>&& function, nlohmann::json&& arguments);
 
-
+    void CollectGameState(JsonArchive& ar);
 };
 
 

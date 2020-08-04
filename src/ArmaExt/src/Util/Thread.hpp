@@ -2,6 +2,7 @@
 #include "Module.hpp"
 #include <chrono>
 #include <functional>
+#include <future>
 #include <queue>
 #include <mutex>
 
@@ -19,9 +20,17 @@ public:
     virtual void StopThread() { shouldRun = false; };
 };
 
+class ThreadTask {
+public:
+    std::function<void()> job;
+    std::promise<void> prom;
+};
+
+
+
 class ThreadQueue : public Thread {
 protected:
-    std::queue<std::function<void()>> taskQueue;
+    std::queue<ThreadTask> taskQueue;
 
     std::condition_variable threadWorkCondition;
     std::mutex taskQueueMutex;
@@ -31,7 +40,7 @@ protected:
     void StopThread() override;
 
 public:
-    void AddTask(std::function<void()>&& task);
+    std::future<void> AddTask(std::function<void()>&& task);
 
 };
 

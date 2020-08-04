@@ -1,0 +1,16 @@
+
+
+
+Radio
+
+
+RadioUpdate
+  RadioID
+  CurrentChannel
+  CurrentAltChannel
+  ChannelFrequencies joinString "\n"
+  
+Transmit
+  RadioID
+  Channel
+  Start - bool (is this a start or a end?)

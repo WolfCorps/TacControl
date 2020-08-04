@@ -1,0 +1,33 @@
+<Window x:Class="TacControl.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TacControl"
+        mc:Ignorable="d"
+        Title="TacControl" Height="450" Width="800"
+        x:Name="MainWindowCtrl">
+    <Grid>
+        <ListView HorizontalAlignment="Left" Margin="10,10,0,10" Width="772" Name="RadiosBox"
+                  ItemsSource="{Binding gsRef.radio.radios, ElementName=MainWindowCtrl}" 
+                  >
+            <ListView.ItemTemplate>
+                <DataTemplate DataType="local:TFARRadio">
+                    <StackPanel Orientation="Vertical" Height="50">
+                        <StackPanel Orientation="Horizontal">
+                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="0"/>
+                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="1"/>
+                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="2"/>
+                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="3"/>
+                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="4"/>
+                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="5"/>
+                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="6"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+    </Grid>
+</Window>

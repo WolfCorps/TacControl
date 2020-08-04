@@ -1,0 +1,84 @@
+<UserControl x:Class="TacControl.RadioTransmitButtons"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TacControl"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="RadioTransmitButtonsCtrl">
+
+    <UserControl.Resources>
+        <!-- This style is used for buttons, to remove the WPF default 'animated' mouse over effect -->
+        <Style x:Key="MyButtonStyle" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="border" 
+                                BorderThickness="1"
+                                Padding="3,2" 
+                                BorderBrush="DarkGray" 
+                                CornerRadius="3" 
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="Black" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Button
+            Grid.Row="0"
+            Grid.Column="1"
+            Grid.RowSpan="2"
+            Content="STOP"
+            Name="TransmitStop"
+            PreviewMouseDown="TransmitStop_OnMouseDown"
+            Background="{Binding StopColor, ElementName=RadioTransmitButtonsCtrl}"
+            Style="{StaticResource MyButtonStyle}"
+        />
+        <Button
+            Grid.Row="0"
+            Grid.Column="0"
+            Name="TransmitLatch"
+            Content="LATCH"
+            PreviewMouseDown="TransmitLatch_OnMouseDown"
+            Background="{Binding LatchColor, ElementName=RadioTransmitButtonsCtrl, PresentationTraceSources.TraceLevel=High}"
+            Style="{StaticResource MyButtonStyle}"
+        />
+        <Button
+            Grid.Row="1"
+            Grid.Column="0"
+            Content="TX"
+            Name="TransmitSoft"
+            PreviewMouseDown="TransmitSoft_OnMouseLeftButtonDown"
+            PreviewMouseUp="TransmitSoft_OnMouseLeftButtonUp"
+            MouseLeave="TransmitSoft_OnMouseLeave"
+            Background="{Binding TXColor, ElementName=RadioTransmitButtonsCtrl}"
+            Style="{StaticResource MyButtonStyle}"
+        />
+
+    </Grid>
+
+
+
+</UserControl>
