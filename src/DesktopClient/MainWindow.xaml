@@ -8,9 +8,10 @@
         Title="TacControl" Height="450" Width="800"
         x:Name="MainWindowCtrl">
     <Grid>
+        <!--
         <ListView HorizontalAlignment="Left" Margin="10,10,0,10" Width="772" Name="RadiosBox"
                   ItemsSource="{Binding gsRef.radio.radios, ElementName=MainWindowCtrl}" 
-                  >
+        >
             <ListView.ItemTemplate>
                 <DataTemplate DataType="local:TFARRadio">
                     <StackPanel Orientation="Vertical" Height="50">
@@ -28,6 +29,7 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-
+        -->
+        <local:MapView></local:MapView>
     </Grid>
 </Window>
