@@ -13,6 +13,7 @@
 #include "Modules/RadioModule.hpp"
 #include "Modules/ModuleLogitechG15.hpp"
 #include "Modules/ModuleGPS.hpp"
+#include "Modules/ModuleMarker.hpp"
 
 int(*GameManager::extensionCallback)(char const* name, char const* function, char const* data);
 
@@ -51,6 +52,27 @@ namespace detail
 
     }
 
+    template<typename T>
+    typename std::enable_if<std::is_base_of_v<IPreInitReceiver, T>>::type
+        DoPreInit(T* module) {
+        module->OnGamePreInit();
+    }
+
+    template<typename T>
+    typename std::enable_if<!std::is_base_of_v<IPreInitReceiver, T>>::type
+        DoPreInit(T* module) {}
+
+    template<typename T>
+    typename std::enable_if<std::is_base_of_v<IPostInitReceiver, T>>::type
+        DoPostInit(T* module) {
+        module->OnGamePostInit();
+    }
+
+    template<typename T>
+    typename std::enable_if<!std::is_base_of_v<IPostInitReceiver, T>>::type
+        DoPostInit(T* module) {}
+
+
 
 }
 
@@ -65,16 +87,16 @@ void RVExtension(char* output, int outputSize, const char* function)
 		Logger::registerLogger(LoggerTypes::General, std::make_shared<FileLogger>("P:/TCGeneral.log"));
 
 
-#define MODULES_PREINIT(x) (G##x).PreInit();
-#define MODULES_INIT(x) (G##x).Init();
-#define MODULES_POSTINIT(x) (G##x).PostInit();
+#define MODULES_PREINIT(x) (G##x).ModulePreInit();
+#define MODULES_INIT(x) (G##x).ModuleInit();
+#define MODULES_POSTINIT(x) (G##x).ModulePostInit();
 #define MODULES_REGMSGRECV(x) \
     detail::RegisterReceiver(&(G##x), GGameManager.messageReceiverLookup);
 
-		MODULES_LIST(MODULES_PREINIT);
-		MODULES_LIST(MODULES_INIT);
-		MODULES_LIST(MODULES_POSTINIT);
-		MODULES_LIST(MODULES_REGMSGRECV);
+        MODULES_LIST(MODULES_PREINIT);
+        MODULES_LIST(MODULES_INIT);
+        MODULES_LIST(MODULES_POSTINIT);
+        MODULES_LIST(MODULES_REGMSGRECV);
 
 #undef MODULES_PREINIT
 #undef MODULES_INIT
@@ -82,9 +104,15 @@ void RVExtension(char* output, int outputSize, const char* function)
 #undef MODULES_REGMSGRECV
 
         GNetworkController.SendStateUpdate(); //Initialize initial state to be able to send FullState to connecting clients
-		
-
-	}
+	} else if (func == "preInit") {
+#define MODULES_PREINIT(x) detail::DoPreInit(&(G##x));
+        MODULES_LIST(MODULES_PREINIT);
+#undef MODULES_PREINIT
+	} else if (func == "postInit") {
+#define MODULES_POSTINIT(x) detail::DoPostInit(&(G##x));
+        MODULES_LIST(MODULES_POSTINIT);
+#undef MODULES_POSTINIT
+    }
 }
 
 int RVExtensionArgs(char* output, int outputSize, const char* function, const char** argv, int argc)

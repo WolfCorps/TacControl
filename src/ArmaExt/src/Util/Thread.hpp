@@ -15,7 +15,7 @@ protected:
     bool shouldRun = true;//don't need atomic here. believe me.
 
 public:
-    void Init() override;
+    void ModuleInit() override;
     virtual void Run() = 0;
     virtual void StopThread() { shouldRun = false; };
 };

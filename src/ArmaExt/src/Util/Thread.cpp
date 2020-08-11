@@ -1,6 +1,6 @@
 #include "Thread.hpp"
 
-void Thread::Init() {
+void Thread::ModuleInit() {
     myThread = std::make_unique<std::thread>(&Thread::Run, this);
 }
 

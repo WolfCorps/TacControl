@@ -51,7 +51,7 @@ void ModuleLogitechG15::Run() {
 }
 
 
-void ModuleLogitechG15::Init() {
+void ModuleLogitechG15::ModuleInit() {
 
     char path[MAX_PATH];
     HMODULE hm = NULL;
@@ -93,6 +93,6 @@ void ModuleLogitechG15::Init() {
     if (!LogiLcdIsConnected(LOGI_LCD_TYPE_MONO)) return;
 
 
-    Thread::Init();
+    Thread::ModuleInit();
 
 }

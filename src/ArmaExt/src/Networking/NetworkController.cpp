@@ -6,7 +6,7 @@
 #include "Util/Logger.hpp"
 #include "websocket.hpp"
 
-void NetworkController::Init() {
+void NetworkController::ModuleInit() {
 
     wsServer = new Server();
     wsServer->state_->OnMessage.connect([this](const std::string& message) {
@@ -22,7 +22,7 @@ void NetworkController::Init() {
             GGameManager.TransferNetworkMessage(std::move(command), std::move(msg["args"]));
         }
     });
-    ThreadQueue::Init();
+    ThreadQueue::ModuleInit();
 }
 
 

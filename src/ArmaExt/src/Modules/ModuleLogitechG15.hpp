@@ -5,7 +5,7 @@ class ModuleLogitechG15 : public Thread {
 
 public:
     void Run() override;
-    void Init() override;
+    void ModuleInit() override;
 };
 
 

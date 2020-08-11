@@ -12,9 +12,9 @@ class JsonArchive;
 class IModule {
 public:
     virtual ~IModule() = default;
-    virtual void PreInit() {}
-    virtual void Init() = 0;
-    virtual void PostInit() {}
+    virtual void ModulePreInit() {}
+    virtual void ModuleInit() = 0;
+    virtual void ModulePostInit() {}
 };
 
 class IMessageReceiver {
@@ -31,6 +31,15 @@ public:
     virtual void SerializeState(JsonArchive& ar) = 0;
 };
 
+class IPreInitReceiver {
+public:
+    virtual void OnGamePreInit() = 0;
+};
+
+class IPostInitReceiver {
+public:
+    virtual void OnGamePostInit() = 0;
+};
 
 
 #define MODULES_LIST(X)\
@@ -38,3 +47,4 @@ public:
     X(RadioModule) \
     X(ModuleLogitechG15) \
     X(ModuleGPS) \
+    X(ModuleMarker) \

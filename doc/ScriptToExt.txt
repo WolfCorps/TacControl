@@ -9,21 +9,38 @@ RadioUpdate
   CurrentChannel
   CurrentAltChannel
   ChannelFrequencies joinString "\n"
-  
+
 Transmit
   RadioID
   Channel
   Start - bool (is this a start or a end?)
-  
-  
-  
-  
+
+
+
+
 GPS
-  
+
   TrackerUpdate
     Array
       ID
       Position Vec3
       Velocity Vec3
 
-  
+Markers
+    MarkerTypes
+        markerTypes - array joined by \t
+            markerType - array joined by \n
+                name
+                color
+                size
+                icon
+                shadow
+        markerColors - array joined by \t
+            markerColor - array joined by \n
+                name
+                color - array RGBA
+        markerBrushes - array joined by \t
+            markerBrush - array joined by \n
+                name
+                texture
+                drawBorder - number 0/1
