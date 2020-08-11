@@ -1,7 +1,10 @@
 #pragma once
+#include <stdexcept>
 #include <string_view>
 #include <vector>
+#include <cmath>
 
+class JsonArchive;
 using namespace std::string_view_literals;
 
 namespace Util
@@ -67,7 +70,60 @@ namespace Util
     }
 
 
+    struct string_hash {
+        using is_transparent = void;
+        [[nodiscard]] size_t operator()(std::string_view txt) const { return std::hash<std::string_view>{}(txt); }
+        [[nodiscard]] size_t operator()(const std::string& txt) const { return std::hash<std::string>{}(txt); }
+    };
+
+
+
+
 }
 
 
 
+class Vector3D {
+public:
+    Vector3D() = default;
+    Vector3D(float x, float y, float z);
+    Vector3D(const std::vector<float>& vec);
+    Vector3D(std::string_view coordinateString);
+    Vector3D(Vector3D&& vec) noexcept : m_x(vec.m_x), m_y(vec.m_y), m_z(vec.m_z) {};
+    Vector3D(const Vector3D& vec) = default;
+
+    std::tuple<float, float, float> get() const; //#TODO instead of using get.. how about operator[] ?
+    float& operator[](int offs) {
+        switch (offs) {
+        case 0: return m_x;
+        case 1: return m_y;
+        case 2: return m_z;
+        default: throw std::out_of_range("Index out of range. A 3D vector only has 3 values.");
+        }
+    }
+    std::string toString() const;
+
+
+    float length() const;
+    float lengthSqr() const;
+    float dotProduct(const Vector3D& other) const;
+    Vector3D crossProduct(const Vector3D& other) const;
+    Vector3D normalized() const;
+    bool isNull() const;
+    Vector3D operator*(float multiplier) const {
+        return{ m_x * multiplier,m_y * multiplier ,m_z * multiplier };
+    }
+    Vector3D& operator=(const Vector3D& other) = default;
+    Vector3D operator-(const Vector3D& other) const;
+    Vector3D operator+(const Vector3D& other) const;
+    bool operator< (const Vector3D& other) const;
+    bool operator== (const Vector3D& other) const;
+    Vector3D operator/(float div) const;
+
+    void Serialize(JsonArchive& ar);
+
+protected:
+    float m_x = 0.f;
+    float m_y = 0.f;
+    float m_z = 0.f;
+};

@@ -44,7 +44,7 @@ public:
 
 };
 
-class ThreadQueuePeriodic final : public ThreadQueue {
+class ThreadQueuePeriodic : public ThreadQueue {
 protected:
     struct PeriodicTask {
         std::chrono::system_clock::time_point nextExecute;

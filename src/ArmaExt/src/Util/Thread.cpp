@@ -57,7 +57,6 @@ void ThreadQueuePeriodic::Run() {
         if (!taskQueue.empty()) {
             auto task(std::move(taskQueue.front()));
             taskQueue.pop();
-            lock.unlock();
 
             task.job();
             task.prom.set_value();
@@ -96,6 +95,7 @@ void ThreadQueuePeriodic::RemovePeriodicTask(std::string_view taskName) {
         });
 
     if (periodicTasks.empty()) {
+        lockPeriodic.unlock();
         std::unique_lock<std::mutex> lock(taskQueueMutex);
         periodicDuration = 1000ms;
         return;
@@ -107,6 +107,7 @@ void ThreadQueuePeriodic::RemovePeriodicTask(std::string_view taskName) {
             return l.interval < r.interval;
         });
 
+    lockPeriodic.unlock();
     std::unique_lock<std::mutex> lock(taskQueueMutex);
     periodicDuration = minInterval->interval;
 }

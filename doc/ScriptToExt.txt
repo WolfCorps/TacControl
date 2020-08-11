@@ -14,3 +14,16 @@ Transmit
   RadioID
   Channel
   Start - bool (is this a start or a end?)
+  
+  
+  
+  
+GPS
+  
+  TrackerUpdate
+    Array
+      ID
+      Position Vec3
+      Velocity Vec3
+
+  

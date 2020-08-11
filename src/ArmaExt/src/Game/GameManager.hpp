@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "nlohmann/json.hpp"
+#include "Util/Util.hpp"
 
 class JsonArchive;
 class IMessageReceiver;
@@ -28,15 +29,8 @@ class GameManager {
 
     friend __declspec(dllexport) void RVExtension(char* output, int outputSize, const char* function);
 
-    struct string_hash {
-        using is_transparent = void;
-        [[nodiscard]] size_t operator()(std::string_view txt) const { return std::hash<std::string_view>{}(txt); }
-        [[nodiscard]] size_t operator()(const std::string& txt) const { return std::hash<std::string>{}(txt); }
-    };
 
-
-
-    std::unordered_map<std::string, IMessageReceiver*, string_hash, std::equal_to<>> messageReceiverLookup;
+    std::unordered_map<std::string, IMessageReceiver*, Util::string_hash, std::equal_to<>> messageReceiverLookup;
 
 
 public:

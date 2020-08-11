@@ -12,7 +12,7 @@
 #include "Util/Util.hpp"
 #include "Modules/RadioModule.hpp"
 #include "Modules/ModuleLogitechG15.hpp"
-#
+#include "Modules/ModuleGPS.hpp"
 
 int(*GameManager::extensionCallback)(char const* name, char const* function, char const* data);
 
@@ -81,7 +81,7 @@ void RVExtension(char* output, int outputSize, const char* function)
 #undef MODULES_POSTINIT
 #undef MODULES_REGMSGRECV
 
-
+        GNetworkController.SendStateUpdate(); //Initialize initial state to be able to send FullState to connecting clients
 		
 
 	}

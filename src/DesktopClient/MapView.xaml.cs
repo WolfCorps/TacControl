@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -33,6 +34,7 @@ using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Mapsui.Widgets.Zoom;
 using SkiaSharp;
+using Brush = Mapsui.Styles.Brush;
 using Color = Mapsui.Styles.Color;
 using Geometry = Mapsui.Geometries.Geometry;
 using LineStringRenderer = Mapsui.Rendering.Skia.LineStringRenderer;
@@ -49,6 +51,9 @@ namespace TacControl
     /// </summary>
     public partial class MapView : UserControl
     {
+
+        private Layer GPSTrackerLayer = new Mapsui.Layers.Layer("GPS Trackers");
+
         public MapView()
         {
             InitializeComponent();
@@ -75,7 +80,6 @@ namespace TacControl
             public string name;
             public string content;
         }
-  
 
         public List<SvgLayer> ParseLayers()
         {
@@ -127,8 +131,6 @@ namespace TacControl
 
             return ret;
         }
-
-
 
         private static XmlParserContext CreateSvgXmlContext()
         {
@@ -189,6 +191,12 @@ namespace TacControl
             MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = svgRender;
             MapControl.Map.Limiter = new ViewportLimiter();
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, 8192, 8192);
+
+            GPSTrackerLayer.IsMapInfoLayer = true;
+            GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer);
+            MapControl.Map.Layers.Add(GPSTrackerLayer);
+            GPSTrackerLayer.DataChanged += (a,b) => MapControl.RefreshData();
+
             LayerList.Initialize(MapControl.Map.Layers);
             //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
             //MapControl.Navigator.ZoomTo(1, new Point(512,512), 5);
@@ -218,10 +226,6 @@ namespace TacControl
 
 
     }
-
-
-
-
 
 
     public class BoundBox : Mapsui.Geometries.Geometry
@@ -310,10 +314,127 @@ namespace TacControl
 
     public class SvgStyle: VectorStyle
     {
-        public SkiaSharp.Extended.Svg.SKSvg image;
+        public SkiaSharp.Extended.Svg.SKSvg image; //#TODO https://github.com/wieslawsoltes/Svg.Skia
     }
 
 
+
+    public class GPSTrackerProvider : IProvider, IDisposable
+    {
+        public Layer GpsTrackerLayer { get; private set; }
+        private BoundingBox _boundingBox;
+
+        public string CRS { get; set; }
+
+        private Dictionary<string, IFeature> features = new Dictionary<string, IFeature>();
+
+
+        public GPSTrackerProvider(Layer gpsTrackerLayer)
+        {
+            GpsTrackerLayer = gpsTrackerLayer;
+            this.CRS = "";
+            //this._boundingBox = MemoryProvider.GetExtents(this.Features);
+            GameState.Instance.gps.trackers.CollectionChanged += (a,e) => OnTrackersUpdated();
+
+            GameState.Instance.gps.PropertyChanged += (a, e) =>
+            {
+                if (e.PropertyName == nameof(ModuleGPS.trackers) && GameState.Instance.gps.trackers != null)
+                {
+                    GameState.Instance.gps.trackers.CollectionChanged += (b, c) => OnTrackersUpdated();
+                    OnTrackersUpdated();
+                }
+                   
+            };
+
+
+
+            //#TODO Also need EH on gps itself, I think the collection is initialized with a new one, without EH
+            OnTrackersUpdated();
+        }
+
+        private void OnTrackersUpdated()
+        {
+            foreach (var keyValuePair in GameState.Instance.gps.trackers)
+            {
+                IFeature feature;
+
+                if (!features.ContainsKey(keyValuePair.Key))
+                //{
+                //    feature = features[keyValuePair.Key];
+                //}
+                //else
+                {
+                    feature = new Feature { ["Label"] = keyValuePair.Value.displayName };
+
+                    var content = new StringReader(
+                        @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""36"" height=""56""><path d=""M18 .34C8.325.34.5 8.168.5 17.81c0 3.339.962 6.441 2.594 9.094H3l7.82 15.117L18 55.903l7.187-13.895L33 26.903h-.063c1.632-2.653 2.594-5.755 2.594-9.094C35.531 8.169 27.675.34 18 .34zm0 9.438a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z"" fill=""#00b100""/></svg>");
+                    var bitmapId = BitmapRegistry.Instance.Register(content);
+                    var symStyle = new SymbolStyle { BitmapId = bitmapId, SymbolScale = 0.5, SymbolOffset = new Offset(0.0, 0.5, true) };
+
+
+                    //feature.Styles.Add(symStyle);
+                    feature.Styles.Add(new Mapsui.Styles.LabelStyle { Text = keyValuePair.Key, BackColor = new Brush(Color.Red)});
+                    feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
+                    features[keyValuePair.Key] = feature;
+
+                    keyValuePair.Value.PropertyChanged += (a, e) =>
+                    {
+                        if (e.PropertyName == nameof(GPSTracker.displayName))
+                        {
+                            feature["Label"] = keyValuePair.Value.displayName;
+                            GpsTrackerLayer.DataHasChanged();
+                        }
+                            
+                        else if (e.PropertyName == nameof(GPSTracker.pos))
+                        {
+                            feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
+                            GpsTrackerLayer.DataHasChanged();
+                        }
+                    };
+                }
+            } 
+
+            var toRemove = features.Where(x => !GameState.Instance.gps.trackers.ContainsKey(x.Key)).Select(x => x.Key)
+                .ToList();
+
+            toRemove.ForEach(x => features.Remove(x));
+
+            GpsTrackerLayer.DataHasChanged();
+        }
+
+        public virtual IEnumerable<IFeature> GetFeaturesInView(
+          BoundingBox box,
+          double resolution)
+        {
+            if (box == null)
+                throw new ArgumentNullException(nameof(box));
+ 
+            BoundingBox grownBox = box.Grow(resolution);
+
+            return features.Values.Where(f => f.Geometry != null && f.Geometry.BoundingBox.Intersects(grownBox)).ToList();
+        }
+
+        public BoundingBox GetExtents()
+        {
+            return this._boundingBox;
+        }
+
+        private static BoundingBox GetExtents(IReadOnlyList<IFeature> features)
+        {
+            BoundingBox boundingBox = (BoundingBox)null;
+            foreach (IFeature feature in (IEnumerable<IFeature>)features)
+            {
+                if (!feature.Geometry.IsEmpty())
+                    boundingBox = boundingBox == null ? feature.Geometry.BoundingBox : boundingBox.Join(feature.Geometry.BoundingBox);
+            }
+            return boundingBox;
+        }
+
+        public void Dispose()
+        {
+
+        }
+    }
 
 
 

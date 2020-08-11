@@ -109,6 +109,7 @@ public:
             }
         }
         else {
+            if (value.empty()) _array = nlohmann::json::array();
             value.for_each([&_array](Type& value) {
                 JsonArchive element;
                 value.Serialize(element);
@@ -130,6 +131,7 @@ public:
             }
         }
         else {
+            if (value.empty()) _array = nlohmann::json::array();
             for (auto&& it : value) {
                 JsonArchive element;
                 ::Serialize(*it, element);
@@ -153,6 +155,8 @@ public:
             }
         }
         else {
+			if (value.empty()) _array = nlohmann::json::array();
+            if (value.empty()) _array = nlohmann::json::array();
             for (Type& it : value) {
                 if constexpr (std::is_convertible_v<Type, r_string>)
                     _array.push_back(it.data());
@@ -177,6 +181,7 @@ public:
             }
         }
         else {
+			if (value.empty()) _array = nlohmann::json::array();
             for (Type& it : value) {
                 JsonArchive element;
                 it.Serialize(element);
@@ -251,6 +256,7 @@ public:
             }
         }
         else {
+			if (value.empty()) _array = nlohmann::json::array();
             for (auto& it : value) {
                 JsonArchive element;
                 serializeFunction(element, it);
@@ -269,9 +275,29 @@ public:
         }
         else {
             auto& _array = (*pJson)[key];
+			if (value.empty()) _array = nlohmann::json::array();
             for (auto& it : value){
                 JsonArchive element;
                 serializeFunction(element, it);
+                _array.push_back(*element.pJson);
+            };
+        }
+    }
+
+    //************************************
+    //serializeFunction - Function that is called for every element in the Array
+    //************************************
+    template <class Type, class Type2, class Func>
+    void Serialize(const char* key, std::map<Type, Type2>& value, Func&& serializeFunction) {
+        if (isReading) {
+            __debugbreak(); //not possible
+        }
+        else {
+            auto& _array = (*pJson)[key];
+			if (value.empty()) _array = nlohmann::json::object();
+            for (auto& [key, value] : value) {
+                JsonArchive element;
+                serializeFunction(element, key, value);
                 _array.push_back(*element.pJson);
             };
         }

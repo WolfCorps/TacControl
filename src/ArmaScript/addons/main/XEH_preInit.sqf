@@ -10,6 +10,7 @@ ADDON = true;
 
 
 call TC_main_fnc_Radio_preInit;
+call TC_main_fnc_GPS_preInit;
 
 
 addMissionEventHandler ["ExtensionCallback", {
@@ -23,5 +24,9 @@ addMissionEventHandler ["ExtensionCallback", {
 	if (_function#0 == "Radio") then {
 		_function = _function select [1, 9999];
 		[_function, _arguments] call TC_main_fnc_Radio_onMessage;
-	}
+	};
+    if (_function#0 == "GPS") then {
+		_function = _function select [1, 9999];
+		[_function, _arguments] call TC_main_fnc_GPS_onMessage;
+	};
 }];
