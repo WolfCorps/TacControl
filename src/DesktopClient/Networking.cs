@@ -129,8 +129,6 @@ namespace TacControl
 
     public class GPSTracker : INotifyPropertyChanged
     {
-      
-
         public string id { get; set; }
         //[JsonConverter(typeof(DenseVectorConverter))]
         //public Vector3 pos { get; set; }
@@ -301,41 +299,6 @@ namespace TacControl
     }
 
 
-    struct MarkerType
-    {
-        std::string name;
-        std::string color;
-        uint32_t size;
-        bool shadow;
-        std::string icon;
-
-        void Serialize(JsonArchive& ar);
-    };
-
-    std::map<std::string, MarkerType, std::less<>> markerTypes;
-
-    struct MarkerColor
-    {
-        std::string name;
-        std::string color;
-
-        void Serialize(JsonArchive& ar);
-    };
-
-    std::map<std::string, MarkerColor, std::less<>> markerColors;
-
-    struct MarkerBrush
-    {
-        std::string name;
-        std::string texture;
-        bool drawBorder;
-
-        void Serialize(JsonArchive& ar);
-    };
-
-
-
-
     public class ModuleMarker : INotifyPropertyChanged
     {
         public class MarkerType
@@ -360,9 +323,44 @@ namespace TacControl
             public bool drawBorder { get; set; }
         }
 
+        public class ActiveMarker : INotifyPropertyChanged
+        {
+            public string id { get; set; }
+            public string type { get; set; }
+            public string color { get; set; }
+            public float dir { get; set; }
+            public ObservableCollection<float> pos { get; set; } = new ObservableCollection<float> { };
+            public string text { get; set; }
+            public string shape { get; set; }
+            public float alpha { get; set; }
+            public string brush { get; set; }
+
+            ActiveMarker()
+            {
+                pos.CollectionChanged += (a, e) =>
+                {
+                    if (pos.Count > 3) //#TODO this is stupid, need Vector3 support
+                        pos.RemoveAt(0);
+                    OnPropertyChanged("pos");
+                };
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            [NotifyPropertyChangedInvocator]
+            protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+
+
+
         public ObservableDictionary<string, MarkerType> markerTypes { get; set; } = new ObservableDictionary<string, MarkerType>();
         public ObservableDictionary<string, MarkerColor> markerColors { get; set; } = new ObservableDictionary<string, MarkerColor>();
         public ObservableDictionary<string, MarkerBrush> markerBrushes { get; set; } = new ObservableDictionary<string, MarkerBrush>();
+        public ObservableDictionary<string, ActiveMarker> markers { get; set; } = new ObservableDictionary<string, ActiveMarker>();
 
 
         public event PropertyChangedEventHandler PropertyChanged;

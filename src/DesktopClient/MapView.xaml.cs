@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -54,6 +55,7 @@ namespace TacControl
     {
 
         private Layer GPSTrackerLayer = new Mapsui.Layers.Layer("GPS Trackers");
+        private Layer MapMarkersLayer = new Mapsui.Layers.Layer("Map Markers");
 
         public MapView()
         {
@@ -197,6 +199,13 @@ namespace TacControl
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer);
             MapControl.Map.Layers.Add(GPSTrackerLayer);
             GPSTrackerLayer.DataChanged += (a,b) => MapControl.RefreshData();
+
+            MapMarkersLayer.IsMapInfoLayer = true;
+            MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer);
+            MapControl.Map.Layers.Add(MapMarkersLayer);
+            MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
+
+
 
             LayerList.Initialize(MapControl.Map.Layers);
             //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
@@ -367,11 +376,11 @@ namespace TacControl
                 {
                     feature = new Feature { ["Label"] = keyValuePair.Value.displayName };
 
-                    var content2 = new StringReader(
-                        @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""36"" height=""56""><path d=""M18 .34C8.325.34.5 8.168.5 17.81c0 3.339.962 6.441 2.594 9.094H3l7.82 15.117L18 55.903l7.187-13.895L33 26.903h-.063c1.632-2.653 2.594-5.755 2.594-9.094C35.531 8.169 27.675.34 18 .34zm0 9.438a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z"" fill=""#00b100""/></svg>");
-                    var bitmapId2 = BitmapRegistry.Instance.Register(content2);
+                    //var content2 = new StringReader(
+                    //    @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""36"" height=""56""><path d=""M18 .34C8.325.34.5 8.168.5 17.81c0 3.339.962 6.441 2.594 9.094H3l7.82 15.117L18 55.903l7.187-13.895L33 26.903h-.063c1.632-2.653 2.594-5.755 2.594-9.094C35.531 8.169 27.675.34 18 .34zm0 9.438a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z"" fill=""#00b100""/></svg>");
+                    //var bitmapId2 = BitmapRegistry.Instance.Register(content2);
                     // BitmapId = bitmapId,
-                    var symStyle = new SymbolStyle { BitmapId = bitmapId2, SymbolScale = 0.5, SymbolOffset = new Offset(0.0, 0, true) };
+                    var symStyle = new SymbolStyle {  SymbolScale = 0.5, SymbolOffset = new Offset(0.0, 0, true) };
                     //Mapsui.Rendering.Skia.ImageStyleRenderer
                     ImageDirectory.Instance.GetImage("\\A3\\ui_f\\data\\map\\markers\\flags\\Germany_ca.paa")
                     //ImageDirectory.Instance.GetImage("\\a3\\ui_f\\data\\IGUI\\RscTitles\\HealthTextures\\PPFXblood_lens_ca.paa")
@@ -388,9 +397,13 @@ namespace TacControl
                                 //data.SaveTo(output);
                                 //output.Close();
                                 var content = new MemoryStream(data.ToArray());
-                                var bitmapId = BitmapRegistry.Instance.Register(content);
+                                int bitmapId;
+                                lock (BitmapRegistry.Instance)
+                                {
+                                    bitmapId = BitmapRegistry.Instance.Register(content);
+                                }
 
-                                var but = BitmapHelper.LoadBitmap(BitmapRegistry.Instance.Get(bitmapId));
+                                //var but = BitmapHelper.LoadBitmap(BitmapRegistry.Instance.Get(bitmapId));
 
                                 symStyle.BitmapId = bitmapId;
                                 
@@ -465,6 +478,168 @@ namespace TacControl
     }
 
 
+    public class MapMarkerProvider : IProvider, IDisposable
+    {
+        public Layer MapMarkerLayer { get; private set; }
+        private BoundingBox _boundingBox;
+
+        public string CRS { get; set; }
+
+        private Dictionary<string, IFeature> features = new Dictionary<string, IFeature>();
+
+
+        public MapMarkerProvider(Layer mapMarkerLayer)
+        {
+            MapMarkerLayer = mapMarkerLayer;
+            this.CRS = "";
+            //this._boundingBox = MemoryProvider.GetExtents(this.Features);
+            GameState.Instance.marker.markers.CollectionChanged += (a, e) => OnMarkersUpdated();
+
+            GameState.Instance.marker.PropertyChanged += (a, e) => //#TODO probably don't need this anymore, same on GPSTracker
+            {
+                if (e.PropertyName == nameof(ModuleMarker.markers) && GameState.Instance.marker.markers != null)
+                {
+                    GameState.Instance.marker.markers.CollectionChanged += (b, c) => OnMarkersUpdated();
+                    OnMarkersUpdated();
+                }
+
+            };
+
+
+            OnMarkersUpdated();
+        }
+
+        private void OnMarkersUpdated()
+        {
+            foreach (var keyValuePair in GameState.Instance.marker.markers)
+            {
+
+                IFeature feature;
+
+                if (!features.ContainsKey(keyValuePair.Key)) {
+
+                    var marker = keyValuePair.Value;
+                    if (!GameState.Instance.marker.markerTypes.ContainsKey(marker.type)) continue;
+                    var markerType = GameState.Instance.marker.markerTypes[marker.type];
+                    var markerColor = GameState.Instance.marker.markerColors[marker.color];
+
+
+
+                    feature = new Feature { ["Label"] = marker.text };
+
+                    var symStyle = new SymbolStyle { SymbolScale = 0.5,
+                        SymbolOffset = new Offset(0.0, 0, true),
+                        Fill = null,
+                        Outline = null,
+                        Line = null,
+                        SymbolType = SymbolType.Rectangle,
+                        SymbolRotation = marker.dir
+                        
+                    };
+                    ImageDirectory.Instance.GetImage(markerType.icon)
+                        .ContinueWith(
+                            (x) =>
+                            {
+                                var image = (x.Result as ImageDirectory.Bitmap).bmp.ToSKImage();
+
+
+
+                                var colorArr = markerColor.color.Trim('[', ']').Split(',').Select(yx => float.Parse(yx)).ToList();
+
+                                image = image.ApplyImageFilter(
+                                    SkiaSharp.SKImageFilter.CreateColorFilter(
+                                        SkiaSharp.SKColorFilter.CreateLighting(new SKColor( (byte)(colorArr[0]*255), (byte)(colorArr[1] * 255), (byte)(colorArr[2] * 255)), new SKColor(0, 0, 0))
+                                    ),
+                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                    out var outSUbs,
+                                    out SKPoint outoffs);
+
+                                var content = new MemoryStream(image.Encode().ToArray());
+                                int bitmapId;
+                                lock (BitmapRegistry.Instance)
+                                {
+                                    bitmapId = BitmapRegistry.Instance.Register(content);
+                                }
+                                
+                                //var but = BitmapHelper.LoadBitmap(BitmapRegistry.Instance.Get(bitmapId));
+                                symStyle.BitmapId = bitmapId;
+                            });
+
+
+                    feature.Styles.Add(symStyle);
+                    feature.Styles.Add(new Mapsui.Styles.LabelStyle { Text = marker.text, BackColor = null ,Offset = new Offset(1.2, 0, true), Halo = null});
+                    feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
+                    features[keyValuePair.Key] = feature;
+
+                    keyValuePair.Value.PropertyChanged += (a, e) =>
+                    {
+                        if (e.PropertyName == nameof(ModuleMarker.ActiveMarker.text))
+                        {
+                            feature["Label"] = keyValuePair.Value.text;
+                            //#TODO update Label style
+                            foreach (var label in feature.Styles.Where(x => x is LabelStyle))
+                                (label as LabelStyle).Text = keyValuePair.Value.text;
+
+                            MapMarkerLayer.DataHasChanged();
+                        }
+
+                        else if (e.PropertyName == nameof(ModuleMarker.ActiveMarker.pos))
+                        {
+                            feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
+                            MapMarkerLayer.DataHasChanged();
+                        }
+                        else if (e.PropertyName == nameof(ModuleMarker.ActiveMarker.dir))
+                        {
+                            foreach (var sym in feature.Styles.Where(x => x is SymbolStyle))
+                                (sym as SymbolStyle).SymbolRotation = keyValuePair.Value.dir;
+                            MapMarkerLayer.DataHasChanged();
+                        }
+                    };
+                }
+            }
+
+            var toRemove = features.Where(x => !GameState.Instance.marker.markers.ContainsKey(x.Key)).Select(x => x.Key)
+                .ToList();
+
+            toRemove.ForEach(x => features.Remove(x));
+
+            MapMarkerLayer.DataHasChanged();
+        }
+
+        public virtual IEnumerable<IFeature> GetFeaturesInView(
+          BoundingBox box,
+          double resolution)
+        {
+            if (box == null)
+                throw new ArgumentNullException(nameof(box));
+
+            BoundingBox grownBox = box.Grow(resolution);
+
+            return features.Values.Where(f => f.Geometry != null && f.Geometry.BoundingBox.Intersects(grownBox)).ToList();
+        }
+
+        public BoundingBox GetExtents()
+        {
+            return this._boundingBox;
+        }
+
+        private static BoundingBox GetExtents(IReadOnlyList<IFeature> features)
+        {
+            BoundingBox boundingBox = (BoundingBox)null;
+            foreach (IFeature feature in (IEnumerable<IFeature>)features)
+            {
+                if (!feature.Geometry.IsEmpty())
+                    boundingBox = boundingBox == null ? feature.Geometry.BoundingBox : boundingBox.Join(feature.Geometry.BoundingBox);
+            }
+            return boundingBox;
+        }
+
+        public void Dispose()
+        {
+
+        }
+    }
 
 
 }

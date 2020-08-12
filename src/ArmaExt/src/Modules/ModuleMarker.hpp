@@ -1,6 +1,7 @@
 #pragma once
 #include "Util/Module.hpp"
 #include "Util/Thread.hpp"
+#include "Util/Util.hpp"
 
 
 class JsonArchive;
@@ -14,6 +15,8 @@ class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateH
         uint32_t size;
         bool shadow;
         std::string icon;
+
+        void Serialize(JsonArchive& ar);
     };
 
     std::map<std::string, MarkerType, std::less<>> markerTypes;
@@ -21,6 +24,8 @@ class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateH
     struct MarkerColor {
         std::string name;
         std::string color;
+
+        void Serialize(JsonArchive& ar);
     };
 
     std::map<std::string, MarkerColor, std::less<>> markerColors;
@@ -29,10 +34,27 @@ class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateH
         std::string name;
         std::string texture;
         bool drawBorder;
+
+        void Serialize(JsonArchive& ar);
     };
 
     std::map<std::string, MarkerBrush, std::less<>> markerBrushes;
 
+    struct ActiveMarker {
+        std::string id;
+        std::string type;
+        std::string color;
+        float dir;
+        Vector3D pos;
+        std::string text;
+        std::string shape; //#TODO enum
+        float alpha;
+        std::string brush;
+
+        void Serialize(JsonArchive& ar);
+    };
+
+    std::map<std::string, ActiveMarker, std::less<>> markers;
 public:
 
 
@@ -41,7 +63,10 @@ public:
 
     //IMessageReceiver
     std::string_view GetMessageReceiverName() override { return "Marker"sv; }
-    void OnMarkerTypesRetrieved(const std::vector<std::basic_string_view<char>>& cses_);
+    void OnMarkerTypesRetrieved(const std::vector<std::basic_string_view<char>>& arguments);
+    void OnMarkerDeleted(const std::vector<std::basic_string_view<char>>& arguments);
+    void OnMarkerCreated(const std::vector<std::basic_string_view<char>>& arguments);
+    void OnMarkerUpdated(const std::vector<std::basic_string_view<char>>& arguments);
     void OnGameMessage(const std::vector<std::string_view>& function,
                        const std::vector<std::string_view>& arguments) override;
 

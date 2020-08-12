@@ -18,7 +18,7 @@ if (_function#0 == "Cmd") then {
                 private _markerTypeInfo = [_className, _name, _color, _size, _icon, _shadow];
                 _markerTypes pushBack (_markerTypeInfo joinString toString[10]);
 
-            } forEach ("getNumber (_x >> 'scope') == 2" configClasses (configFile >> "CfgMarkers"));
+            } forEach ("getNumber (_x >> 'scope') > 0" configClasses (configFile >> "CfgMarkers"));
 
 
             private _markerColors = [];
@@ -31,7 +31,7 @@ if (_function#0 == "Cmd") then {
                 private _markerTypeInfo = [_className, _name, _color];
                 _markerColors pushBack (_markerTypeInfo joinString toString[10]);
 
-            } forEach ("getNumber (_x >> 'scope') == 2" configClasses (configFile >> "CfgMarkerColors"));
+            } forEach ("getNumber (_x >> 'scope') > 0" configClasses (configFile >> "CfgMarkerColors"));
 
             private _markerBrushes = [];
             {
