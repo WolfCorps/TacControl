@@ -3,10 +3,14 @@ using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -176,6 +180,199 @@ namespace TacControl
         }
     }
 
+    public class ImageDirectory
+    {
+        public static ImageDirectory Instance = new ImageDirectory();
+
+        public interface IImage
+        {
+
+        }
+
+        public class Bitmap : IImage
+        {
+            public System.Drawing.Bitmap bmp;
+        }
+
+
+
+        public Dictionary<string, IImage> imageCache = new Dictionary<string, IImage>(StringComparer.InvariantCultureIgnoreCase);
+
+
+        private class ImageRequest
+        {
+            public string path;
+            public TaskCompletionSource<IImage> completionSource;
+        }
+
+
+        private Dictionary<string, ImageRequest> pendingRequests = new Dictionary<string, ImageRequest>(StringComparer.InvariantCultureIgnoreCase);
+
+        public Task<IImage> GetImage(string path)
+        {
+            lock (imageCache)
+            {
+                if (imageCache.ContainsKey(path))
+                    return Task.FromResult(imageCache[path]);
+
+                if (pendingRequests.ContainsKey(path))
+                    return pendingRequests[path].completionSource.Task;
+
+                var request = new ImageRequest { path = path, completionSource = new TaskCompletionSource<IImage>() };
+                pendingRequests[path] = request;
+
+
+                Networking.Instance.SendMessage(
+                    $@"{{
+                        ""cmd"": [""ImgDir"", ""RequestTexture""],
+                        ""args"": {{
+                            ""path"": ""{path.Replace("\\","\\\\")}""
+                        }}
+                    }}"
+                );
+
+
+                return request.completionSource.Task;
+            }
+        }
+
+        public void OnNetworkMessage(IEnumerable<string> cmd, JObject args)
+        {
+            if (cmd.First() == "TextureFile")
+            {
+                var path = args["path"].Value<string>();
+                var data = args["data"].Value<string>();
+
+                ImageRequest request;
+
+                lock (imageCache)
+                {
+                    if (!pendingRequests.ContainsKey(path)) return; //#TODO log/handle
+
+                    request = pendingRequests[path];
+                }
+
+                var dataBytes = Convert.FromBase64String(data);
+             
+                int width = (int) Math.Sqrt(dataBytes.Length/4);
+                var bmp = new Bitmap {bmp = new System.Drawing.Bitmap(width, width, PixelFormat.Format32bppArgb)};
+
+                //ARGB -> BGRA
+                for (int i = 0; i < dataBytes.Length; i+=4)
+                {
+                    var A = dataBytes[i];
+                    var B = dataBytes[i + 1];
+                    var G = dataBytes[i + 2];
+                    var R = dataBytes[i + 3];
+
+                    dataBytes[i] = B;
+                    dataBytes[i+1] = G;
+                    dataBytes[i+2] = R;
+                    dataBytes[i+3] = A;
+                }
+
+
+                BitmapData bmpData = bmp.bmp.LockBits(new Rectangle(0, 0,
+                        bmp.bmp.Width,
+                        bmp.bmp.Height),
+                    ImageLockMode.WriteOnly,
+                    bmp.bmp.PixelFormat);
+
+                IntPtr pNative = bmpData.Scan0;
+                Marshal.Copy(dataBytes, 0, pNative, dataBytes.Length);
+
+                //var output = new FileStream("P:/test2", FileMode.CreateNew);
+                //output.Write(dataBytes, 0, dataBytes.Length);
+                //output.Close();
+
+
+                bmp.bmp.UnlockBits(bmpData);
+
+                request.completionSource.SetResult(bmp);
+
+                lock (imageCache)
+                {
+                    imageCache[path] = bmp;
+                    pendingRequests.Remove(path);
+                }
+            }
+        }
+
+    }
+
+
+    struct MarkerType
+    {
+        std::string name;
+        std::string color;
+        uint32_t size;
+        bool shadow;
+        std::string icon;
+
+        void Serialize(JsonArchive& ar);
+    };
+
+    std::map<std::string, MarkerType, std::less<>> markerTypes;
+
+    struct MarkerColor
+    {
+        std::string name;
+        std::string color;
+
+        void Serialize(JsonArchive& ar);
+    };
+
+    std::map<std::string, MarkerColor, std::less<>> markerColors;
+
+    struct MarkerBrush
+    {
+        std::string name;
+        std::string texture;
+        bool drawBorder;
+
+        void Serialize(JsonArchive& ar);
+    };
+
+
+
+
+    public class ModuleMarker : INotifyPropertyChanged
+    {
+        public class MarkerType
+        {
+            public string name { get; set; }
+            public string color { get; set; }
+            public UInt32 size { get; set; }
+            public bool shadow { get; set; }
+            public string icon { get; set; }
+        }
+
+        public class MarkerColor
+        {
+            public string name { get; set; }
+            public string color { get; set; }
+        }
+
+        public class MarkerBrush
+        {
+            public string name { get; set; }
+            public string texture { get; set; }
+            public bool drawBorder { get; set; }
+        }
+
+        public ObservableDictionary<string, MarkerType> markerTypes { get; set; } = new ObservableDictionary<string, MarkerType>();
+        public ObservableDictionary<string, MarkerColor> markerColors { get; set; } = new ObservableDictionary<string, MarkerColor>();
+        public ObservableDictionary<string, MarkerBrush> markerBrushes { get; set; } = new ObservableDictionary<string, MarkerBrush>();
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
 
 
     public class GameState : INotifyPropertyChanged
@@ -185,8 +382,9 @@ namespace TacControl
         public ModuleRadio radio { get; set; } = new ModuleRadio();
         public ModuleGPS gps { get; set; } = new ModuleGPS();
 
+        public ModuleMarker marker { get; set; } = new ModuleMarker();
 
-    public void test()
+        public void test()
         {
             
         }
@@ -448,7 +646,18 @@ namespace TacControl
             var msg = args.Message;
             JObject parsedMsg = JObject.Parse(msg);
 
+            if (parsedMsg["cmd"].Type == JTokenType.Array)
+            {
+                var cmd = parsedMsg["cmd"].Value<JArray>().Select(x => x.Value<string>());
+                
+                var cmdFirst = cmd.First();
+                if (cmdFirst == "ImgDir")
+                {
+                    ImageDirectory.Instance.OnNetworkMessage(cmd.Skip(1), parsedMsg["args"].Value<JObject>());
+                }
 
+                return;
+            }
 
 
             if (parsedMsg["cmd"].Value<string>() == "StateFull")
@@ -472,8 +681,9 @@ namespace TacControl
                 //patchDoc.ContractResolver = new JsonContractResolver();
                 patchDoc.ApplyTo(GameState.Instance);
             }
+
             GameState.Instance.test();
-            GameState.Instance.radio.OnPropertyChanged("radios");
+            GameState.Instance.radio.OnPropertyChanged("radios"); //#TODO remove
         }
 
         public async void SendMessage(string message)

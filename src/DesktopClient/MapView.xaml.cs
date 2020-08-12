@@ -34,6 +34,7 @@ using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Mapsui.Widgets.Zoom;
 using SkiaSharp;
+using SkiaSharp.Views.Desktop;
 using Brush = Mapsui.Styles.Brush;
 using Color = Mapsui.Styles.Color;
 using Geometry = Mapsui.Geometries.Geometry;
@@ -366,14 +367,41 @@ namespace TacControl
                 {
                     feature = new Feature { ["Label"] = keyValuePair.Value.displayName };
 
-                    var content = new StringReader(
+                    var content2 = new StringReader(
                         @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""36"" height=""56""><path d=""M18 .34C8.325.34.5 8.168.5 17.81c0 3.339.962 6.441 2.594 9.094H3l7.82 15.117L18 55.903l7.187-13.895L33 26.903h-.063c1.632-2.653 2.594-5.755 2.594-9.094C35.531 8.169 27.675.34 18 .34zm0 9.438a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z"" fill=""#00b100""/></svg>");
-                    var bitmapId = BitmapRegistry.Instance.Register(content);
-                    var symStyle = new SymbolStyle { BitmapId = bitmapId, SymbolScale = 0.5, SymbolOffset = new Offset(0.0, 0.5, true) };
+                    var bitmapId2 = BitmapRegistry.Instance.Register(content2);
+                    // BitmapId = bitmapId,
+                    var symStyle = new SymbolStyle { BitmapId = bitmapId2, SymbolScale = 0.5, SymbolOffset = new Offset(0.0, 0, true) };
+                    //Mapsui.Rendering.Skia.ImageStyleRenderer
+                    ImageDirectory.Instance.GetImage("\\A3\\ui_f\\data\\map\\markers\\flags\\Germany_ca.paa")
+                    //ImageDirectory.Instance.GetImage("\\a3\\ui_f\\data\\IGUI\\RscTitles\\HealthTextures\\PPFXblood_lens_ca.paa")
+                    //ImageDirectory.Instance.GetImage("\\core\\Cursor\\Data\\cursor1_co.paa")
+                    //ImageDirectory.Instance.GetImage("\\A3\\ui_f\\data\\map\\markers\\flags\\Georgia_ca.paa")
+                        .ContinueWith(
+                            (x) =>
+                            {
 
 
-                    //feature.Styles.Add(symStyle);
-                    feature.Styles.Add(new Mapsui.Styles.LabelStyle { Text = keyValuePair.Key, BackColor = new Brush(Color.Red)});
+                                var data = (x.Result as ImageDirectory.Bitmap).bmp.ToSKImage().Encode();
+                                //(x.Result as ImageDirectory.Bitmap).bmp.Save("P:/output");
+                                //var output = new FileStream("P:/test.png", FileMode.CreateNew);
+                                //data.SaveTo(output);
+                                //output.Close();
+                                var content = new MemoryStream(data.ToArray());
+                                var bitmapId = BitmapRegistry.Instance.Register(content);
+
+                                var but = BitmapHelper.LoadBitmap(BitmapRegistry.Instance.Get(bitmapId));
+
+                                symStyle.BitmapId = bitmapId;
+                                
+                            });
+
+
+
+
+
+                    feature.Styles.Add(symStyle);
+                    feature.Styles.Add(new Mapsui.Styles.LabelStyle { Text = keyValuePair.Key });//, BackColor = new Brush(Color.Red)
                     feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
                     features[keyValuePair.Key] = feature;
 

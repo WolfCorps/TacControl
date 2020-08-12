@@ -9,8 +9,15 @@
 void NetworkController::ModuleInit() {
 
     wsServer = new Server();
-    wsServer->state_->OnMessage.connect([this](const std::string& message) {
+    wsServer->state_->OnMessage.connect([this](const std::string& message, boost::shared_ptr<websocket_session> sender) {
         Logger::log(LoggerTypes::General, message);
+
+
+        auto replyFunc = [sender](std::string_view message) {
+            auto const ss = boost::make_shared<std::string const>(message);
+            sender->send(ss);
+        };
+
 
         auto msg = nlohmann::json::parse(message);
 
@@ -19,7 +26,7 @@ void NetworkController::ModuleInit() {
             for (auto& it : msg["cmd"])
                 command.emplace_back(it);
 
-            GGameManager.TransferNetworkMessage(std::move(command), std::move(msg["args"]));
+            GGameManager.TransferNetworkMessage(std::move(command), std::move(msg["args"]), replyFunc);
         }
     });
     ThreadQueue::ModuleInit();

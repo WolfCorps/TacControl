@@ -65,7 +65,7 @@ public:
     void updateState(const nlohmann::json& newState);
 
 
-    Signal<void(std::string)> OnMessage;
+    Signal<void(std::string, boost::shared_ptr<websocket_session>)> OnMessage;
 };
 
 class http_session : public boost::enable_shared_from_this<http_session>

@@ -458,7 +458,7 @@ on_read(beast::error_code ec, std::size_t)
     // Send to all connections
     //state_->send(beast::buffers_to_string(buffer_.data()));
 
-    state_->OnMessage(std::move(beast::buffers_to_string(buffer_.data())));
+    state_->OnMessage(std::move(beast::buffers_to_string(buffer_.data())), shared_from_this());
 
     // Clear the buffer
     buffer_.consume(buffer_.size());

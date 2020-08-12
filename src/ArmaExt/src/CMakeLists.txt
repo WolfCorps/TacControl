@@ -26,13 +26,27 @@ SOURCE_GROUP("src/Networking" FILES ${TCSources_Networking})
 
 set(library_sources ${TacControlSources})
 
-add_library(${PLUGIN_NAME} SHARED ${library_sources} ${FMT_SOURCES})
+add_library(${PLUGIN_NAME} SHARED
+    ${library_sources}
+    "${PROJECT_SOURCE_DIR}/lib/cpp-base64/base64.cpp"
+    "${PROJECT_SOURCE_DIR}/lib/s3tc-dxt-decompression/s3tc.cpp"
+    "${PROJECT_SOURCE_DIR}/lib/minilzo/minilzo.c"
+)
 
-target_include_directories(${PLUGIN_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/lib/json/single_include/" )
+target_include_directories(${PLUGIN_NAME} PRIVATE
+    "${PROJECT_SOURCE_DIR}/lib/json/single_include/"
+    "${PROJECT_SOURCE_DIR}/lib/ArmaPboLib/src/"
+    "${PROJECT_SOURCE_DIR}/lib/MipMapTool/"
+    "${PROJECT_SOURCE_DIR}/lib/cpp-base64/"
+    "${PROJECT_SOURCE_DIR}/lib/s3tc-dxt-decompression/"
+    "${PROJECT_SOURCE_DIR}/lib/minilzo/"
+)
 
 target_link_libraries(${PLUGIN_NAME} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(${PLUGIN_NAME} PUBLIC Boost::boost)
 target_link_libraries(${PLUGIN_NAME} PUBLIC fmt::fmt-header-only)
+target_link_libraries(${PLUGIN_NAME} PUBLIC ArmaPboLib)
+target_link_libraries(${PLUGIN_NAME} PUBLIC MipMapToolLib)
 
 #target_link_libraries(${PLUGIN_NAME} ${LINK_LIBS})
 
@@ -78,6 +92,7 @@ else()
 		"$<$<CONFIG:Release>:/Ob2>"
 		"$<$<CONFIG:Release>:/Oi>"
 		"$<$<CONFIG:Release>:/Ot>"
+        "/Zc:__cplusplus"
 	)
 	target_link_options(${PLUGIN_NAME} PRIVATE "/OPT:REF" "/OPT:ICF" "/DEBUG:FULL") 
 endif()

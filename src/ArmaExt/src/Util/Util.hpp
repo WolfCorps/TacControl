@@ -3,6 +3,7 @@
 #include <string_view>
 #include <vector>
 #include <cmath>
+#include <filesystem>
 
 class JsonArchive;
 using namespace std::string_view_literals;
@@ -57,6 +58,23 @@ namespace Util
         return trim(string, "\t "sv);
     }
 
+    static std::string toLower(std::string_view string) {
+        std::string ret(string);
+        std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
+
+        return ret;
+    }
+
+    static bool stringEqualsCaseInsensitive(std::string_view l, std::string_view r) {
+        if (l.length() != r.length()) return false;
+
+        return std::equal(l.cbegin(), l.cend(),
+            r.cbegin(), r.cend(),
+            [](unsigned char l, unsigned char r) {
+                return l == r || tolower(l) == tolower(r);
+            });
+    }
+
     static float parseArmaNumber(std::string_view armaNumber) {
         return static_cast<float>(std::strtof(armaNumber.data(), nullptr));
     }
@@ -77,7 +95,7 @@ namespace Util
     };
 
 
-
+    std::vector<std::filesystem::path> GenerateLoadedPBOList();
 
 }
 

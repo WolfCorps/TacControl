@@ -14,6 +14,7 @@
 #include "Modules/ModuleLogitechG15.hpp"
 #include "Modules/ModuleGPS.hpp"
 #include "Modules/ModuleMarker.hpp"
+#include "Modules/ModuleImageDirectory.hpp"
 
 int(*GameManager::extensionCallback)(char const* name, char const* function, char const* data);
 
@@ -133,12 +134,10 @@ void RVExtensionVersion(char* output, int outputSize)
 	std::strncpy(output, "Test-Extension v1.0", outputSize - 1);
 }
 
-
 void RVExtensionRegisterCallback(int(*callbackProc)(char const* name, char const* function, char const* data))
 {
 	GameManager::extensionCallback = callbackProc;
 }
-
 
 void GameManager::IncomingMessage(std::string_view function, const std::vector<std::string_view>& arguments) {
 
@@ -165,7 +164,7 @@ void GameManager::SendMessageInternal(std::string_view function, const std::vect
     IncomingMessage(function, arguments);
 }
 
-void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& function, nlohmann::json&& arguments) {
+void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& function, nlohmann::json&& arguments, const std::function<void(std::string_view)>& replyFunc) {
 
     //#TODO into task?
 
@@ -180,7 +179,7 @@ void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& functio
     //remove root entry
     funcSpan = funcSpan.subspan(1);
 
-    found->second->OnNetMessage(funcSpan, arguments);
+    found->second->OnNetMessage(funcSpan, arguments, replyFunc);
 }
 
 void GameManager::CollectGameState(JsonArchive& ar) {

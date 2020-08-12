@@ -10,3 +10,15 @@
 [submodule "src/DesktopClient/lib/SkiaSharp_Extended"]
 	path = src/DesktopClient/lib/SkiaSharp_Extended
 	url = https://github.com/dedmen/SkiaSharp.Extended.git
+[submodule "src/ArmaExt/lib/ArmaPboLib"]
+	path = src/ArmaExt/lib/ArmaPboLib
+	url = https://github.com/arma3/ArmaPboLib.git
+[submodule "src/ArmaExt/lib/MipMapTool"]
+	path = src/ArmaExt/lib/MipMapTool
+	url = https://github.com/arma3/MipMapTool.git
+[submodule "src/ArmaExt/lib/cpp-base64"]
+	path = src/ArmaExt/lib/cpp-base64
+	url = https://github.com/ReneNyffenegger/cpp-base64.git
+[submodule "src/ArmaExt/lib/s3tc-dxt-decompression"]
+	path = src/ArmaExt/lib/s3tc-dxt-decompression
+	url = https://github.com/Benjamin-Dobell/s3tc-dxt-decompression.git

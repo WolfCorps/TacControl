@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.13)
 if (${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	set (CMAKE_SYSTEM_VERSION 8.1 CACHE TYPE INTERNAL FORCE) #Force 8.1 SDK, to keep it compatible with win7
 endif()
-project (TacControl CXX ASM_MASM)
+project (TacControl C CXX)
 find_package (Threads)
 
 
@@ -32,5 +32,16 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 
 add_subdirectory(lib/boost-cmake)
+set(FMT_OS OFF) # Don't want windows.h include splattered everywhere
 add_subdirectory(lib/fmt EXCLUDE_FROM_ALL)
+
+
+set(ARMA_PBO_LIB_WRITE OFF)
+add_subdirectory(lib/ArmaPboLib EXCLUDE_FROM_ALL)
+add_subdirectory(lib/MipMapTool EXCLUDE_FROM_ALL)
+
+
+
+
+
 add_subdirectory(src)

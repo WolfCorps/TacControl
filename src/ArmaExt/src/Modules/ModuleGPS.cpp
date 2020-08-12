@@ -78,10 +78,6 @@ void ModuleGPS::OnGameMessage(const std::vector<std::string_view>& function,
     }
 }
 
-void ModuleGPS::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments) {
-    
-}
-
 void ModuleGPS::SerializeState(JsonArchive& ar) {
     auto fut = AddTask([this, &ar]() {
         JsonArchive trackersAr;
