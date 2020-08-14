@@ -49,3 +49,4 @@ public:
     X(ModuleGPS) \
     X(ModuleMarker) \
     X(ModuleImageDirectory) \
+    X(ModuleGameInfo) \

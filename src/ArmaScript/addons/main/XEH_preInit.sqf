@@ -13,6 +13,7 @@ call TC_main_fnc_Radio_preInit;
 call TC_main_fnc_GPS_preInit;
 call TC_main_fnc_Marker_preInit;
 
+["GameInfo.WorldLoaded", [worldName]] call TC_main_fnc_sendMessage;
 
 addMissionEventHandler ["ExtensionCallback", {
     params ["_name", "_function", "_data"];

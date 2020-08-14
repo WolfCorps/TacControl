@@ -372,6 +372,21 @@ namespace TacControl
         }
     }
 
+    public class ModuleGameInfo : INotifyPropertyChanged
+    {
+        public string worldName { get; set; }
+
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
 
     public class GameState : INotifyPropertyChanged
     {
@@ -381,6 +396,8 @@ namespace TacControl
         public ModuleGPS gps { get; set; } = new ModuleGPS();
 
         public ModuleMarker marker { get; set; } = new ModuleMarker();
+
+        public ModuleGameInfo gameInfo { get; set; } = new ModuleGameInfo();
 
         public void test()
         {
