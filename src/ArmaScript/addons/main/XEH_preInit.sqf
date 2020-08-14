@@ -6,6 +6,8 @@ ADDON = false;
 
 ADDON = true;
 
+if (isDedicated) exitWith {};
+
 "TacControl" callExtension "preInit";
 
 
