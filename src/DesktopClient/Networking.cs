@@ -26,32 +26,7 @@ using WebSocket4Net;
 
 namespace TacControl
 {
-    //struct TFARRadio
-    //{
-    //
-    //    struct RadioChannel
-    //    {
-    //        std::string frequency;
-    //    };
-    //
-    //
-    //    std::string id;
-    //    std::string displayName;
-    //    int8_t currentChannel;
-    //    int8_t currentAltChannel;
-    //    //#TODO can receive on multiple channels..
-    //    bool rx; //receiving right now
-    //    //-1 == not sending
-    //    int8_t tx; //sending right now
-    //    std::vector<RadioChannel> channels;
-    //
-    //    void Serialize(JsonArchive& ar);
-    //};
 
-    //public class RadioChannel
-    //{
-    //    public string frequency { get; set; }
-    //}
     public class TFARRadio : INotifyPropertyChanged
     {
         public string id { get; set; }

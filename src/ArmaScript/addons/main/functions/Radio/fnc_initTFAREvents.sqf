@@ -5,11 +5,19 @@ private _evtOnTangent = {
 
     private _currentChannel = 0;
 
-    if (_radio isEqualType []) then {
-        _currentChannel = if (_isAdditional) then {_radio call TFAR_fnc_getAdditionalLrChannel} else {_radio call TFAR_fnc_getLrChannel};
-    } else {
-        _currentChannel = if (_isAdditional) then {_radio call TFAR_fnc_getAdditionalSwChannel} else {_radio call TFAR_fnc_getSwChannel};
+    if (isNil "_radioChannel") then {//Not from our transmit code
+
+        if (_radio isEqualType []) then {
+            _currentChannel = if (_isAdditional) then {_radio call TFAR_fnc_getAdditionalLrChannel} else {_radio call TFAR_fnc_getLrChannel};
+        } else {
+            _currentChannel = if (_isAdditional) then {_radio call TFAR_fnc_getAdditionalSwChannel} else {_radio call TFAR_fnc_getSwChannel};
+        };
+
+    } else { //Coming from our transmit code, reuse _radioChannel that came from its scope as our script doesn't use active channel
+        _currentChannel = _radioChannel;
     };
+
+
 
 
     ["Radio.Transmit", [TRANSFORM_LR_RADIO_TO_EXT(_radio), _currentChannel, _start]] call TC_main_fnc_sendMessage;
