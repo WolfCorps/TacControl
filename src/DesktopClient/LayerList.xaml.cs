@@ -35,7 +35,7 @@ namespace TacControl
             {
                 var item = new LayerListItem { LayerName = layer.Name };
                 item.Enabled = layer.Enabled;
-                item.LayerOpacity = layer.Opacity;
+                //item.LayerOpacity = layer.Opacity;
                 item.Layer = layer;
                 Items.Children.Add(item);
             }

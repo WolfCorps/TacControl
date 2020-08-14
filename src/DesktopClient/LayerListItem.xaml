@@ -9,6 +9,6 @@
     <StackPanel Orientation="Horizontal"  VerticalAlignment="Top" HorizontalAlignment="Right">
         <TextBlock Margin="6" x:Name="TextBlock">Text</TextBlock>
         <CheckBox x:Name="EnabledCheckBox" Margin="0,6,6,6" VerticalAlignment="Center" HorizontalAlignment="Center" Click="EnabledCheckBoxClick"></CheckBox>
-        <Slider x:Name="OpacitySlider" Width="100" VerticalAlignment="Center" HorizontalAlignment="Right" Minimum="0" Maximum="1"  ValueChanged="OpacitySliderValueChanged"></Slider>
+        <!--<Slider x:Name="OpacitySlider" Width="100" VerticalAlignment="Center" HorizontalAlignment="Right" Minimum="0" Maximum="1"  ValueChanged="OpacitySliderValueChanged"></Slider>-->
     </StackPanel>
 </UserControl>
