@@ -12,7 +12,7 @@
         >
             <ListView.ItemTemplate>
                 <DataTemplate DataType="local:TFARRadio">
-                    <StackPanel Orientation="Vertical" Height="50">
+                    <StackPanel Orientation="Vertical" Height="80">
                         <StackPanel Orientation="Horizontal">
                             <Grid>
                                 <Grid.RowDefinitions>
