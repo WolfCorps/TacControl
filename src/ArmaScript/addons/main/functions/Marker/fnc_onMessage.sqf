@@ -10,7 +10,8 @@ if (_function#0 == "Cmd") then {
 
             {
                 private _className = configName _x;
-                private _color = getArray (_x >> "color");
+                private _name = getText (_x >> "name");
+                private _color = getArray (_x >> "color") apply {_x call BIS_fnc_parseNumber};
                 private _size = getNumber (_x >> "size");
                 private _shadow = getNumber (_x >> "shadow");
                 private _icon = getText (_x >> "icon");
@@ -25,7 +26,7 @@ if (_function#0 == "Cmd") then {
             {
                 private _className = configName _x;
                 private _name = getText (_x >> "name");
-                private _color = getArray (_x >> "color");
+                private _color = getArray (_x >> "color") apply {_x call BIS_fnc_parseNumber};
 
 
                 private _markerTypeInfo = [_className, _name, _color];
