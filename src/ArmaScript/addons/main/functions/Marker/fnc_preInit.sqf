@@ -18,6 +18,6 @@
     //https://github.com/acemod/ACE3/blob/master/addons/markers/functions/fnc_setMarkerNetwork.sqf
     //params ["_newestMarker", "_editingMarker"];
 
-    systemChat str ["netw", _this];
+    //systemChat str ["netw", _this];
 
 }] call CBA_fnc_addEventHandler;

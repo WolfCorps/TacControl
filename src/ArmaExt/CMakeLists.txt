@@ -31,7 +31,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 #set(CMAKE_SUPPRESS_REGENERATION true)
 set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 
-add_subdirectory(lib/boost-cmake)
+add_subdirectory(lib/boost-cmake EXCLUDE_FROM_ALL)
 set(FMT_OS OFF) # Don't want windows.h include splattered everywhere
 add_subdirectory(lib/fmt EXCLUDE_FROM_ALL)
 

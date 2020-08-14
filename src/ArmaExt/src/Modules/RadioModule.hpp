@@ -1,4 +1,6 @@
 #pragma once
+#include <optional>
+
 #include "Util/Module.hpp"
 #include "Util/Thread.hpp"
 
@@ -19,27 +21,24 @@ struct TFARRadio {
     //#TODO can receive on multiple channels..
     bool rx = false; //receiving right now
     //-1 == not sending
-    int8_t tx = -1; //sending right now
+    int8_t tx = -1; //sending right now, number is channel number 0 based index
     std::vector<RadioChannel> channels;
 
     void Serialize(JsonArchive& ar);
 };
 
 
-class RadioModule : public ThreadQueue, public IMessageReceiver, public IStateHolder {
+class RadioModule : public ThreadQueue, public IMessageReceiver, public IStateHolder, IPreInitReceiver {
 
     std::vector<TFARRadio> radios;
 
     void DoNetworkUpdateRadio(TFARRadio& radio);
     void OnRadioUpdate(const std::vector<std::string_view>& arguments);
     void OnRadioTransmit(const std::vector<std::string_view>& arguments);
+    void OnRadioDelete(const std::vector<std::string_view>& arguments);
 
     std::vector<TFARRadio>::iterator FindOrCreateRadioByClassname(std::string_view classname);
 public:
-
-
-
-
 
     //IMessageReceiver
     std::string_view GetMessageReceiverName() override { return "Radio"sv; }
@@ -52,9 +51,12 @@ public:
     std::string_view GetStateHolderName() override { return "Radio"sv; };
     void SerializeState(JsonArchive& ar) override;
 
-
+    //IPreInitReceiver
+    void OnGamePreInit() override;
 
     void DoRadioTransmit(std::string_view radioId, int8_t channel, bool transmitting);
+
+
 
 };
 

@@ -13,7 +13,7 @@
 
 params ["_unit", "_explosive", "_magazineClass"];
 
-if(!isServer) exitWith {
+if (!isServer) exitWith {
     _this remoteExec ["TC_main_fnc_GPS_activateTracker", 2];
 };
 

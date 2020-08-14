@@ -71,6 +71,15 @@ void RadioModule::OnRadioTransmit(const std::vector<std::string_view>& arguments
     GNetworkController.SendStateUpdate();
 }
 
+void RadioModule::OnRadioDelete(const std::vector<std::string_view>& arguments) {
+    auto radioClass = arguments[0];
+
+    auto found = FindOrCreateRadioByClassname(radioClass);
+    radios.erase(found);
+ 
+    GNetworkController.SendStateUpdate();
+}
+
 std::vector<TFARRadio>::iterator RadioModule::FindOrCreateRadioByClassname(std::string_view classname) {
     auto found = std::ranges::find_if(radios, [classname](const TFARRadio& rad) {
         return rad.id == classname;
@@ -97,6 +106,8 @@ void RadioModule::OnGameMessage(const std::vector<std::string_view>& function, c
         OnRadioUpdate(arguments);
     } else if (func == "Transmit") {
         OnRadioTransmit(arguments);
+    } else if (func == "RadioDelete") {
+        OnRadioDelete(arguments);
     } else if (func == "Test") {
 
         if (radios.empty()) return;
@@ -127,6 +138,9 @@ void RadioModule::SerializeState(JsonArchive& ar) {
     fut.wait();
 }
 
+void RadioModule::OnGamePreInit() {
+    radios.clear();
+}
 
 
 void RadioModule::DoRadioTransmit(std::string_view radioId, int8_t channel, bool transmitting) {
