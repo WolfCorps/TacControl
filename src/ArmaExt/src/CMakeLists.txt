@@ -86,7 +86,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 else()
 	target_compile_options(
 		${PLUGIN_NAME} PRIVATE 
-		"/MP" "/Zi" "/bigobj"
+		"/MP" "/bigobj"
+        "$<$<CONFIG:Release>:/Zi>"
+        "$<$<CONFIG:Debug>:/ZI>" #Edit and Continue
 		"$<$<CONFIG:Release>:/MT>"
 		"$<$<CONFIG:Release>:/Ox>"
 		"$<$<CONFIG:Release>:/Ob2>"
