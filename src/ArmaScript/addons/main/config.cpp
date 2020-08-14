@@ -65,6 +65,7 @@ class CfgAmmo {
         indirectHit = 0;
         indirectHitRange = 0;
         model = "\z\TC\addons\main\data\tk-108.p3d";
+        ace_minedetector_detectable = 0;
     };
 };
 
