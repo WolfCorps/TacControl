@@ -7,29 +7,30 @@
         mc:Ignorable="d"
         Title="TacControl" Height="450" Width="800"
         x:Name="MainWindowCtrl">
-    <Grid>
-        <!--
-        <ListView HorizontalAlignment="Left" Margin="10,10,0,10" Width="772" Name="RadiosBox"
-                  ItemsSource="{Binding gsRef.radio.radios, ElementName=MainWindowCtrl}" 
-        >
-            <ListView.ItemTemplate>
-                <DataTemplate DataType="local:TFARRadio">
-                    <StackPanel Orientation="Vertical" Height="50">
-                        <StackPanel Orientation="Horizontal">
-                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="0"/>
-                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="1"/>
-                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="2"/>
-                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="3"/>
-                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="4"/>
-                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="5"/>
-                            <local:RadioTransmitButtons RadioRef="{Binding .}" Channel="6"/>
-                        </StackPanel>
-                    </StackPanel>
+    <Window.Resources>
+        <Style x:Key="worldNameIsNull" TargetType="{x:Type Button}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding gsRef.gameInfo.worldName, ElementName=MainWindowCtrl}" Value="{x:Null}">
+                    <Setter Property="IsEnabled" Value="False"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
 
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        -->
-        <local:MapView></local:MapView>
+
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions >
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Button Grid.Column="0" Content="Open TacRadio" Name="OpenTacRadio" Click="OpenTacRadio_Click"/>
+        <Button Grid.Column="1" Content="Open TacMap" Name="OpenTacMap" Style="{StaticResource worldNameIsNull}" Click="OpenTacMap_Click"/>
+
+      
+
     </Grid>
 </Window>

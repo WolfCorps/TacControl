@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -93,6 +93,9 @@
     <Compile Include="MapView.xaml.cs">
       <DependentUpon>MapView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MapViewWindow.xaml.cs">
+      <DependentUpon>MapViewWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ObservableDictionary.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="RadioTransmitButtons.xaml.cs">
@@ -100,6 +103,9 @@
     </Compile>
     <Compile Include="RadioWidget.xaml.cs">
       <DependentUpon>RadioWidget.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="RadioWindow.xaml.cs">
+      <DependentUpon>RadioWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="LayerList.xaml">
       <SubType>Designer</SubType>
@@ -125,11 +131,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="MapViewWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="RadioTransmitButtons.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="RadioWidget.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="RadioWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

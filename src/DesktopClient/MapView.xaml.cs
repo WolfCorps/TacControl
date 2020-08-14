@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -42,6 +43,7 @@ using Geometry = Mapsui.Geometries.Geometry;
 using LineStringRenderer = Mapsui.Rendering.Skia.LineStringRenderer;
 using MultiLineStringRenderer = Mapsui.Rendering.Skia.MultiLineStringRenderer;
 using MultiPolygonRenderer = Mapsui.Rendering.Skia.MultiPolygonRenderer;
+using Path = System.IO.Path;
 using Point = Mapsui.Geometries.Point;
 using Polygon = Mapsui.Geometries.Polygon;
 using SymbolCache = Mapsui.Rendering.Skia.SymbolCache;
@@ -87,8 +89,18 @@ namespace TacControl
         public List<SvgLayer> ParseLayers()
         {
             List<SvgLayer> ret = new List<SvgLayer>();
-            using (var stream = File.OpenRead(@"J:/dev/Arma/SVG/Stratis.svg"))
+            var mapPath = Path.Combine(Path.Combine(Directory.GetCurrentDirectory(), "maps"), $"{GameState.Instance.gameInfo.worldName}.svg");
+
+            bool isCompressed = !File.Exists(mapPath) && File.Exists(mapPath + "z"); //gzip
+            if (isCompressed) mapPath = mapPath + "z";
+
+            //var mapPath = @$"J:/dev/Arma/SVG/{GameState.Instance.gameInfo.worldName}.svg";
+            using (var fileStream = File.OpenRead(mapPath))
             {
+                GZipStream decompressionStream = new GZipStream(fileStream, CompressionMode.Decompress);
+
+                Stream stream = isCompressed ? decompressionStream : (Stream)fileStream;
+
                 using (var reader = XmlReader.Create(stream, xmlReaderSettings, CreateSvgXmlContext()))
                 {
                     var xdoc = XDocument.Load(reader);
@@ -100,10 +112,13 @@ namespace TacControl
                     List<XElement> layers = new List<XElement>();
                     List<XElement> rootElements = new List<XElement>();
 
-                    foreach (var xElement in svg.Elements()) {
-                        if (xElement.Name == ns+"g") {
+                    foreach (var xElement in svg.Elements())
+                    {
+                        if (xElement.Name == ns + "g")
+                        {
                             layers.Add(xElement);
-                        } else
+                        }
+                        else
                             rootElements.Add(xElement);
                     }
 
@@ -130,6 +145,8 @@ namespace TacControl
 
 
                 }
+
+                decompressionStream.Dispose();
             }
 
             return ret;
@@ -155,17 +172,22 @@ namespace TacControl
 
 
             var layers = ParseLayers();
-
+            int terrainWidth = 0;
             foreach (var svgLayer in layers)
             {
 
                 var layer = new Mapsui.Layers.ImageLayer(svgLayer.name);
+                var head = svgLayer.content.Substring(0, svgLayer.content.IndexOf('\n'));
+                var widthSub = head.Substring(head.IndexOf("width"));
+                var width = widthSub.Substring(7, widthSub.IndexOf('"', 7) - 7);
+                terrainWidth = int.Parse(width);
+
 
                 //
                 var features = new Features();
-                var feature = new Feature { Geometry = new BoundBox(new Mapsui.Geometries.BoundingBox(-8192, -8192, 8192, 8192)), ["Label"] = svgLayer.name };
+                var feature = new Feature { Geometry = new BoundBox(new Mapsui.Geometries.BoundingBox(-terrainWidth, -terrainWidth, terrainWidth, terrainWidth)), ["Label"] = svgLayer.name };
 
-                var x = new SvgStyle {image = new SkiaSharp.Extended.Svg.SKSvg(new SKSize(8192, 8192))};
+                var x = new SvgStyle {image = new SkiaSharp.Extended.Svg.SKSvg(new SKSize(terrainWidth, terrainWidth))};
 
 
                 using (var stream = new StringReader(svgLayer.content))
@@ -193,7 +215,7 @@ namespace TacControl
             var svgRender = new SvgStyleRenderer();
             MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = svgRender;
             MapControl.Map.Limiter = new ViewportLimiter();
-            MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, 8192, 8192);
+            MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
 
             GPSTrackerLayer.IsMapInfoLayer = true;
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer);
