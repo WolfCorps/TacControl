@@ -36,6 +36,12 @@ class CfgMagazines {
         displayName = "TK-108 GPS Tracker";
         ammo = "TC_GPSTracker_Ammo";
         mass = 5;
+        allowedSlots[] = {901, 801, 701};
+
+descriptionShort = "Type: TK-108 GPS Tracker, Attach on vehicles";
+descriptionUse = "<t color='#9cf953'>Use: </t>Attach";
+
+
 
         class ACE_Triggers {
             SupportedTriggers[] = {"TC_Activate_Tracker"};
