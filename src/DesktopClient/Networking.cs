@@ -694,7 +694,11 @@ namespace TacControl
 
                 var patchDoc = DeserializeObject<JsonPatchDocument<GameState>>(parsedMsg["data"].Value<JArray>());
                 //patchDoc.ContractResolver = new JsonContractResolver();
-                patchDoc.ApplyTo(GameState.Instance);
+                App.Current.Dispatcher.Invoke((Action)delegate
+                {
+                    patchDoc.ApplyTo(GameState.Instance);
+                });
+                
             }
 
             GameState.Instance.test();
