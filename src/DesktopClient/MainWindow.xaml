@@ -13,6 +13,9 @@
                 <DataTrigger Binding="{Binding gsRef.gameInfo.worldName, ElementName=MainWindowCtrl}" Value="{x:Null}">
                     <Setter Property="IsEnabled" Value="False"/>
                 </DataTrigger>
+                <DataTrigger Binding="{Binding gsRef.gameInfo.worldName, ElementName=MainWindowCtrl}" Value="">
+                    <Setter Property="IsEnabled" Value="False"/>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>

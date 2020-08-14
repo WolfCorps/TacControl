@@ -543,7 +543,9 @@ namespace TacControl
                     var marker = keyValuePair.Value;
                     if (!GameState.Instance.marker.markerTypes.ContainsKey(marker.type)) continue;
                     var markerType = GameState.Instance.marker.markerTypes[marker.type];
+                    if (!GameState.Instance.marker.markerColors.ContainsKey(marker.color)) continue;
                     var markerColor = GameState.Instance.marker.markerColors[marker.color];
+
 
 
 

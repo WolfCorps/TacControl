@@ -71,7 +71,7 @@ namespace TacControl
             InitializeComponent();
             Networking.Instance.Connect();
 
-            Compress(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "maps")));
+            //Compress(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "maps")));
         }
 
         private void OpenTacRadio_Click(object sender, RoutedEventArgs e)
