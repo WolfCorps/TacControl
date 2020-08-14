@@ -37,6 +37,7 @@ using Mapsui.Widgets.ScaleBar;
 using Mapsui.Widgets.Zoom;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
+using static TacControl.ModuleMarker;
 using Brush = Mapsui.Styles.Brush;
 using Color = Mapsui.Styles.Color;
 using Geometry = Mapsui.Geometries.Geometry;
@@ -58,6 +59,7 @@ namespace TacControl
 
         private Layer GPSTrackerLayer = new Mapsui.Layers.Layer("GPS Trackers");
         private Layer MapMarkersLayer = new Mapsui.Layers.Layer("Map Markers");
+        public static BoundingBox currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, 0, 0);
 
         public MapView()
         {
@@ -182,10 +184,11 @@ namespace TacControl
                 var width = widthSub.Substring(7, widthSub.IndexOf('"', 7) - 7);
                 terrainWidth = int.Parse(width);
 
+                currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
 
                 //
                 var features = new Features();
-                var feature = new Feature { Geometry = new BoundBox(new Mapsui.Geometries.BoundingBox(-terrainWidth, -terrainWidth, terrainWidth, terrainWidth)), ["Label"] = svgLayer.name };
+                var feature = new Feature { Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name };
 
                 var x = new SvgStyle {image = new SkiaSharp.Extended.Svg.SKSvg(new SKSize(terrainWidth, terrainWidth))};
 
@@ -219,13 +222,15 @@ namespace TacControl
 
             GPSTrackerLayer.IsMapInfoLayer = true;
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer);
+            GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(GPSTrackerLayer);
-            GPSTrackerLayer.DataChanged += (a,b) => MapControl.RefreshData();
+            //GPSTrackerLayer.DataChanged += (a,b) => MapControl.RefreshData();
 
             MapMarkersLayer.IsMapInfoLayer = true;
             MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer);
+            MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
-            MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
+            //MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
 
 
 
@@ -349,12 +354,70 @@ namespace TacControl
         public SkiaSharp.Extended.Svg.SKSvg image; //#TODO https://github.com/wieslawsoltes/Svg.Skia
     }
 
+    public class MarkerCache
+    {
+        public static MarkerCache Instance = new MarkerCache();
 
+        private class MarkerRequest
+        {
+            public string path;
+            public TaskCompletionSource<int> completionSource;
+        }
+
+
+        private Dictionary<string, MarkerRequest> requests = new Dictionary<string, MarkerRequest>(StringComparer.InvariantCultureIgnoreCase);
+
+        public Task<int> GetBitmapId(MarkerType type, MarkerColor color)
+        {
+            lock (requests)
+            {
+                var path = $"{type.name}_{color.name}";
+
+                if (requests.ContainsKey(path))
+                    return requests[path].completionSource.Task;
+
+                var request = new MarkerRequest { path = path, completionSource = new TaskCompletionSource<int>() };
+                requests[path] = request;
+
+
+                ImageDirectory.Instance.GetImage(type.icon)
+                        .ContinueWith(
+                            (x) =>
+                            {
+                                var image = (x.Result as ImageDirectory.Bitmap).bmp.ToSKImage();
+
+                                var colorArr = color.color.Trim('[', ']').Split(',').Select(yx => float.Parse(yx)).ToList();
+
+                                image = image.ApplyImageFilter(
+                                    SkiaSharp.SKImageFilter.CreateColorFilter(
+                                        SkiaSharp.SKColorFilter.CreateLighting(new SKColor((byte)(colorArr[0] * 255), (byte)(colorArr[1] * 255), (byte)(colorArr[2] * 255)), new SKColor(0, 0, 0))
+                                    ),
+                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                    out var outSUbs,
+                                    out SKPoint outoffs);
+
+                                var content = new MemoryStream(image.Encode().ToArray());
+                                int bitmapId;
+                                lock (BitmapRegistry.Instance)
+                                {
+                                    bitmapId = BitmapRegistry.Instance.Register(content);
+                                }
+
+                                request.completionSource.SetResult(bitmapId);
+                            });
+
+                return request.completionSource.Task;
+            }
+        }
+
+
+    }
 
     public class GPSTrackerProvider : IProvider, IDisposable
     {
         public Layer GpsTrackerLayer { get; private set; }
-        private BoundingBox _boundingBox;
+        private BoundingBox _boundingBox = MapView.currentBounds;
 
         public string CRS { get; set; }
 
@@ -384,6 +447,11 @@ namespace TacControl
             OnTrackersUpdated();
         }
 
+        void OnDataChanged()
+        {
+            //GpsTrackerLayer.DataHasChanged();
+            GpsTrackerLayer.RefreshData(GetExtents(), 1, ChangeType.Discrete);
+        }
         private void OnTrackersUpdated()
         {
             foreach (var keyValuePair in GameState.Instance.gps.trackers)
@@ -402,41 +470,30 @@ namespace TacControl
                     //    @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""36"" height=""56""><path d=""M18 .34C8.325.34.5 8.168.5 17.81c0 3.339.962 6.441 2.594 9.094H3l7.82 15.117L18 55.903l7.187-13.895L33 26.903h-.063c1.632-2.653 2.594-5.755 2.594-9.094C35.531 8.169 27.675.34 18 .34zm0 9.438a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z"" fill=""#00b100""/></svg>");
                     //var bitmapId2 = BitmapRegistry.Instance.Register(content2);
                     // BitmapId = bitmapId,
-                    var symStyle = new SymbolStyle {  SymbolScale = 0.5, SymbolOffset = new Offset(0.0, 0, true) };
+                    var symStyle = new ImageStyle {
+                        SymbolScale = 0.5,
+                        SymbolOffset = new Offset(0.0, 0, true),
+                        Fill = null,
+                        Outline = null,
+                        Line = null
+                        
+                    };
                     //Mapsui.Rendering.Skia.ImageStyleRenderer
-                    ImageDirectory.Instance.GetImage("\\A3\\ui_f\\data\\map\\markers\\flags\\Germany_ca.paa")
-                    //ImageDirectory.Instance.GetImage("\\a3\\ui_f\\data\\IGUI\\RscTitles\\HealthTextures\\PPFXblood_lens_ca.paa")
-                    //ImageDirectory.Instance.GetImage("\\core\\Cursor\\Data\\cursor1_co.paa")
-                    //ImageDirectory.Instance.GetImage("\\A3\\ui_f\\data\\map\\markers\\flags\\Georgia_ca.paa")
+
+
+                    var markerType = GameState.Instance.marker.markerTypes["hd_join"];
+                    var markerColor = GameState.Instance.marker.markerColors["ColorBlack"];
+
+                    MarkerCache.Instance.GetBitmapId(markerType, markerColor)
                         .ContinueWith(
-                            (x) =>
+                            (bitmapId) =>
                             {
-
-
-                                var data = (x.Result as ImageDirectory.Bitmap).bmp.ToSKImage().Encode();
-                                //(x.Result as ImageDirectory.Bitmap).bmp.Save("P:/output");
-                                //var output = new FileStream("P:/test.png", FileMode.CreateNew);
-                                //data.SaveTo(output);
-                                //output.Close();
-                                var content = new MemoryStream(data.ToArray());
-                                int bitmapId;
-                                lock (BitmapRegistry.Instance)
-                                {
-                                    bitmapId = BitmapRegistry.Instance.Register(content);
-                                }
-
-                                //var but = BitmapHelper.LoadBitmap(BitmapRegistry.Instance.Get(bitmapId));
-
-                                symStyle.BitmapId = bitmapId;
-                                
+                                symStyle.BitmapId = bitmapId.Result;
                             });
 
-
-
-
-
                     feature.Styles.Add(symStyle);
-                    feature.Styles.Add(new Mapsui.Styles.LabelStyle { Text = keyValuePair.Key });//, BackColor = new Brush(Color.Red)
+                    var labelStyle = new Mapsui.Styles.LabelStyle { Text = keyValuePair.Key, BackColor = null, Offset = new Offset(1.2, 0, true), Halo = null };
+                    feature.Styles.Add(labelStyle);
                     feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
                     features[keyValuePair.Key] = feature;
 
@@ -445,13 +502,14 @@ namespace TacControl
                         if (e.PropertyName == nameof(GPSTracker.displayName))
                         {
                             feature["Label"] = keyValuePair.Value.displayName;
-                            GpsTrackerLayer.DataHasChanged();
+                            labelStyle.Text = keyValuePair.Value.displayName;
+                            OnDataChanged();
                         }
                             
                         else if (e.PropertyName == nameof(GPSTracker.pos))
                         {
                             feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
-                            GpsTrackerLayer.DataHasChanged();
+                            OnDataChanged();
                         }
                     };
                 }
@@ -462,7 +520,7 @@ namespace TacControl
 
             toRemove.ForEach(x => features.Remove(x));
 
-            GpsTrackerLayer.DataHasChanged();
+            OnDataChanged();
         }
 
         public virtual IEnumerable<IFeature> GetFeaturesInView(
@@ -482,10 +540,10 @@ namespace TacControl
             return this._boundingBox;
         }
 
-        private static BoundingBox GetExtents(IReadOnlyList<IFeature> features)
+        private static BoundingBox GetExtents(IEnumerable<IFeature> features)
         {
             BoundingBox boundingBox = (BoundingBox)null;
-            foreach (IFeature feature in (IEnumerable<IFeature>)features)
+            foreach (IFeature feature in features)
             {
                 if (!feature.Geometry.IsEmpty())
                     boundingBox = boundingBox == null ? feature.Geometry.BoundingBox : boundingBox.Join(feature.Geometry.BoundingBox);
@@ -560,39 +618,16 @@ namespace TacControl
                         SymbolRotation = marker.dir
                         
                     };
-                    ImageDirectory.Instance.GetImage(markerType.icon)
+
+                    MarkerCache.Instance.GetBitmapId(markerType, markerColor)
                         .ContinueWith(
-                            (x) =>
+                            (bitmapId) =>
                             {
-                                var image = (x.Result as ImageDirectory.Bitmap).bmp.ToSKImage();
-
-
-
-                                var colorArr = markerColor.color.Trim('[', ']').Split(',').Select(yx => float.Parse(yx)).ToList();
-
-                                image = image.ApplyImageFilter(
-                                    SkiaSharp.SKImageFilter.CreateColorFilter(
-                                        SkiaSharp.SKColorFilter.CreateLighting(new SKColor( (byte)(colorArr[0]*255), (byte)(colorArr[1] * 255), (byte)(colorArr[2] * 255)), new SKColor(0, 0, 0))
-                                    ),
-                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                    out var outSUbs,
-                                    out SKPoint outoffs);
-
-                                var content = new MemoryStream(image.Encode().ToArray());
-                                int bitmapId;
-                                lock (BitmapRegistry.Instance)
-                                {
-                                    bitmapId = BitmapRegistry.Instance.Register(content);
-                                }
-                                
-                                //var but = BitmapHelper.LoadBitmap(BitmapRegistry.Instance.Get(bitmapId));
-                                symStyle.BitmapId = bitmapId;
+                                symStyle.BitmapId = bitmapId.Result;
                             });
 
-
                     feature.Styles.Add(symStyle);
-                    feature.Styles.Add(new Mapsui.Styles.LabelStyle { Text = marker.text, BackColor = null ,Offset = new Offset(1.2, 0, true), Halo = null});
+                    feature.Styles.Add(new Mapsui.Styles.LabelStyle { Text = marker.text, BackColor = null, Offset = new Offset(1.2, 0, true), Halo = null});
                     feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
                     features[keyValuePair.Key] = feature;
 
