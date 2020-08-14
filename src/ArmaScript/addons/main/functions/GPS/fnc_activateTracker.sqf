@@ -13,8 +13,14 @@
 
 params ["_unit", "_explosive", "_magazineClass"];
 
+if(!isServer) exitWith {
+    _this remoteExec ["TC_main_fnc_GPS_activateTracker", 2];
+};
 
+TC_GPSTrackers = TC_GPSTrackers - [objNull];
 TC_GPSTrackers pushBackUnique _explosive;
-call TC_main_fnc_GPS_sendTrackerUpdate;
+publicVariable "TC_GPSTrackers";
+_this remoteExec ["TC_main_fnc_GPS_onServerTracker", -2];
+
 
 

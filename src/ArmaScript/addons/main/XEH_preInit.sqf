@@ -6,10 +6,9 @@ ADDON = false;
 
 ADDON = true;
 
-if (isDedicated) exitWith {};
+if (isDedicated) exitWith { call TC_main_fnc_GPS_preInit; };
 
 "TacControl" callExtension "preInit";
-
 
 call TC_main_fnc_Radio_preInit;
 call TC_main_fnc_GPS_preInit;

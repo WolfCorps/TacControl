@@ -11,6 +11,7 @@ PREP_SUB(GPS,preInit); //TC_main_fnc_GPS_preInit
 PREP_SUB(GPS,onMessage); //TC_main_fnc_GPS_onMessage
 PREP_SUB(GPS,activateTracker); //TC_main_fnc_GPS_activateTracker
 PREP_SUB(GPS,sendTrackerUpdate); //TC_main_fnc_GPS_sendTrackerUpdate
+PREP_SUB(GPS,onServerTracker); //TC_main_fnc_GPS_onServerTracker
 
 
 PREP_SUB(Marker,preInit); //TC_main_fnc_Marker_preInit
