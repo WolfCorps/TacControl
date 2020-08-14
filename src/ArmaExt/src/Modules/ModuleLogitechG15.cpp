@@ -1,10 +1,12 @@
 #include "ModuleLogitechG15.hpp"
 #include <filesystem>
 #include <Windows.h>
+#include <codecvt>
 
 #include "Game/GameManager.hpp"
 #include "RadioModule.hpp"
 
+#include <fmt/format.h>
 
 #define LOGI_LCD_TYPE_MONO    (0x00000001)
 
@@ -33,17 +35,78 @@ static bool (*LogiLcdMonoSetText)(int lineNumber, wchar_t* text);
 
 
 void ModuleLogitechG15::Run() {
-    bool isTransmitting = false;
+    std::vector<bool> isTransmitting(4, false);
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
     while (shouldRun) {
         LogiLcdUpdate();
 
+        auto firstSR = GRadioModule.GetFirstSRRadio();
+        auto firstLR = GRadioModule.GetFirstLRRadio();
 
-        LogiLcdMonoSetText(3, L"Radio 1");
+        std::optional<std::string> radio1, radio2, radio3, radio4;
 
-        if (LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0) != isTransmitting) {
-            isTransmitting = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0);
-            //GRadioModule.DoRadioTransmit(isTransmitting);
+        if (firstSR) {
+            if (firstSR->currentChannel != -1)
+                radio1 = fmt::format("SR C{} ({})", firstSR->currentChannel, firstSR->channels[firstSR->currentChannel].frequency);
+            if (firstSR->currentAltChannel != -1)
+                radio2 = fmt::format("SR A{} ({})", firstSR->currentAltChannel, firstSR->channels[firstSR->currentAltChannel].frequency);
+
+        } else {
+            //LogiLcdMonoSetText(0, L"No SR");
         }
+
+        if (firstLR) {
+            if (firstLR->currentChannel != -1)
+                radio2 = fmt::format("LR C{} ({})", firstLR->currentChannel, firstLR->channels[firstLR->currentChannel].frequency);
+            if (firstLR->currentAltChannel != -1)
+                radio3 = fmt::format("LR A{} ({})", firstLR->currentAltChannel, firstLR->channels[firstLR->currentAltChannel].frequency);
+
+        }
+        else {
+            //LogiLcdMonoSetText(1, L"No LR");
+        }
+
+
+        constexpr auto maxSegmentLength = (28 / 2);
+        auto displayText1 = converter.from_bytes(
+            fmt::format("{} {}",
+                fmt::format("{1:>{0}}", maxSegmentLength, radio2 ? std::string_view(*radio2).substr(0, maxSegmentLength) : ""sv),
+                fmt::format("{1:>{0}}", maxSegmentLength, radio4 ? std::string_view(*radio4).substr(0, maxSegmentLength) : ""sv)
+            )
+        );
+        auto displayText2 = converter.from_bytes(
+            fmt::format("{} {}",
+                fmt::format("{1:<{0}}", maxSegmentLength, radio1 ? std::string_view(*radio1).substr(0, maxSegmentLength) : ""sv),
+                fmt::format("{1:<{0}}", maxSegmentLength, radio3 ? std::string_view(*radio4).substr(0, maxSegmentLength) : ""sv)
+            )
+        );
+        while (!LogiLcdMonoSetText(2, displayText1.data())) {
+            displayText1.pop_back();
+        }
+        while (!LogiLcdMonoSetText(3, displayText2.data())) {
+            displayText2.pop_back();
+        }
+
+
+        if (firstSR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0) != isTransmitting[0]) {
+            isTransmitting[0] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0);
+            GRadioModule.DoRadioTransmit(firstSR->id, firstSR->currentChannel, isTransmitting[0]);
+        }
+        if (firstSR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1) != isTransmitting[1]) {
+            isTransmitting[1] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1);
+            GRadioModule.DoRadioTransmit(firstSR->id, firstSR->currentAltChannel, isTransmitting[1]);
+        }
+        if (firstLR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_2) != isTransmitting[2]) {
+            isTransmitting[2] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_2);
+            GRadioModule.DoRadioTransmit(firstLR->id, firstLR->currentChannel, isTransmitting[2]);
+        }
+        if (firstLR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_3) != isTransmitting[3]) {
+            isTransmitting[3] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_3);
+            GRadioModule.DoRadioTransmit(firstLR->id, firstLR->currentAltChannel, isTransmitting[3]);
+        }
+
+
 
 
         std::this_thread::sleep_for(16ms);

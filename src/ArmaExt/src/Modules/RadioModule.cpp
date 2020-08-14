@@ -148,4 +148,22 @@ void RadioModule::DoRadioTransmit(std::string_view radioId, int8_t channel, bool
 
 }
 
+std::optional<TFARRadio> RadioModule::GetFirstSRRadio() {
+    auto firstRadio = std::ranges::find_if(radios, [](const TFARRadio& rad)
+        {
+            return rad.id.find(' ') == std::string::npos;
+        });
+    if (firstRadio == radios.end()) return {};
+    return *firstRadio;
+}
+
+std::optional<TFARRadio> RadioModule::GetFirstLRRadio() {
+    auto firstRadio = std::ranges::find_if(radios, [](const TFARRadio& rad)
+        {
+            return rad.id.find(' ') != std::string::npos;
+        });
+    if (firstRadio == radios.end()) return {};
+    return *firstRadio;
+}
+
 

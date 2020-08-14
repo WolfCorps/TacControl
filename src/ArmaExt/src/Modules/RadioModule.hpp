@@ -57,6 +57,9 @@ public:
     void DoRadioTransmit(std::string_view radioId, int8_t channel, bool transmitting);
 
 
+    std::optional<TFARRadio> GetFirstSRRadio();
+    std::optional<TFARRadio> GetFirstLRRadio();
+
 
 };
 
