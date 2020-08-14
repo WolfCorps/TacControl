@@ -2,11 +2,6 @@
 
 params ["_radio"];
 
-
-    //#TODO LR Radio support
-    if (_radio isEqualType []) exitWith {};
-
-
 TC_TFAR_Radios pushBackUnique _radio;
 private _isLR = _radio isEqualType [];
 ([
