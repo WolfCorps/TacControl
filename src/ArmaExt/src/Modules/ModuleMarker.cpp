@@ -213,5 +213,10 @@ void ModuleMarker::SerializeState(JsonArchive& ar) {
 }
 
 void ModuleMarker::OnGamePostInit() {
-    GGameManager.SendMessage("Marker.Cmd.GetMarkerTypes", "");
+    if (markerTypes.empty())
+        GGameManager.SendMessage("Marker.Cmd.GetMarkerTypes", "");
+}
+
+void ModuleMarker::OnGamePreInit() {
+    markers.clear();
 }

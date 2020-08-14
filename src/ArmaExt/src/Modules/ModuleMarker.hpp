@@ -7,7 +7,7 @@
 class JsonArchive;
 
 
-class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateHolder, IPostInitReceiver {
+class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateHolder, IPostInitReceiver, IPreInitReceiver {
 
     struct MarkerType {
         std::string name;
@@ -78,6 +78,8 @@ public:
 
     //IPostInitReceiver
     void OnGamePostInit() override;
+    //IPreInitReceiver
+    void OnGamePreInit() override;
 };
 
 inline ModuleMarker GModuleMarker;
