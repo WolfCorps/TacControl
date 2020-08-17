@@ -5,6 +5,7 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ip/udp.hpp>
 #include <boost/config.hpp>
 #include <nlohmann/json.hpp>
 #include <memory>
@@ -18,6 +19,7 @@
 
 using json = nlohmann::json;
 using tcp = boost::asio::ip::tcp;               // from <boost/asio/ip/tcp.hpp>
+using udp = boost::asio::ip::udp;               // from <boost/asio/ip/udp.hpp>
 namespace http = boost::beast::http;            // from <boost/beast/http.hpp>
 namespace beast = boost::beast;            // from <boost/beast/http.hpp>
 namespace websocket = boost::beast::websocket;  // from <boost/beast/websocket.hpp>
@@ -182,10 +184,30 @@ public:
     void run();
 };
 
+// UDP broadcast receive and reply
+class UDPBroadcastHost : public boost::enable_shared_from_this<UDPBroadcastHost>
+{
+    udp::socket socket_;
+    udp::endpoint remote_endpoint_;
+    std::array<char, 1> recv_buffer_;
+public:
+    UDPBroadcastHost(
+        net::io_context& ioc,
+        udp::endpoint endpoint);
+
+    void doReceive();
+
+    // Start accepting incoming connections
+    void run();
+};
+
+
 class Server {
 
 public:
     Server();
+
+    boost::shared_ptr<UDPBroadcastHost> udpBroadcast_;
 
     boost::shared_ptr<shared_state> state_;
     boost::asio::io_context ioc{ 1 };

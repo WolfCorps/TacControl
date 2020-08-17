@@ -615,6 +615,29 @@ on_accept(beast::error_code ec, tcp::socket socket)
             shared_from_this()));
 }
 
+UDPBroadcastHost::UDPBroadcastHost(net::io_context& ioc, udp::endpoint endpoint): socket_(ioc, endpoint) {
+    doReceive();
+}
+
+void UDPBroadcastHost::doReceive() {
+    socket_.async_receive_from(
+        boost::asio::buffer(recv_buffer_), remote_endpoint_,
+        [this](const boost::system::error_code & error, std::size_t)
+        {
+            boost::shared_ptr<std::string> message(new std::string("y"));
+
+            socket_.async_send_to(boost::asio::buffer(*message), remote_endpoint_,
+                [](const boost::system::error_code& /*error*/,
+                    std::size_t /*bytes_transferred*/)
+                {
+                    //handle send
+                });
+            doReceive();
+
+        });
+}
+
+
 Server::Server() {
     auto const address = net::ip::make_address("0.0.0.0");
     auto const port = static_cast<unsigned short>(8082);
@@ -636,6 +659,13 @@ Server::Server() {
             //tcp::endpoint{ address, port },
             state_);
     httpServ->run();
+
+    udpBroadcast_ =
+        boost::make_shared<UDPBroadcastHost>(
+            ioc,
+            udp::endpoint(udp::v6(), 8082));
+
+
 
     // Run the I/O service on the requested number of threads
     iothreads.emplace_back( [this] {
