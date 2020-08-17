@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -66,6 +67,7 @@ namespace TacControl
             InitializeComponent();
             //MouseWheel += MapControlMouseWheel;
             ParseLayers();
+            MapControl.MouseLeftButtonDown += MapControlOnMouseLeftButtonDown;
         }
 
         private void MapControl_OnInitialized(object sender, EventArgs e)
@@ -266,6 +268,32 @@ namespace TacControl
         }
 
 
+        private void MapControlOnMouseLeftButtonDown(object sender, MouseButtonEventArgs args)
+        {
+            GPSEditPopup.IsOpen = false;
+            if (args.ClickCount > 1)
+            {
+
+
+                var info = MapControl.GetMapInfo(args.GetPosition(MapControl).ToMapsui(), 12);
+
+                if (info.Feature is GPSTrackerFeature gpsTrackerFeature)
+                {
+
+                    GPSEdit.Tracker = gpsTrackerFeature.Tracker;
+                    GPSEditPopup.Placement = PlacementMode.Mouse;
+                    GPSEditPopup.StaysOpen = false;
+                    GPSEditPopup.AllowsTransparency = true;
+                    GPSEditPopup.IsOpen = true;
+                }
+
+                args.Handled = true;
+            }
+            else
+            {
+                
+            }
+        }
 
 
 
@@ -421,6 +449,53 @@ namespace TacControl
 
     }
 
+    public class GPSTrackerFeature : Feature
+    {
+        public GPSTracker Tracker { get; private set; }
+        private ImageStyle imgStyle;
+        private LabelStyle lblStyle;
+        public GPSTrackerFeature(GPSTracker tracker)
+        {
+            Tracker = tracker;
+            this["Label"] = tracker.displayName;
+            imgStyle = new ImageStyle
+            {
+                SymbolScale = 0.5,
+                SymbolOffset = new Offset(0.0, 0, true),
+                Fill = null,
+                Outline = null,
+                Line = null
+            };
+
+            var markerType = GameState.Instance.marker.markerTypes["hd_join"];
+            var markerColor = GameState.Instance.marker.markerColors["ColorBlack"];
+
+            MarkerCache.Instance.GetBitmapId(markerType, markerColor)
+                .ContinueWith((bitmapId) => {
+                        imgStyle.BitmapId = bitmapId.Result;
+                    });
+
+            
+            lblStyle = new Mapsui.Styles.LabelStyle { Text = tracker.displayName, BackColor = null, Offset = new Offset(1.2, 0, true), Halo = null };
+
+
+            Styles.Add(imgStyle);
+            Styles.Add(lblStyle);
+            Geometry = new Point(tracker.pos[0], tracker.pos[1]);
+        }
+
+        public void SetDisplayName(string newName)
+        {
+            this["Label"] = newName;
+            lblStyle.Text = newName;
+        }
+
+        public void SetPosition(Point newPos)
+        {
+            Geometry = newPos;
+        }
+    }
+
     public class GPSTrackerProvider : IProvider, IDisposable
     {
         public Layer GpsTrackerLayer { get; private set; }
@@ -463,59 +538,22 @@ namespace TacControl
         {
             foreach (var keyValuePair in GameState.Instance.gps.trackers)
             {
-                IFeature feature;
-
                 if (!features.ContainsKey(keyValuePair.Key))
-                //{
-                //    feature = features[keyValuePair.Key];
-                //}
-                //else
                 {
-                    feature = new Feature { ["Label"] = keyValuePair.Value.displayName };
-
-                    //var content2 = new StringReader(
-                    //    @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""36"" height=""56""><path d=""M18 .34C8.325.34.5 8.168.5 17.81c0 3.339.962 6.441 2.594 9.094H3l7.82 15.117L18 55.903l7.187-13.895L33 26.903h-.063c1.632-2.653 2.594-5.755 2.594-9.094C35.531 8.169 27.675.34 18 .34zm0 9.438a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13z"" fill=""#00b100""/></svg>");
-                    //var bitmapId2 = BitmapRegistry.Instance.Register(content2);
-                    // BitmapId = bitmapId,
-                    var symStyle = new ImageStyle {
-                        SymbolScale = 0.5,
-                        SymbolOffset = new Offset(0.0, 0, true),
-                        Fill = null,
-                        Outline = null,
-                        Line = null
-                        
-                    };
-                    //Mapsui.Rendering.Skia.ImageStyleRenderer
-
-
-                    var markerType = GameState.Instance.marker.markerTypes["hd_join"];
-                    var markerColor = GameState.Instance.marker.markerColors["ColorBlack"];
-
-                    MarkerCache.Instance.GetBitmapId(markerType, markerColor)
-                        .ContinueWith(
-                            (bitmapId) =>
-                            {
-                                symStyle.BitmapId = bitmapId.Result;
-                            });
-
-                    feature.Styles.Add(symStyle);
-                    var labelStyle = new Mapsui.Styles.LabelStyle { Text = keyValuePair.Key, BackColor = null, Offset = new Offset(1.2, 0, true), Halo = null };
-                    feature.Styles.Add(labelStyle);
-                    feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
+                    var feature = new GPSTrackerFeature(keyValuePair.Value);
+                    
                     features[keyValuePair.Key] = feature;
 
                     keyValuePair.Value.PropertyChanged += (a, e) =>
                     {
                         if (e.PropertyName == nameof(GPSTracker.displayName))
                         {
-                            feature["Label"] = keyValuePair.Value.displayName;
-                            labelStyle.Text = keyValuePair.Value.displayName;
+                            feature.SetDisplayName(keyValuePair.Value.displayName);
                             OnDataChanged();
                         }
-                            
                         else if (e.PropertyName == nameof(GPSTracker.pos))
                         {
-                            feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
+                            feature.SetPosition(new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]));
                             OnDataChanged();
                         }
                     };

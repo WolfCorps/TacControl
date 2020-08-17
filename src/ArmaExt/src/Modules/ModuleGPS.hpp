@@ -20,7 +20,6 @@ struct GPSTracker {
 class ModuleGPS : public ThreadQueuePeriodic, public IMessageReceiver, public IStateHolder {
     std::map<std::string, GPSTracker, std::less<>> trackers;
 
-    void DoNetworkUpdate();
     GPSTracker& FindOrCreateTrackerByID(const std::string_view& cs_);
     void OnTrackerUpdate(const std::vector<std::string_view>& arguments);
 public:
@@ -32,7 +31,7 @@ public:
     void OnGameMessage(const std::vector<std::string_view>& function,
         const std::vector<std::string_view>& arguments) override;
 
-    //void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) override;
+    void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) override;
 
     //IStateHolder
     std::string_view GetStateHolderName() override { return "GPS"sv; };

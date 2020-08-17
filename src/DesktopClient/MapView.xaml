@@ -25,6 +25,9 @@
             <local:LayerList x:Name="LayerList" />
         </DockPanel>
 
+        <Popup Name="GPSEditPopup">
+            <local:MapEditGPS x:Name="GPSEdit"/>
+        </Popup>
 
     </Grid>
 </UserControl>

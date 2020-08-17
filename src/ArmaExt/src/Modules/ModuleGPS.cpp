@@ -14,10 +14,6 @@ void GPSTracker::Serialize(JsonArchive& ar) {
     ar.Serialize("displayName", displayName);
 }
 
-void ModuleGPS::DoNetworkUpdate() {
-    GNetworkController.SendStateUpdate();
-}
-
 GPSTracker& ModuleGPS::FindOrCreateTrackerByID(const std::string_view& cs_) {
     //auto found = trackers.find(cs_);
     //if (found == trackers.end()) {
@@ -50,7 +46,8 @@ void ModuleGPS::OnTrackerUpdate(const std::vector<std::string_view>& arguments) 
         tracker.position = position;
         tracker.velocity = velocity;
         tracker._update = true;
-        tracker.displayName = netID;
+        //Only set this on new tracker
+        if (tracker.displayName.empty()) tracker.displayName = netID;
     }
 
     std::erase_if(trackers, [](const std::pair<const std::string, GPSTracker>& tracker) {
@@ -75,6 +72,19 @@ void ModuleGPS::OnGameMessage(const std::vector<std::string_view>& function,
     auto func = function[0];
     if (func == "TrackerUpdate") {
         OnTrackerUpdate(arguments);
+    }
+}
+
+void ModuleGPS::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {
+
+    if (function[0] == "SetTrackerName") {
+        std::string_view trackerId = arguments["tracker"];
+        std::string newName = arguments["name"];
+
+        GPSTracker& tracker = FindOrCreateTrackerByID(trackerId);
+        tracker.displayName = newName;
+
+        GNetworkController.SendStateUpdate();
     }
 }
 
