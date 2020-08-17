@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TacControl.Common;
 using Path = System.IO.Path;
 
 namespace TacControl
@@ -69,8 +70,33 @@ namespace TacControl
         public MainWindow()
         {
             InitializeComponent();
-            Networking.Instance.Connect();
 
+
+
+            Networking.Instance.MainThreadInvoke = (action) =>
+                {
+                    TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
+
+                    return App.Current.Dispatcher.InvokeAsync(action).Task;
+
+                    //Xamarin
+                    //Device.BeginInvokeOnMainThread(() =>
+                    //{
+                    //    try
+                    //    {
+                    //        action();
+                    //        tcs.SetResult(null);
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
+                    //        tcs.SetException(ex);
+                    //    }
+                    //
+                    //}); return tcs.Task;
+                };
+
+            Networking.Instance.Connect();
+            
             //Compress(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "maps")));
         }
 

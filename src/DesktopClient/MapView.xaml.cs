@@ -38,7 +38,9 @@ using Mapsui.Widgets.ScaleBar;
 using Mapsui.Widgets.Zoom;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
-using static TacControl.ModuleMarker;
+using TacControl.Common;
+using TacControl.Common.Modules;
+using static TacControl.Common.Modules.ModuleMarker;
 using Brush = Mapsui.Styles.Brush;
 using Color = Mapsui.Styles.Color;
 using Geometry = Mapsui.Geometries.Geometry;
@@ -402,7 +404,7 @@ namespace TacControl
 
         private Dictionary<string, MarkerRequest> requests = new Dictionary<string, MarkerRequest>(StringComparer.InvariantCultureIgnoreCase);
 
-        public Task<int> GetBitmapId(MarkerType type, MarkerColor color)
+        public Task<int> GetBitmapId(ModuleMarker.MarkerType type, ModuleMarker.MarkerColor color)
         {
             lock (requests)
             {

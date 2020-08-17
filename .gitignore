@@ -51,3 +51,7 @@ src/DesktopClient/packages/
 src/DesktopClient/obj/
 
 src/DesktopClient/bin/
+
+src/TacControl.Common/obj/
+
+src/TacControl.Common/bin/
