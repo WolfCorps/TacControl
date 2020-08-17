@@ -56,10 +56,8 @@ class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateH
 
     std::map<std::string, ActiveMarker, std::less<>> markers;
 public:
-
-
-
-
+    //ThreadQueue
+    void ModulePostInit() override { SetThreadName("TacControl_Marker"); }
 
     //IMessageReceiver
     std::string_view GetMessageReceiverName() override { return "Marker"sv; }

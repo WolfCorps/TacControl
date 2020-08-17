@@ -41,6 +41,7 @@ void ModuleImageDirectory::LoadPboPrefixes() {
 }
 
 void ModuleImageDirectory::ModulePostInit() {
+    SetThreadName("TacControl_ImgDir");
     LoadPboPrefixes();
 }
 

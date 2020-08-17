@@ -24,10 +24,8 @@ class ModuleGPS : public ThreadQueuePeriodic, public IMessageReceiver, public IS
     GPSTracker& FindOrCreateTrackerByID(const std::string_view& cs_);
     void OnTrackerUpdate(const std::vector<std::string_view>& arguments);
 public:
-
-
-
-
+    //ThreadQueue
+    void ModulePostInit() override { SetThreadName("TacControl_GPS"); }
 
     //IMessageReceiver
     std::string_view GetMessageReceiverName() override { return "GPS"sv; }

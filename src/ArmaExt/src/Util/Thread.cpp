@@ -4,6 +4,47 @@ void Thread::ModuleInit() {
     myThread = std::make_unique<std::thread>(&Thread::Run, this);
 }
 
+//http://msdn.microsoft.com/en-us/library/xcb2z8hs(VS.90).aspx
+
+//
+// Usage: SetThreadName (-1, "MainThread");
+//
+#include <windows.h>
+const DWORD MS_VC_EXCEPTION = 0x406D1388;
+
+#pragma pack(push,8)
+typedef struct tagTHREADNAME_INFO
+{
+    DWORD dwType; // Must be 0x1000.
+    LPCSTR szName; // Pointer to name (in user addr space).
+    DWORD dwThreadID; // Thread ID (-1=caller thread).
+    DWORD dwFlags; // Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#pragma pack(pop)
+
+void SetThreadName(DWORD dwThreadID, const char* threadName)
+{
+    THREADNAME_INFO info;
+    info.dwType = 0x1000;
+    info.szName = threadName;
+    info.dwThreadID = dwThreadID;
+    info.dwFlags = 0;
+
+    __try
+    {
+        RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+    }
+}
+
+
+void Thread::SetThreadName(std::string name) {
+    DWORD threadId = ::GetThreadId(static_cast<HANDLE>(myThread->native_handle()));
+    ::SetThreadName(threadId, name.data());
+}
+
 void ThreadQueue::Run() {
     while (shouldRun) {
         std::unique_lock<std::mutex> lock(taskQueueMutex);

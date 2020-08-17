@@ -39,6 +39,8 @@ class RadioModule : public ThreadQueue, public IMessageReceiver, public IStateHo
 
     std::vector<TFARRadio>::iterator FindOrCreateRadioByClassname(std::string_view classname);
 public:
+    //ThreadQueue
+    void ModulePostInit() override { SetThreadName("TacControl_Radio"); }
 
     //IMessageReceiver
     std::string_view GetMessageReceiverName() override { return "Radio"sv; }

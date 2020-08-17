@@ -18,6 +18,7 @@ public:
     void ModuleInit() override;
     virtual void Run() = 0;
     virtual void StopThread() { shouldRun = false; };
+    void SetThreadName(std::string name);
 };
 
 class ThreadTask {
