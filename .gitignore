@@ -55,3 +55,11 @@ src/DesktopClient/bin/
 src/TacControl.Common/obj/
 
 src/TacControl.Common/bin/
+
+src/AndroidClient/TacControl/TacControl.Android/obj/
+
+src/AndroidClient/TacControl/TacControl.Android/bin/
+
+src/AndroidClient/TacControl/TacControl/bin/
+
+src/AndroidClient/TacControl/TacControl/obj/

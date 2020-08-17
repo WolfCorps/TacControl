@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TacControl.Views.AboutPage"
+             xmlns:vm="clr-namespace:TacControl.ViewModels"
+             xmlns:views="clr-namespace:TacControl.Views;assembly=TacControl"
+             xmlns:modules="clr-namespace:TacControl.Common.Modules;assembly=TacControl.Common"
+             x:Name="RadioWindowCtrl">
+    
+    <ContentPage.BindingContext>
+        <vm:AboutViewModel />
+    </ContentPage.BindingContext>
+
+    <Grid>
+        <CollectionView Margin="10,10,0,10" x:Name="RadiosBox"
+                        ItemsSource="{Binding gsRef.radio.radios}"
+                        SelectionMode="None">
+            <CollectionView.ItemTemplate>
+                <!-- x:DataType="modules:TFARRadio" -->
+                <DataTemplate >
+                    <StackLayout Orientation="Vertical">
+                        <StackLayout Orientation="Vertical">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions >
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Label Text="CH1" Grid.Row="0" TextColor="Black"/>
+                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="0" Grid.Row="1"/>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions >
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Label Text="CH2" Grid.Row="0" TextColor="Black"/>
+                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="1" Grid.Row="1"/>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions >
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Label Text="CH3" Grid.Row="0" TextColor="Black"/>
+                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="2" Grid.Row="1"/>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions >
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Label Text="CH4" Grid.Row="0" TextColor="Black"/>
+                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="3" Grid.Row="1"/>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions >
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Label Text="CH5" Grid.Row="0" TextColor="Black"/>
+                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="4" Grid.Row="1"/>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions >
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Label Text="CH6" Grid.Row="0" TextColor="Black"/>
+                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="5" Grid.Row="1"/>
+                            </Grid>
+
+
+                        </StackLayout>
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TacControl.Views.RadioTransmitButtons" x:Name="RadioTransmitButtonsCtrl"
+             >
+
+    <ContentView.Content>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Button
+                Grid.Row="0"
+                Grid.Column="1"
+                Grid.RowSpan="2"
+                Text="STOP"
+                x:Name="TransmitStop"
+                Pressed="TransmitStop_OnPressed"
+                BindingContext="{x:Reference Name=RadioTransmitButtonsCtrl}"
+                BackgroundColor="{Binding StopColor}"
+            />
+            <Button
+                Grid.Row="0"
+                Grid.Column="0"
+                x:Name="TransmitLatch"
+                Text="LATCH"
+                Pressed="TransmitLatch_OnPressed"
+                BindingContext="{x:Reference Name=RadioTransmitButtonsCtrl}"
+                BackgroundColor="{Binding LatchColor}"
+            />
+            <Button
+                Grid.Row="1"
+                Grid.Column="0"
+                Text="TX"
+                x:Name="TransmitSoft"
+                Pressed="TransmitSoft_OnPressed"
+                Released="TransmitSoft_OnReleased"
+                BindingContext="{x:Reference Name=RadioTransmitButtonsCtrl}"
+                BackgroundColor="{Binding TXColor}"
+            />
+
+        </Grid>
+
+
+
+
+
+
+
+
+
+
+    </ContentView.Content>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</ContentView>
