@@ -20,7 +20,7 @@ if (!isServer) exitWith {
 TC_GPSTrackers = TC_GPSTrackers - [objNull];
 TC_GPSTrackers pushBackUnique _explosive;
 publicVariable "TC_GPSTrackers";
-_this remoteExec ["TC_main_fnc_GPS_onServerTracker", -2];
+_this remoteExec ["TC_main_fnc_GPS_onServerTracker", [-2, 0] select isServer ];
 
 
 
