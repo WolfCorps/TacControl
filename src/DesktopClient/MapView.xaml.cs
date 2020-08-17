@@ -179,6 +179,13 @@ namespace TacControl
             {
 
                 var layer = new Mapsui.Layers.ImageLayer(svgLayer.name);
+
+
+                if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" || svgLayer.name == "grid")
+                {
+                    layer.Enabled = false;
+                }
+                
                 var head = svgLayer.content.Substring(0, svgLayer.content.IndexOf('\n'));
                 var widthSub = head.Substring(head.IndexOf("width"));
                 var width = widthSub.Substring(7, widthSub.IndexOf('"', 7) - 7);
