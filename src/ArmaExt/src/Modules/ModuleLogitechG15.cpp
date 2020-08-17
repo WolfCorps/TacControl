@@ -48,9 +48,9 @@ void ModuleLogitechG15::Run() {
 
         if (firstSR) {
             if (firstSR->currentChannel != -1)
-                radio1 = fmt::format("SR C{} ({})", firstSR->currentChannel, firstSR->channels[firstSR->currentChannel].frequency);
+                radio1 = fmt::format("SR C{} ({})", firstSR->currentChannel + 1, firstSR->channels[firstSR->currentChannel].frequency);
             if (firstSR->currentAltChannel != -1)
-                radio2 = fmt::format("SR A{} ({})", firstSR->currentAltChannel, firstSR->channels[firstSR->currentAltChannel].frequency);
+                radio2 = fmt::format("SR A{} ({})", firstSR->currentAltChannel + 1, firstSR->channels[firstSR->currentAltChannel].frequency);
 
         } else {
             //LogiLcdMonoSetText(0, L"No SR");
@@ -58,9 +58,9 @@ void ModuleLogitechG15::Run() {
 
         if (firstLR) {
             if (firstLR->currentChannel != -1)
-                radio2 = fmt::format("LR C{} ({})", firstLR->currentChannel, firstLR->channels[firstLR->currentChannel].frequency);
+                radio2 = fmt::format("LR C{} ({})", firstLR->currentChannel + 1, firstLR->channels[firstLR->currentChannel].frequency);
             if (firstLR->currentAltChannel != -1)
-                radio3 = fmt::format("LR A{} ({})", firstLR->currentAltChannel, firstLR->channels[firstLR->currentAltChannel].frequency);
+                radio3 = fmt::format("LR A{} ({})", firstLR->currentAltChannel + 1, firstLR->channels[firstLR->currentAltChannel].frequency);
 
         }
         else {
@@ -78,7 +78,7 @@ void ModuleLogitechG15::Run() {
         auto displayText2 = converter.from_bytes(
             fmt::format("{} {}",
                 fmt::format("{1:<{0}}", maxSegmentLength, radio1 ? std::string_view(*radio1).substr(0, maxSegmentLength) : ""sv),
-                fmt::format("{1:<{0}}", maxSegmentLength, radio3 ? std::string_view(*radio4).substr(0, maxSegmentLength) : ""sv)
+                fmt::format("{1:<{0}}", maxSegmentLength, radio3 ? std::string_view(*radio3).substr(0, maxSegmentLength) : ""sv)
             )
         );
         while (!LogiLcdMonoSetText(2, displayText1.data())) {
