@@ -13,21 +13,37 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Xamarin.Forms.PlatformConfiguration;
 
 namespace TacControl.Common.Modules
 {
+
+    public interface IBitmapFromData
+    {
+        //Windows implementation, different on Android
+        ImageDirectory.IImage GetBitmapFrom(byte[] dataBytes, int width);
+    }
+
     public class ImageDirectory
     {
         public static ImageDirectory Instance = new ImageDirectory();
 
+
+        public static IBitmapFromData bitmapConverter = null;
+
         public interface IImage
         {
-
+            object GetImage();
         }
 
         public class Bitmap : IImage
         {
             public System.Drawing.Bitmap bmp;
+
+            public object GetImage()
+            {
+                return bmp;
+            }
         }
 
 
@@ -91,39 +107,7 @@ namespace TacControl.Common.Modules
                 var dataBytes = Convert.FromBase64String(data);
              
                 int width = (int) Math.Sqrt(dataBytes.Length/4);
-                var bmp = new Bitmap {bmp = new System.Drawing.Bitmap(width, width, PixelFormat.Format32bppArgb)};
-
-                //ARGB -> BGRA
-                for (int i = 0; i < dataBytes.Length; i+=4)
-                {
-                    var A = dataBytes[i];
-                    var B = dataBytes[i + 1];
-                    var G = dataBytes[i + 2];
-                    var R = dataBytes[i + 3];
-
-                    dataBytes[i] = B;
-                    dataBytes[i+1] = G;
-                    dataBytes[i+2] = R;
-                    dataBytes[i+3] = A;
-                }
-
-
-                BitmapData bmpData = bmp.bmp.LockBits(new Rectangle(0, 0,
-                        bmp.bmp.Width,
-                        bmp.bmp.Height),
-                    ImageLockMode.WriteOnly,
-                    bmp.bmp.PixelFormat);
-
-                IntPtr pNative = bmpData.Scan0;
-                Marshal.Copy(dataBytes, 0, pNative, dataBytes.Length);
-
-                //var output = new FileStream("P:/test2", FileMode.CreateNew);
-                //output.Write(dataBytes, 0, dataBytes.Length);
-                //output.Close();
-
-
-                bmp.bmp.UnlockBits(bmpData);
-
+                var bmp = bitmapConverter.GetBitmapFrom(dataBytes, width);
                 request.completionSource.SetResult(bmp);
 
                 lock (imageCache)

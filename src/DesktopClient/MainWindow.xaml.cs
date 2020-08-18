@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,18 +14,64 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using TacControl.Common;
+using TacControl.Common.Modules;
 using Path = System.IO.Path;
+using PixelFormat = System.Windows.Media.PixelFormat;
+using Rectangle = System.Windows.Shapes.Rectangle;
 
 namespace TacControl
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
+
+    public class Bitmap : ImageDirectory.IImage
+    {
+        public System.Drawing.Bitmap bmp;
+    }
+
+    public class BitmapFromDataWindows : IBitmapFromData
+    {
+        public IImage GetBitmapFrom(byte[] dataBytes, int width)
+        {
+            var bmp = new Bitmap {bmp = new System.Drawing.Bitmap(width, width, System.Drawing.Imaging.PixelFormat.Format32bppArgb)};
+
+            //ARGB -> BGRA
+            for (int i = 0; i < dataBytes.Length; i += 4)
+            {
+                var A = dataBytes[i];
+                var B = dataBytes[i + 1];
+                var G = dataBytes[i + 2];
+                var R = dataBytes[i + 3];
+
+                dataBytes[i] = B;
+                dataBytes[i + 1] = G;
+                dataBytes[i + 2] = R;
+                dataBytes[i + 3] = A;
+            }
+
+
+            BitmapData bmpData = bmp.bmp.LockBits(new System.Drawing.Rectangle(0, 0,
+                    bmp.bmp.Width,
+                    bmp.bmp.Height),
+                ImageLockMode.WriteOnly,
+                bmp.bmp.PixelFormat);
+
+            IntPtr pNative = bmpData.Scan0;
+            Marshal.Copy(dataBytes, 0, pNative, dataBytes.Length);
+
+            //var output = new FileStream("P:/test2", FileMode.CreateNew);
+            //output.Write(dataBytes, 0, dataBytes.Length);
+            //output.Close();
+
+
+            bmp.bmp.UnlockBits(bmpData);
+            return bmp;
+        }
+    }
+
+
+
     public partial class MainWindow : Window
     {
         public GameState gsRef { get; set; } = GameState.Instance;

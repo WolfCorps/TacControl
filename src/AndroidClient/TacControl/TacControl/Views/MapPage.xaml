@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TacControl.Views.MapPage"
+             Title="{Binding Title}"
+             xmlns:local="clr-namespace:TacControl.ViewModels"  
+             xmlns:model="clr-namespace:TacControl.Models"
+             xmlns:forms="clr-namespace:Mapsui.UI.Forms;assembly=Mapsui.UI.Forms"
+             x:Name="BrowseMapPage"
+
+
+             >
+
+    <ContentPage.Content>
+        <StackLayout>
+            <forms:MapView x:Name="MapControl"
+                            IsVisible="False"
+                            VerticalOptions="FillAndExpand"
+                            HorizontalOptions="Fill"
+                            BackgroundColor="Gray" 
+                            Margin="10"
+                            />
+            <Label x:Name="info" 
+                   HorizontalOptions="CenterAndExpand"
+                   Text="unknown" />
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
