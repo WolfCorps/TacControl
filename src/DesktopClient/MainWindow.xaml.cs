@@ -28,11 +28,15 @@ namespace TacControl
     public class Bitmap : ImageDirectory.IImage
     {
         public System.Drawing.Bitmap bmp;
+        public object GetImage()
+        {
+            return bmp;
+        }
     }
 
     public class BitmapFromDataWindows : IBitmapFromData
     {
-        public IImage GetBitmapFrom(byte[] dataBytes, int width)
+        public ImageDirectory.IImage GetBitmapFrom(byte[] dataBytes, int width)
         {
             var bmp = new Bitmap {bmp = new System.Drawing.Bitmap(width, width, System.Drawing.Imaging.PixelFormat.Format32bppArgb)};
 

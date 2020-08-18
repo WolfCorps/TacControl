@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -88,6 +89,42 @@ namespace TacControl.Common.Modules
             }
         }
 
+        private class MapfileRequest
+        {
+            public string name;
+            public string targetDirectory;
+            public TaskCompletionSource<string> completionSource;
+        }
+
+
+        private List<MapfileRequest> pendingMapRequests = new List<MapfileRequest>();
+
+        public Task<string> RequestMapfile(string worldName, string targetDirectory)
+        {
+            lock (imageCache)
+            {
+                if (pendingMapRequests.Any( x => x.name == worldName))
+                    return pendingMapRequests.First(x => x.name == worldName).completionSource.Task;
+
+                var request = new MapfileRequest { name = worldName, targetDirectory = targetDirectory, completionSource = new TaskCompletionSource<string>() };
+                pendingMapRequests.Add(request);
+
+
+                Networking.Instance.SendMessage(
+                    $@"{{
+                        ""cmd"": [""ImgDir"", ""RequestMapfile""],
+                        ""args"": {{
+                            ""name"": ""{worldName}""
+                        }}
+                    }}"
+                );
+
+
+                return request.completionSource.Task;
+            }
+        }
+
+
         public void OnNetworkMessage(IEnumerable<string> cmd, JObject args)
         {
             if (cmd.First() == "TextureFile")
@@ -114,6 +151,31 @@ namespace TacControl.Common.Modules
                 {
                     imageCache[path] = bmp;
                     pendingRequests.Remove(path);
+                }
+            } else if (cmd.First() == "MapFile") {
+                var path = args["name"].Value<string>();
+                var data = args["data"].Value<string>();
+
+                MapfileRequest request = pendingMapRequests.FirstOrDefault(x => path.StartsWith(x.name));
+
+                lock (imageCache)
+                {
+                    request = pendingMapRequests.FirstOrDefault(x => path.StartsWith(x.name)); //#TODO log/handle
+                    if (request == null) return;
+                }
+
+                var dataBytes = Convert.FromBase64String(data);
+
+                using (var writer = File.Create(Path.Combine(request.targetDirectory, path)))
+                {
+                    writer.Write(dataBytes, 0, dataBytes.Length);
+                }
+
+                request.completionSource.SetResult(Path.Combine(request.targetDirectory, path));
+
+                lock (imageCache)
+                {
+                    pendingMapRequests.Remove(request);
                 }
             }
         }

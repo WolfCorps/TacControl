@@ -624,9 +624,8 @@ void UDPBroadcastHost::doReceive() {
         boost::asio::buffer(recv_buffer_), remote_endpoint_,
         [this](const boost::system::error_code & error, std::size_t)
         {
-            boost::shared_ptr<std::string> message(new std::string("y"));
 
-            socket_.async_send_to(boost::asio::buffer(*message), remote_endpoint_,
+            socket_.async_send_to(boost::asio::buffer("y", 1), remote_endpoint_,
                 [](const boost::system::error_code& /*error*/,
                     std::size_t /*bytes_transferred*/)
                 {

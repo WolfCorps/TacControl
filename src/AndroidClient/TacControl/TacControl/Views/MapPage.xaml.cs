@@ -54,7 +54,6 @@ namespace TacControl.Views
 
             MapControl.RotationLock = true;
 
-            ParseLayers();
             //MapControl.TouchStarted += MapControlOnMouseLeftButtonDown;
             MapControl_OnLoaded();
         }
@@ -118,13 +117,29 @@ namespace TacControl.Views
         {
             List<SvgLayer> ret = new List<SvgLayer>();
 
-            bool isCompressed = true;
+           
 
-       
-            var assembly = IntrospectionExtensions.GetTypeInfo(typeof(MapPage)).Assembly;
-            Stream fileStream = assembly.GetManifestResourceStream("TacControl.Stratis.svgz");
+            var wantedDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+            string filePath = "";
+            if (File.Exists(Path.Combine(wantedDirectory, GameState.Instance.gameInfo.worldName + ".svgz")))
+                filePath = Path.Combine(wantedDirectory, GameState.Instance.gameInfo.worldName + ".svgz");
+            else if (File.Exists(Path.Combine(wantedDirectory, GameState.Instance.gameInfo.worldName + ".svg")))
+                filePath = Path.Combine(wantedDirectory, GameState.Instance.gameInfo.worldName + ".svg");
 
-            //using (var fileStream = File.OpenRead(mapPath))
+            if (string.IsNullOrEmpty(filePath))
+            {
+                ImageDirectory.Instance.RequestMapfile(GameState.Instance.gameInfo.worldName, wantedDirectory)
+                    .ContinueWith(
+                        (x) =>
+                        {
+                            MapControl_OnLoaded();
+                        });
+                return ret;
+            }
+
+            bool isCompressed = filePath.EndsWith("z");
+
+            using (var fileStream = File.OpenRead(filePath))
             {
                 GZipStream decompressionStream = new GZipStream(fileStream, CompressionMode.Decompress);
 
@@ -201,6 +216,7 @@ namespace TacControl.Views
 
 
             var layers = ParseLayers();
+            if (layers.Count == 0) return;
             int terrainWidth = 0;
             foreach (var svgLayer in layers)
             {

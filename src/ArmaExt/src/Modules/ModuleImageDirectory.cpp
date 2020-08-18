@@ -192,13 +192,49 @@ void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, co
 
         auto tex = LoadRGBATexture(path);
 
-        nlohmann::json retDoc;
-
         nlohmann::json msg;
         msg["cmd"] = {"ImgDir", "TextureFile"};
         auto& args = msg["args"];
         args["path"] = path;
         args["data"] = base64_encode(std::string_view(tex.data(), tex.size()));
+
+        replyFunc(msg.dump());
+    } else if (function[0] == "RequestMapfile") {
+        std::string_view path = arguments["name"];
+
+        auto myDirectory = Util::GetCurrentDLLPath().parent_path();
+
+        auto svgPath = myDirectory / "Maps" / std::filesystem::path(path).replace_extension(".svg");
+        auto svgzPath = myDirectory / "Maps" / std::filesystem::path(path).replace_extension(".svgz");
+
+        nlohmann::json msg;
+        msg["cmd"] = { "ImgDir", "MapFile" };
+        auto& args = msg["args"];
+
+        if (std::filesystem::exists(svgzPath)) {
+            args["name"] = svgzPath.filename().string();
+
+            std::vector<char> buffer;
+            buffer.resize(std::filesystem::file_size(svgzPath));
+            std::ifstream fstr(svgzPath, std::ifstream::binary | std::ifstream::in);
+            fstr.read(buffer.data(), buffer.size());
+
+            args["data"] = base64_encode(std::string_view(buffer.data(), buffer.size()));
+        } else if (std::filesystem::exists(svgPath)) {
+            args["name"] = svgPath.filename().string();
+
+
+            std::vector<char> buffer;
+            buffer.resize(std::filesystem::file_size(svgPath));
+            std::ifstream fstr(svgPath, std::ifstream::binary | std::ifstream::in);
+            fstr.read(buffer.data(), buffer.size());
+
+            args["data"] = base64_encode(std::string_view(buffer.data(), buffer.size()));
+        } else {
+            //#TODO generate svg
+            return;
+        }
+
 
         replyFunc(msg.dump());
     }

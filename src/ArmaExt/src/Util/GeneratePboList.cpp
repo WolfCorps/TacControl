@@ -253,3 +253,27 @@ std::vector<std::filesystem::path> Util::GenerateLoadedPBOList() {
     return _active_pbo_list;
 }
 
+std::filesystem::path Util::GetCurrentDLLPath() {
+
+
+    char path[MAX_PATH];
+    HMODULE hm = NULL;
+
+    if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        (LPCSTR)&GetCurrentDLLPath, &hm) == 0)
+    {
+        int ret = GetLastError();
+        fprintf(stderr, "GetModuleHandle failed, error = %d\n", ret);
+        // Return or however you want to handle an error.
+    }
+    if (GetModuleFileName(hm, path, sizeof(path)) == 0)
+    {
+        int ret = GetLastError();
+        fprintf(stderr, "GetModuleFileName failed, error = %d\n", ret);
+        // Return or however you want to handle an error.
+    }
+
+    return std::filesystem::path(path);
+}
+

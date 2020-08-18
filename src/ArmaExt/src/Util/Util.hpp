@@ -97,6 +97,8 @@ namespace Util
 
     std::vector<std::filesystem::path> GenerateLoadedPBOList();
 
+    std::filesystem::path GetCurrentDLLPath();
+
 }
 
 
