@@ -72,6 +72,9 @@ namespace TacControl.Views
 
         //#TODO propertyChanged EH from RadioRef, if radioRef LOOSES transmit while we are latched, unlatch
         private bool WantLatch { get; set; } = false;
+        //Need this, on release we check "isTransmitting" but, if you press and release quickly, the transmit might not yet have started,
+        //so then the transmit stop will be ignored, and shortly after the transmittion will start
+        private bool WantTransmit { get; set; } = false;
 
         public RadioTransmitButtons()
         {
@@ -90,20 +93,23 @@ namespace TacControl.Views
         private void TransmitStop_OnPressed(object sender, EventArgs e)
         {
             WantLatch = false;
-            if (IsTransmitting)
+            if (IsTransmitting || WantTransmit)
                 GameState.Instance.radio.RadioTransmit(RadioRef, Channel, false);
+            WantTransmit = false;
         }
 
         private void TransmitLatch_OnPressed(object sender, EventArgs e)
         {
             WantLatch = true;
+            WantTransmit = true;
             if (!IsTransmitting)
                 GameState.Instance.radio.RadioTransmit(RadioRef, Channel, true);
         }
-
+        //#TODO https://stackoverflow.com/questions/58768918/custom-control-button-released-event-does-not-fire-when-swiping-away
         private void TransmitSoft_OnPressed(object sender, EventArgs e)
         {
             WantLatch = false;
+            WantTransmit = true;
             if (!IsTransmitting)
                 GameState.Instance.radio.RadioTransmit(RadioRef, Channel, true);
         }
@@ -111,8 +117,9 @@ namespace TacControl.Views
         private void TransmitSoft_OnReleased(object sender, EventArgs e)
         {
             WantLatch = false;
-            if (IsTransmitting)
+            if (IsTransmitting || WantTransmit)
                 GameState.Instance.radio.RadioTransmit(RadioRef, Channel, false);
+            WantTransmit = false;
         }
     }
 }
