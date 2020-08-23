@@ -65,7 +65,7 @@ namespace TacControl.Common.Maps
         public void SetPosition(Point newPos)
         {
             Geometry = newPos;
-            heightStyle.Text = $"({Tracker.pos[2]:F1}m)";
+            heightStyle.Text = $"({Tracker.pos[2]:F0}m)";
         }
 
         public void UpdateVelocity()
