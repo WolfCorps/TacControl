@@ -166,9 +166,22 @@ namespace TacControl.Common.Modules
 
                 var dataBytes = Convert.FromBase64String(data);
 
-                using (var writer = File.Create(Path.Combine(request.targetDirectory, path)))
+                //If source was not compressed, still store it compressed, save some disk space especially on mobile
+                if (path.EndsWith("z"))
+                    using (var writer = File.Create(Path.Combine(request.targetDirectory, path)))
+                    {
+                        writer.Write(dataBytes, 0, dataBytes.Length);
+                    }
+                else
                 {
-                    writer.Write(dataBytes, 0, dataBytes.Length);
+                    using (var writer = File.Create(Path.Combine(request.targetDirectory, path+"z")))
+                    {
+                        using (GZipStream compressionStream = new GZipStream(writer,
+                            CompressionMode.Compress))
+                        {
+                            compressionStream.Write(dataBytes, 0, dataBytes.Length);
+                        }
+                    }
                 }
 
                 request.completionSource.SetResult(Path.Combine(request.targetDirectory, path));
