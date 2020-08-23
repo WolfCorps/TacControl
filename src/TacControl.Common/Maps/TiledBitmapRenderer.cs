@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Mapsui;
 using Mapsui.Geometries;
@@ -14,14 +15,12 @@ namespace TacControl.Common.Maps
 {
     public class TiledBitmapRenderer : ISkiaStyleRenderer
     {
-        public bool Draw(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IFeature feature, IStyle style,
+        public bool Draw(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IFeature feature, IStyle istyle,
             ISymbolCache symbolCache)
         {
+            var style = ((TiledBitmapStyle) istyle);
 
-            var image = ((TiledBitmapStyle)style).image;
-            if (image == null) return false;
-            var rect = ((TiledBitmapStyle)style).rect;
-            var rotation = ((TiledBitmapStyle)style).rotation;
+            if (style.image == null) return false;
 
             var position = feature.Geometry as Point;
             var dest = viewport.WorldToScreen(position);
@@ -33,14 +32,62 @@ namespace TacControl.Common.Maps
             canvas.Scale(zoom, zoom);
 
             canvas.RotateDegrees((float)viewport.Rotation, 0.0f, 0.0f);
-            canvas.RotateDegrees(rotation, 0.0f, 0.0f);
+            if (style.rotation != 0) canvas.RotateDegrees(style.rotation, 0.0f, 0.0f);
 
             //#TODO store paint with shader in the style
             using (SKPaint paint = new SKPaint())
             {
-                paint.Shader = SKShader.CreateImage(image, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat);
-                canvas.DrawRect(rect, paint);
+                if (style.rotation == 0) //Weird artifacting on 0 rotation, no idea why. Seems Skia bug.
+                    style.rotation = 180;
+
+                SKMatrix shaderTransform =
+                    SKMatrix.CreateScale((float) viewport.Resolution, (float) viewport.Resolution);
+                if (style.rotation != 0)
+                    shaderTransform = SKMatrix.Concat(shaderTransform, SKMatrix.CreateRotationDegrees(-style.rotation));
+
+
+
+                paint.Shader = SKShader.CreateImage(style.image, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, shaderTransform);
+
+                //style.image.Encode().SaveTo(File.Create($"P:/{style.image.UniqueId}.png"));
+
+                if (style.ellipse)
+                {
+                    canvas.DrawOval(0, 0, style.rect.Right, style.rect.Bottom, paint);
+                }
+                else
+                {
+                    canvas.DrawRect(style.rect, paint);
+                }
+
+                if (style.border)
+                {
+
+                    var borderPaint = new SKPaint
+                    {
+                        Style = SKPaintStyle.Stroke,
+                        Color = style.color
+                    };
+
+
+                    if (style.ellipse)
+                    {
+                        canvas.DrawOval(0, 0, style.rect.Right, style.rect.Bottom, borderPaint);
+                    }
+                    else
+                    {
+                        canvas.DrawRect(style.rect, borderPaint);
+                    }
+
+
+                }
+
+
+
             }
+
+
+
 
             return true;
         }

@@ -1,5 +1,8 @@
 #include "script_component.hpp"
 
+// TFAR_fnc_LRRadiosList has infinite recursion if player is null, this happens when after mission end the PFH keeps running
+if (isNull player) exitWith {};
+
 private _LRradios = TFAR_currentUnit call TFAR_fnc_LRRadiosList;
 private _radios = TFAR_currentUnit call TFAR_fnc_radiosList;
 

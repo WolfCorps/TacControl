@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -42,14 +43,9 @@ namespace TacControl.Common.Maps
                             {
                                 var image = x.Result;
 
-                                CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
-                                ci.NumberFormat.NumberDecimalSeparator = ".";
-
-                                var colorArr = color.color.Trim('[', ']').Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToList();
-
                                 image = image.ApplyImageFilter(
                                     SkiaSharp.SKImageFilter.CreateColorFilter(
-                                        SkiaSharp.SKColorFilter.CreateLighting(new SKColor((byte)(colorArr[0] * 255), (byte)(colorArr[1] * 255), (byte)(colorArr[2] * 255)), new SKColor(0, 0, 0))
+                                        SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))
                                     ),
                                     new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
                                     new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
@@ -108,28 +104,66 @@ namespace TacControl.Common.Maps
                 brushRequests[path] = request;
 
 
-                ImageDirectory.Instance.GetImage(brush.texture)
-                        .ContinueWith(
-                            (x) =>
-                            {
-                                var image = x.Result;
+                if (brush.texture == "")
+                    brush.texture = "#(argb,8,8,3)color(0.5,0.5,0.5,0.5)";
 
-                                CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
-                                ci.NumberFormat.NumberDecimalSeparator = ".";
+                if (brush.texture.StartsWith("#"))
+                {
+                    if (!brush.texture.StartsWith("#(argb"))
+                        Debugger.Break();
 
-                                var colorArr = color.color.Trim('[', ']').Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToList();
+                    var split = brush.texture.Trim('#', '(', ')').Replace(")color(", ",").Split(',');
 
-                                image = image.ApplyImageFilter(
-                                    SkiaSharp.SKImageFilter.CreateColorFilter(
-                                        SkiaSharp.SKColorFilter.CreateLighting(new SKColor((byte)(colorArr[0] * 255), (byte)(colorArr[1] * 255), (byte)(colorArr[2] * 255)), new SKColor(0, 0, 0))
-                                    ),
-                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                    out var outSUbs,
-                                    out SKPoint outoffs);
+                    var format = split[0];
+                    var width = int.Parse(split[1]);
+                    var height = int.Parse(split[2]);
+                    //Mipmaps 3
 
-                                request.completionSource.SetResult(image);
-                            });
+                    CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+                    ci.NumberFormat.NumberDecimalSeparator = ".";
+                    var colorArr = split.Skip(4).Select(xy => (byte)(float.Parse(xy, NumberStyles.Any, ci)*255)).ToList();
+
+
+                    byte[] data = new byte[width*height*4];
+                    for (int i = 0; i < width * height * 4; i += 4)
+                    {
+                        data[i] = colorArr[0];
+                        data[i + 1] = colorArr[1];
+                        data[i + 2] = colorArr[2];
+                        data[i + 3] = colorArr[3];
+                    }
+
+                    var bmp = SKImage.FromPixelCopy(new SKImageInfo(width, height, SKColorType.Rgba8888), data);
+
+                    bmp = bmp.ApplyImageFilter(
+                        SkiaSharp.SKImageFilter.CreateColorFilter(
+                            SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))
+                        ),
+                        new SkiaSharp.SKRectI(0, 0, bmp.Width, bmp.Height),
+                        new SkiaSharp.SKRectI(0, 0, bmp.Width, bmp.Height),
+                        out var outSUbs,
+                        out SKPoint outoffs);
+                    request.completionSource.SetResult(bmp);
+                }
+                else
+                    ImageDirectory.Instance.GetImage(brush.texture)
+                            .ContinueWith(
+                                (x) =>
+                                {
+                                    var image = x.Result;
+                                    
+                                    
+                                    image = image.ApplyImageFilter(
+                                        SkiaSharp.SKImageFilter.CreateColorFilter(
+                                            SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))
+                                        ),
+                                        new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                        new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                        out var outSUbs,
+                                        out SKPoint outoffs);
+
+                                    request.completionSource.SetResult(image);
+                                });
 
                 return request.completionSource.Task;
             }

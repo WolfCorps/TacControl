@@ -8,7 +8,10 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using SkiaSharp;
 
 namespace TacControl.Common.Modules
 {
@@ -27,6 +30,28 @@ namespace TacControl.Common.Modules
         {
             public string name { get; set; }
             public string color { get; set; }
+
+            public SKColor ToSKColor()
+            {
+                CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+                ci.NumberFormat.NumberDecimalSeparator = ".";
+
+                var colorArr = color.Trim('[', ']').Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToList();
+
+                return new SKColor((byte) (colorArr[0] * 255), (byte) (colorArr[1] * 255), (byte) (colorArr[2] * 255), (byte)(colorArr[3] * 255));
+            }
+
+            public Mapsui.Styles.Color ToMapsuiColor()
+            {
+                CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+                ci.NumberFormat.NumberDecimalSeparator = ".";
+
+                var colorArr = color.Trim('[', ']').Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToList();
+
+                return new Mapsui.Styles.Color((byte)(colorArr[0] * 255), (byte)(colorArr[1] * 255), (byte)(colorArr[2] * 255), (byte)(colorArr[3] * 255));
+            }
+
+
         }
 
         public class MarkerBrush

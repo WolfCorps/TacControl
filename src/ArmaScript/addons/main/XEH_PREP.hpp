@@ -19,6 +19,7 @@ PREP_SUB(GPS,onServerTracker); //TC_main_fnc_GPS_onServerTracker
 
 
 PREP_SUB(Marker,preInit); //TC_main_fnc_Marker_preInit
+PREP_SUB(Marker,postInit); //TC_main_fnc_Marker_postInit
 PREP_SUB(Marker,onMessage); //TC_main_fnc_Marker_onMessage
 PREP_SUB(Marker,sendMarkerUpdate); //TC_main_fnc_Marker_sendMarkerUpdate
 PREP_SUB(Marker,onMarkerCreated); //TC_main_fnc_Marker_onMarkerCreated

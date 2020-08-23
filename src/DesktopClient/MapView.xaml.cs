@@ -116,7 +116,19 @@ namespace TacControl
                     var ns = svg.Name.Namespace;
 
                     var mainAttributes = svg.Attributes();
-                    var defs = svg.Element("defs");
+                    var defs = svg.Element(ns + "defs");
+
+                    //Change land color from pure white to a better gray
+                    foreach (var def in defs.Descendants())
+                    {
+                        if (def.Attribute("id")?.Value == "colorLand")
+                        {
+                            def.Descendants(ns + "stop").First().SetAttributeValue("stop-color", "#DFDFDF");
+                        }
+                    }
+
+
+
                     List<XElement> layers = new List<XElement>();
                     List<XElement> rootElements = new List<XElement>();
 

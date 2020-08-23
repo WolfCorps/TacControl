@@ -18,18 +18,8 @@ namespace TacControl.Common.Maps
             BackColor = null;
             Halo = null;
             Offset = new Offset(type.size, 0, false);
-
-
-            CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
-            ci.NumberFormat.NumberDecimalSeparator = ".";
-
-            var colorArr = color.color.Trim('[', ']').Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToList();
-
-            var textColor = new Color((byte)(colorArr[0] * 255), (byte)(colorArr[1] * 255),
-                (byte)(colorArr[2] * 255));
-
             Font = markerFont;
-            ForeColor = textColor;
+            ForeColor = color.ToMapsuiColor();
             HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left;
         }
     }

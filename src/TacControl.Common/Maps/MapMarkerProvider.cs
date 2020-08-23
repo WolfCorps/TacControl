@@ -65,16 +65,21 @@ namespace TacControl.Common.Maps
                         if (!GameState.Instance.marker.markerTypes.ContainsKey(marker.type)) continue;
                         var markerType = GameState.Instance.marker.markerTypes[marker.type];
 
+                        if (marker.color == "Default")
+                            markerColor = new ModuleMarker.MarkerColor
+                                {color = markerType.color, name = markerType.name};
+
+
                         var symStyle = new SymbolStyle
                         {
-                            SymbolScale = 0.5,
+                            SymbolScale = 0.3,
                             SymbolOffset = new Offset(0.0, 0, true),
                             Fill = null,
                             Outline = null,
                             Line = null,
                             SymbolType = SymbolType.Rectangle,
-                            SymbolRotation = marker.dir
-
+                            SymbolRotation = marker.dir,
+                            Opacity = marker.alpha
                         };
 
                         MarkerCache.Instance.GetBitmapId(markerType, markerColor)
@@ -88,24 +93,17 @@ namespace TacControl.Common.Maps
 
                         if (!string.IsNullOrEmpty(marker.text))
                         {
-                            CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
-                            ci.NumberFormat.NumberDecimalSeparator = ".";
-
-                            var colorArr = markerColor.color.Trim('[', ']').Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToList();
-
-                            var textColor = new Color((byte)(colorArr[0] * 255), (byte)(colorArr[1] * 255),
-                                (byte)(colorArr[2] * 255));
-
                             var font = new Mapsui.Styles.Font { FontFamily = "Verdana", Size = 24, Bold = true };
                             var markerLabel = new MarkerLabelStyle(marker.text, markerType, markerColor);
                             if (markerType.shadow)
                                 markerLabel.Halo = new Mapsui.Styles.Pen(Mapsui.Styles.Color.Black, 1D);
+                            markerLabel.Opacity = marker.alpha;
 
                             feature.Styles.Add(markerLabel);
                         }
 
                     }
-                    else if (marker.shape == "RECTANGLE")
+                    else if (marker.shape == "RECTANGLE" || marker.shape == "ELLIPSE")
                     {
 
                         if (!GameState.Instance.marker.markerBrushes.ContainsKey(marker.brush)) continue;
@@ -129,7 +127,10 @@ namespace TacControl.Common.Maps
                         var tiledBitmap = new TiledBitmapStyle {
                             image = null,
                             rect = new SkiaSharp.SKRect(-markerSize[0], -markerSize[1], markerSize[0], markerSize[1]),
-                            rotation = marker.dir
+                            rotation = marker.dir,
+                            ellipse = marker.shape == "ELLIPSE",
+                            border = markerBrush.drawBorder,
+                            color = markerColor.ToSKColor()
                         };
                         feature.Styles.Add(tiledBitmap);
 
