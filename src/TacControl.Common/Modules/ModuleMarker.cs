@@ -47,6 +47,8 @@ namespace TacControl.Common.Modules
             public string shape { get; set; }
             public float alpha { get; set; }
             public string brush { get; set; }
+            public string size { get; set; }
+
 
             ActiveMarker()
             {

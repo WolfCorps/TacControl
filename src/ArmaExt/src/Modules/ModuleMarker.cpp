@@ -35,6 +35,7 @@ void ModuleMarker::ActiveMarker::Serialize(JsonArchive& ar) {
     ar.Serialize("shape", shape);
     ar.Serialize("alpha", alpha);
     ar.Serialize("brush", brush);
+    ar.Serialize("size", size);
 }
 
 void ModuleMarker::OnMarkerTypesRetrieved(const std::vector<std::basic_string_view<char>>& arguments) {
@@ -109,6 +110,7 @@ void ModuleMarker::OnMarkerCreated(const std::vector<std::basic_string_view<char
     newMarker.shape = arguments[6];
     newMarker.alpha = Util::parseArmaNumber(arguments[7]);
     newMarker.brush = arguments[8];
+    newMarker.size = arguments[9];
 
     markers[newMarker.id] = newMarker;
     GNetworkController.SendStateUpdate();

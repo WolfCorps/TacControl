@@ -43,13 +43,14 @@ class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateH
     struct ActiveMarker {
         std::string id;
         std::string type;
-        std::string color;
+        std::string color; //#TODO parse here already instead of frontend
         float dir;
         Vector3D pos;
         std::string text;
         std::string shape; //#TODO enum
         float alpha;
         std::string brush;
+        std::string size; //xxx,yyy really just two numbers
 
         void Serialize(JsonArchive& ar);
     };
