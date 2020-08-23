@@ -1,5 +1,12 @@
 #include "script_component.hpp"
 
+
+//Register existing markers
+{_x call TC_main_fnc_Marker_onMarkerCreated} forEach allMapMarkers;
+
+
+
+
 //["created", TC_main_fnc_Marker_onMarkerCreated] call CBA_fnc_addMarkerEventHandler;
 ["deleted", TC_main_fnc_Marker_onMarkerDeleted] call CBA_fnc_addMarkerEventHandler;
 

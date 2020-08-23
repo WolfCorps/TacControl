@@ -15,26 +15,18 @@ namespace TacControl
     public partial class App : Application
     {
 
-        public App(Func<Action, Task> MainThreadInvoke, IBitmapFromData bitmapConverter)
+        public App(Func<Action, Task> MainThreadInvoke)
         {
-            Xamarin.Forms.Internals.Log.Listeners.Add(new DelegateLogListener((arg1, arg2) => Debug.WriteLine(arg2)));
-            ImageDirectory.bitmapConverter = bitmapConverter;
 
+            //#TODO https://stackoverflow.com/questions/43687689/keeping-screen-turned-on-for-certain-pages
+
+            Xamarin.Forms.Internals.Log.Listeners.Add(new DelegateLogListener((arg1, arg2) => Debug.WriteLine(arg2)));
 
             Networking.Instance.MainThreadInvoke = MainThreadInvoke;
-
-
-
-
 
             InitializeComponent();
 
             Networking.Instance.Connect();
-
-
-
-
-
 
             DependencyService.Register<MockDataStore>();
             MainPage = new AppShell();

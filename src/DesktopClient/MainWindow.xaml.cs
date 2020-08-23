@@ -24,58 +24,6 @@ using Rectangle = System.Windows.Shapes.Rectangle;
 
 namespace TacControl
 {
-
-    public class Bitmap : ImageDirectory.IImage
-    {
-        public System.Drawing.Bitmap bmp;
-        public object GetImage()
-        {
-            return bmp;
-        }
-    }
-
-    public class BitmapFromDataWindows : IBitmapFromData
-    {
-        public ImageDirectory.IImage GetBitmapFrom(byte[] dataBytes, int width)
-        {
-            var bmp = new Bitmap {bmp = new System.Drawing.Bitmap(width, width, System.Drawing.Imaging.PixelFormat.Format32bppArgb)};
-
-            //ARGB -> BGRA
-            for (int i = 0; i < dataBytes.Length; i += 4)
-            {
-                var A = dataBytes[i];
-                var B = dataBytes[i + 1];
-                var G = dataBytes[i + 2];
-                var R = dataBytes[i + 3];
-
-                dataBytes[i] = B;
-                dataBytes[i + 1] = G;
-                dataBytes[i + 2] = R;
-                dataBytes[i + 3] = A;
-            }
-
-
-            BitmapData bmpData = bmp.bmp.LockBits(new System.Drawing.Rectangle(0, 0,
-                    bmp.bmp.Width,
-                    bmp.bmp.Height),
-                ImageLockMode.WriteOnly,
-                bmp.bmp.PixelFormat);
-
-            IntPtr pNative = bmpData.Scan0;
-            Marshal.Copy(dataBytes, 0, pNative, dataBytes.Length);
-
-            //var output = new FileStream("P:/test2", FileMode.CreateNew);
-            //output.Write(dataBytes, 0, dataBytes.Length);
-            //output.Close();
-
-
-            bmp.bmp.UnlockBits(bmpData);
-            return bmp;
-        }
-    }
-
-
-
     public partial class MainWindow : Window
     {
         public GameState gsRef { get; set; } = GameState.Instance;
@@ -124,8 +72,6 @@ namespace TacControl
         {
             InitializeComponent();
 
-
-
             Networking.Instance.MainThreadInvoke = (action) =>
                 {
                     TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
@@ -150,7 +96,7 @@ namespace TacControl
 
             Networking.Instance.Connect();
             
-            //Compress(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "maps")));
+            Compress(new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "maps")));
         }
 
         private void OpenTacRadio_Click(object sender, RoutedEventArgs e)

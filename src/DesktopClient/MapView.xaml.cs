@@ -1,7 +1,9 @@
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -39,6 +41,7 @@ using Mapsui.Widgets.Zoom;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using TacControl.Common;
+using TacControl.Common.Maps;
 using TacControl.Common.Modules;
 using static TacControl.Common.Modules.ModuleMarker;
 using Brush = Mapsui.Styles.Brush;
@@ -226,17 +229,19 @@ namespace TacControl
 
             var svgRender = new SvgStyleRenderer();
             MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = svgRender;
+            var tbitmRender = new TiledBitmapRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = tbitmRender;
             MapControl.Map.Limiter = new ViewportLimiter();
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
 
             GPSTrackerLayer.IsMapInfoLayer = true;
-            GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer);
+            GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
             GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(GPSTrackerLayer);
             //GPSTrackerLayer.DataChanged += (a,b) => MapControl.RefreshData();
 
             MapMarkersLayer.IsMapInfoLayer = true;
-            MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer);
+            MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds);
             MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
             //MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
@@ -282,7 +287,6 @@ namespace TacControl
 
     public class BoundBox : Mapsui.Geometries.Geometry
     {
-
         public BoundBox(BoundingBox x)
         {
             BoundingBox = x;
@@ -314,416 +318,6 @@ namespace TacControl
     }
 
 
-    public class SvgStyleRenderer : ISkiaStyleRenderer
-    {
-        public bool Draw(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IFeature feature, IStyle style,
-            ISymbolCache symbolCache)
-        {
-
-            var image = ((SvgStyle) style).image;
-
-            var center = viewport.Center;
-
-            //SvgRenderer.Draw(canvas, image, -(float)viewport.Center.X, (float)viewport.Center.Y, (float)viewport.Rotation, 0,0,default, default, default, (float)viewport.Resolution);
-
-            canvas.Save();
-
-
-            var zoom = 1 / (float)viewport.Resolution;
-
-            var canvasSize = canvas.LocalClipBounds;
-
-            var canvasCenterX = canvasSize.Width / 2;
-            var canvasCenterY = canvasSize.Height / 2;
-
-
-            float num1 = (image.CanvasSize.Width /2 ) * zoom;
-            float num2 = (-image.CanvasSize.Height) * zoom;
-            canvas.Translate(canvasCenterX, num2 + canvasCenterY);
-
-            canvas.Translate(-(float)viewport.Center.X * zoom, (float)viewport.Center.Y * zoom);
-           
-            canvas.Scale(zoom, zoom);
-
-
-            canvas.RotateDegrees((float)viewport.Rotation, 0.0f, 0.0f);
-            
-        
-            canvas.DrawPicture(image.Picture, new SKPaint()
-            {
-                IsAntialias = true
-            });
-            canvas.Restore();
-
-
-
-
-
-
-            return true;
-        }
-    }
-
-    public class SvgStyle: VectorStyle
-    {
-        public SkiaSharp.Extended.Svg.SKSvg image; //#TODO https://github.com/wieslawsoltes/Svg.Skia
-    }
-
-    public class MarkerCache
-    {
-        public static MarkerCache Instance = new MarkerCache();
-
-        private class MarkerRequest
-        {
-            public string path;
-            public TaskCompletionSource<int> completionSource;
-        }
-
-
-        private Dictionary<string, MarkerRequest> requests = new Dictionary<string, MarkerRequest>(StringComparer.InvariantCultureIgnoreCase);
-
-        public Task<int> GetBitmapId(ModuleMarker.MarkerType type, ModuleMarker.MarkerColor color)
-        {
-            lock (requests)
-            {
-                var path = $"{type.name}_{color.name}";
-
-                if (requests.ContainsKey(path))
-                    return requests[path].completionSource.Task;
-
-                var request = new MarkerRequest { path = path, completionSource = new TaskCompletionSource<int>() };
-                requests[path] = request;
-
-
-                ImageDirectory.Instance.GetImage(type.icon)
-                        .ContinueWith(
-                            (x) =>
-                            {
-                                var image = (x.Result as ImageDirectory.Bitmap).bmp.ToSKImage();
-
-                                var colorArr = color.color.Trim('[', ']').Split(',').Select(yx => float.Parse(yx)).ToList();
-
-                                image = image.ApplyImageFilter(
-                                    SkiaSharp.SKImageFilter.CreateColorFilter(
-                                        SkiaSharp.SKColorFilter.CreateLighting(new SKColor((byte)(colorArr[0] * 255), (byte)(colorArr[1] * 255), (byte)(colorArr[2] * 255)), new SKColor(0, 0, 0))
-                                    ),
-                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                    out var outSUbs,
-                                    out SKPoint outoffs);
-
-                                var content = new MemoryStream(image.Encode().ToArray());
-                                int bitmapId;
-                                lock (BitmapRegistry.Instance)
-                                {
-                                    bitmapId = BitmapRegistry.Instance.Register(content);
-                                }
-
-                                request.completionSource.SetResult(bitmapId);
-                            });
-
-                return request.completionSource.Task;
-            }
-        }
-
-
-    }
-
-    public class GPSTrackerFeature : Feature
-    {
-        public GPSTracker Tracker { get; private set; }
-        private ImageStyle imgStyle;
-        private LabelStyle lblStyle;
-        public GPSTrackerFeature(GPSTracker tracker)
-        {
-            Tracker = tracker;
-            this["Label"] = tracker.displayName;
-            imgStyle = new ImageStyle
-            {
-                SymbolScale = 0.5,
-                SymbolOffset = new Offset(0.0, 0, true),
-                Fill = null,
-                Outline = null,
-                Line = null
-            };
-
-            var markerType = GameState.Instance.marker.markerTypes["hd_join"];
-            var markerColor = GameState.Instance.marker.markerColors["ColorBlack"];
-
-            MarkerCache.Instance.GetBitmapId(markerType, markerColor)
-                .ContinueWith((bitmapId) => {
-                        imgStyle.BitmapId = bitmapId.Result;
-                    });
-
-            
-            lblStyle = new Mapsui.Styles.LabelStyle { Text = tracker.displayName, BackColor = null, Offset = new Offset(1.2, 0, true), Halo = null };
-
-
-            Styles.Add(imgStyle);
-            Styles.Add(lblStyle);
-            Geometry = new Point(tracker.pos[0], tracker.pos[1]);
-        }
-
-        public void SetDisplayName(string newName)
-        {
-            this["Label"] = newName;
-            lblStyle.Text = newName;
-        }
-
-        public void SetPosition(Point newPos)
-        {
-            Geometry = newPos;
-        }
-    }
-
-    public class GPSTrackerProvider : IProvider, IDisposable
-    {
-        public Layer GpsTrackerLayer { get; private set; }
-        private BoundingBox _boundingBox = MapView.currentBounds;
-
-        public string CRS { get; set; }
-
-        private Dictionary<string, IFeature> features = new Dictionary<string, IFeature>();
-
-
-        public GPSTrackerProvider(Layer gpsTrackerLayer)
-        {
-            GpsTrackerLayer = gpsTrackerLayer;
-            this.CRS = "";
-            //this._boundingBox = MemoryProvider.GetExtents(this.Features);
-            GameState.Instance.gps.trackers.CollectionChanged += (a,e) => OnTrackersUpdated();
-
-            GameState.Instance.gps.PropertyChanged += (a, e) =>
-            {
-                if (e.PropertyName == nameof(ModuleGPS.trackers) && GameState.Instance.gps.trackers != null)
-                {
-                    GameState.Instance.gps.trackers.CollectionChanged += (b, c) => OnTrackersUpdated();
-                    OnTrackersUpdated();
-                }
-                   
-            };
-
-
-
-            //#TODO Also need EH on gps itself, I think the collection is initialized with a new one, without EH
-            OnTrackersUpdated();
-        }
-
-        void OnDataChanged()
-        {
-            //GpsTrackerLayer.DataHasChanged();
-            GpsTrackerLayer.RefreshData(GetExtents(), 1, ChangeType.Discrete);
-        }
-        private void OnTrackersUpdated()
-        {
-            foreach (var keyValuePair in GameState.Instance.gps.trackers)
-            {
-                if (!features.ContainsKey(keyValuePair.Key))
-                {
-                    var feature = new GPSTrackerFeature(keyValuePair.Value);
-                    
-                    features[keyValuePair.Key] = feature;
-
-                    keyValuePair.Value.PropertyChanged += (a, e) =>
-                    {
-                        if (e.PropertyName == nameof(GPSTracker.displayName))
-                        {
-                            feature.SetDisplayName(keyValuePair.Value.displayName);
-                            OnDataChanged();
-                        }
-                        else if (e.PropertyName == nameof(GPSTracker.pos))
-                        {
-                            feature.SetPosition(new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]));
-                            OnDataChanged();
-                        }
-                    };
-                }
-            } 
-
-            var toRemove = features.Where(x => !GameState.Instance.gps.trackers.ContainsKey(x.Key)).Select(x => x.Key)
-                .ToList();
-
-            toRemove.ForEach(x => features.Remove(x));
-
-            OnDataChanged();
-        }
-
-        public virtual IEnumerable<IFeature> GetFeaturesInView(
-          BoundingBox box,
-          double resolution)
-        {
-            if (box == null)
-                throw new ArgumentNullException(nameof(box));
- 
-            BoundingBox grownBox = box.Grow(resolution);
-
-            return features.Values.Where(f => f.Geometry != null && f.Geometry.BoundingBox.Intersects(grownBox)).ToList();
-        }
-
-        public BoundingBox GetExtents()
-        {
-            return this._boundingBox;
-        }
-
-        private static BoundingBox GetExtents(IEnumerable<IFeature> features)
-        {
-            BoundingBox boundingBox = (BoundingBox)null;
-            foreach (IFeature feature in features)
-            {
-                if (!feature.Geometry.IsEmpty())
-                    boundingBox = boundingBox == null ? feature.Geometry.BoundingBox : boundingBox.Join(feature.Geometry.BoundingBox);
-            }
-            return boundingBox;
-        }
-
-        public void Dispose()
-        {
-
-        }
-    }
-
-
-    public class MapMarkerProvider : IProvider, IDisposable
-    {
-        public Layer MapMarkerLayer { get; private set; }
-        private BoundingBox _boundingBox;
-
-        public string CRS { get; set; }
-
-        private Dictionary<string, IFeature> features = new Dictionary<string, IFeature>();
-
-
-        public MapMarkerProvider(Layer mapMarkerLayer)
-        {
-            MapMarkerLayer = mapMarkerLayer;
-            this.CRS = "";
-            //this._boundingBox = MemoryProvider.GetExtents(this.Features);
-            GameState.Instance.marker.markers.CollectionChanged += (a, e) => OnMarkersUpdated();
-
-            GameState.Instance.marker.PropertyChanged += (a, e) => //#TODO probably don't need this anymore, same on GPSTracker
-            {
-                if (e.PropertyName == nameof(ModuleMarker.markers) && GameState.Instance.marker.markers != null)
-                {
-                    GameState.Instance.marker.markers.CollectionChanged += (b, c) => OnMarkersUpdated();
-                    OnMarkersUpdated();
-                }
-
-            };
-
-
-            OnMarkersUpdated();
-        }
-
-        private void OnMarkersUpdated()
-        {
-            foreach (var keyValuePair in GameState.Instance.marker.markers)
-            {
-
-                IFeature feature;
-
-                if (!features.ContainsKey(keyValuePair.Key)) {
-
-                    var marker = keyValuePair.Value;
-                    if (!GameState.Instance.marker.markerTypes.ContainsKey(marker.type)) continue;
-                    var markerType = GameState.Instance.marker.markerTypes[marker.type];
-                    if (!GameState.Instance.marker.markerColors.ContainsKey(marker.color)) continue;
-                    var markerColor = GameState.Instance.marker.markerColors[marker.color];
-
-
-
-
-                    feature = new Feature { ["Label"] = marker.text };
-
-                    var symStyle = new SymbolStyle { SymbolScale = 0.5,
-                        SymbolOffset = new Offset(0.0, 0, true),
-                        Fill = null,
-                        Outline = null,
-                        Line = null,
-                        SymbolType = SymbolType.Rectangle,
-                        SymbolRotation = marker.dir
-                        
-                    };
-
-                    MarkerCache.Instance.GetBitmapId(markerType, markerColor)
-                        .ContinueWith(
-                            (bitmapId) =>
-                            {
-                                symStyle.BitmapId = bitmapId.Result;
-                            });
-
-                    feature.Styles.Add(symStyle);
-                    feature.Styles.Add(new Mapsui.Styles.LabelStyle { Text = marker.text, BackColor = null, Offset = new Offset(1.2, 0, true), Halo = null});
-                    feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
-                    features[keyValuePair.Key] = feature;
-
-                    keyValuePair.Value.PropertyChanged += (a, e) =>
-                    {
-                        if (e.PropertyName == nameof(ModuleMarker.ActiveMarker.text))
-                        {
-                            feature["Label"] = keyValuePair.Value.text;
-                            //#TODO update Label style
-                            foreach (var label in feature.Styles.Where(x => x is LabelStyle))
-                                (label as LabelStyle).Text = keyValuePair.Value.text;
-
-                            MapMarkerLayer.DataHasChanged();
-                        }
-
-                        else if (e.PropertyName == nameof(ModuleMarker.ActiveMarker.pos))
-                        {
-                            feature.Geometry = new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]);
-                            MapMarkerLayer.DataHasChanged();
-                        }
-                        else if (e.PropertyName == nameof(ModuleMarker.ActiveMarker.dir))
-                        {
-                            foreach (var sym in feature.Styles.Where(x => x is SymbolStyle))
-                                (sym as SymbolStyle).SymbolRotation = keyValuePair.Value.dir;
-                            MapMarkerLayer.DataHasChanged();
-                        }
-                    };
-                }
-            }
-
-            var toRemove = features.Where(x => !GameState.Instance.marker.markers.ContainsKey(x.Key)).Select(x => x.Key)
-                .ToList();
-
-            toRemove.ForEach(x => features.Remove(x));
-
-            MapMarkerLayer.DataHasChanged();
-        }
-
-        public virtual IEnumerable<IFeature> GetFeaturesInView(
-          BoundingBox box,
-          double resolution)
-        {
-            if (box == null)
-                throw new ArgumentNullException(nameof(box));
-
-            BoundingBox grownBox = box.Grow(resolution);
-
-            return features.Values.Where(f => f.Geometry != null && f.Geometry.BoundingBox.Intersects(grownBox)).ToList();
-        }
-
-        public BoundingBox GetExtents()
-        {
-            return this._boundingBox;
-        }
-
-        private static BoundingBox GetExtents(IReadOnlyList<IFeature> features)
-        {
-            BoundingBox boundingBox = (BoundingBox)null;
-            foreach (IFeature feature in (IEnumerable<IFeature>)features)
-            {
-                if (!feature.Geometry.IsEmpty())
-                    boundingBox = boundingBox == null ? feature.Geometry.BoundingBox : boundingBox.Join(feature.Geometry.BoundingBox);
-            }
-            return boundingBox;
-        }
-
-        public void Dispose()
-        {
-
-        }
-    }
-
+   
 
 }

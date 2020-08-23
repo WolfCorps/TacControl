@@ -11,7 +11,7 @@
  * Public: Yes
  */
 
-params ["_unit", "_explosive", "_magazineClass"];
+params ["", "_explosive", ""];
 
 if (!isServer) exitWith {
     _this remoteExec ["TC_main_fnc_GPS_activateTracker", 2];
@@ -20,7 +20,7 @@ if (!isServer) exitWith {
 TC_GPSTrackers = TC_GPSTrackers - [objNull];
 TC_GPSTrackers pushBackUnique _explosive;
 publicVariable "TC_GPSTrackers";
-_this remoteExec ["TC_main_fnc_GPS_onServerTracker", [-2, 0] select isServer ];
+remoteExec ["TC_main_fnc_GPS_onServerTracker", 0];
 
 
 

@@ -18,49 +18,6 @@ using Xamarin.Essentials;
 
 namespace TacControl.Droid
 {
-
-
-    public class Bitmap : ImageDirectory.IImage
-    {
-        public SKImage bmp;
-        public object GetImage()
-        {
-            return bmp;
-        }
-    }
-
-    public class BitmapFromDataWindows : IBitmapFromData
-    {
-        public ImageDirectory.IImage GetBitmapFrom(byte[] dataBytes, int width)
-        {
-            //ARGB -> BGRA
-            for (int i = 0; i < dataBytes.Length; i += 4)
-            {
-                var A = dataBytes[i];
-                var B = dataBytes[i + 1];
-                var G = dataBytes[i + 2];
-                var R = dataBytes[i + 3];
-            
-                dataBytes[i] = B;
-                dataBytes[i + 1] = G;
-                dataBytes[i + 2] = R;
-                dataBytes[i + 3] = A;
-            }
-
-            var res = new Bitmap { bmp= SKImage.FromPixelCopy(new SKImageInfo(width, width, SKColorType.Bgra8888), dataBytes) }; //#TODO use this in common
-            return res;
-        }
-    }
-
-
-
-
-
-
-
-
-
-
     [Activity(Label = "TacControl", Icon = "@mipmap/icon", Theme = "@style/MainTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize )]
     public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsAppCompatActivity
     {
@@ -102,56 +59,7 @@ namespace TacControl.Droid
                 });
 
                 return tcs.Task;
-            }, new BitmapFromDataWindows()));
-
-
-            /*
-                           ;
-                //var bmp = new Bitmap {bmp = new System.Drawing.Bitmap(width, width, PixelFormat.Format32bppArgb)};
-                var bmp = new Bitmap {bmp = new Android.Graphics.Bitmap(width, width, PixelFormat.Format32bppArgb)};
-
-                //ARGB -> BGRA
-                for (int i = 0; i < dataBytes.Length; i+=4)
-                {
-                    var A = dataBytes[i];
-                    var B = dataBytes[i + 1];
-                    var G = dataBytes[i + 2];
-                    var R = dataBytes[i + 3];
-
-                    dataBytes[i] = B;
-                    dataBytes[i+1] = G;
-                    dataBytes[i+2] = R;
-                    dataBytes[i+3] = A;
-                }
-
-
-                BitmapData bmpData = bmp.bmp.LockBits(new Rectangle(0, 0,
-                        bmp.bmp.Width,
-                        bmp.bmp.Height),
-                    ImageLockMode.WriteOnly,
-                    bmp.bmp.PixelFormat);
-
-                IntPtr pNative = bmpData.Scan0;
-                Marshal.Copy(dataBytes, 0, pNative, dataBytes.Length);
-
-                //var output = new FileStream("P:/test2", FileMode.CreateNew);
-                //output.Write(dataBytes, 0, dataBytes.Length);
-                //output.Close();
-
-
-                bmp.bmp.UnlockBits(bmpData);
-             *
-             */
-
-
-
-
-
-
-
-
-
-
+            }));
         }
         public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
         {

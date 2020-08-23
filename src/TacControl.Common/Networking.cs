@@ -283,7 +283,7 @@ namespace TacControl.Common
 
 
 
-            var Client = new UdpClient(8082, AddressFamily.InterNetworkV6);
+            var Client = new UdpClient();//(8082, AddressFamily.InterNetworkV6
             Client.EnableBroadcast = true;
 
 
@@ -300,7 +300,7 @@ namespace TacControl.Common
             var RequestData = Encoding.ASCII.GetBytes("R");
 
             Client.EnableBroadcast = true;
-            Client.Send(RequestData, RequestData.Length, new IPEndPoint(IPAddress.Parse("10.0.1.1"), 8082)); //IPAddress.Broadcast
+            Client.Send(RequestData, RequestData.Length, new IPEndPoint(IPAddress.Broadcast, 8082)); //IPAddress.Broadcast
 
 
             //ConfigureAwait(false) is needed on android

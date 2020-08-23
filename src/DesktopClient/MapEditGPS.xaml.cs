@@ -17,6 +17,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TacControl.Annotations;
 using TacControl.Common;
+using TacControl.Common.Modules;
 
 namespace TacControl
 {

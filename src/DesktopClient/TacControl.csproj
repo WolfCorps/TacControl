@@ -62,6 +62,9 @@
     <StartupObject>TacControl.MainSentry</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Svg.Skia">
+      <HintPath>C:\Users\dedmen\.nuget\packages\svg.skia\0.4.2-preview3\lib\netstandard2.0\Svg.Skia.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
@@ -206,6 +209,9 @@
     </PackageReference>
     <PackageReference Include="Sentry">
       <Version>2.1.5</Version>
+    </PackageReference>
+    <PackageReference Include="Svg.Skia">
+      <Version>0.4.2-preview3</Version>
     </PackageReference>
     <PackageReference Include="Tavis.JsonPointer">
       <Version>0.5.0-beta</Version>
