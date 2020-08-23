@@ -174,7 +174,7 @@ namespace TacControl
             //
             //
             //MapControl.Map = new Map();
-
+            List<Task> layerLoadTasks = new List<Task>();
 
             var layers = ParseLayers();
             int terrainWidth = 0;
@@ -196,21 +196,19 @@ namespace TacControl
 
                 currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
 
-                //
                 var features = new Features();
                 var feature = new Feature { Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name };
 
-                var x = new SvgStyle {image = new SkiaSharp.Extended.Svg.SKSvg(new SKSize(terrainWidth, terrainWidth))};
+                var x = new SvgStyle {image = new Svg.Skia.SKSvg()};
 
-
-                using (var stream = new StringReader(svgLayer.content))
+                layerLoadTasks.Add(
+                Task.Run(() =>
                 {
-                    using (var reader = XmlReader.Create(stream, xmlReaderSettings, CreateSvgXmlContext()))
+                    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(svgLayer.content)))
                     {
-                        x.image.Load(reader);
+                        x.image.Load(stream);
                     }
-                }
-
+                }));
 
                 feature.Styles.Add(x);
                 features.Add(feature);
@@ -220,6 +218,7 @@ namespace TacControl
                 MapControl.Map.Layers.Add(layer);
             }
 
+            Task.WaitAll(layerLoadTasks.ToArray());
             //var layer = new Mapsui.Layers.ImageLayer("Base");
             //layer.DataSource = CreateMemoryProviderWithDiverseSymbols();
             //MapControl.Map.Layers.Add(layer);
