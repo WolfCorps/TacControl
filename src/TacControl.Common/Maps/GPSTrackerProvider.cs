@@ -70,6 +70,11 @@ namespace TacControl.Common.Maps
                             feature.SetPosition(new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]));
                             OnDataChanged();
                         }
+                        else if (e.PropertyName == nameof(GPSTracker.vel))
+                        {
+                            feature.UpdateVelocity();
+                            OnDataChanged();
+                        }
                     };
                 }
             }
