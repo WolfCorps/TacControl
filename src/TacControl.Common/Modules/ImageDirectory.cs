@@ -16,7 +16,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
-using Xamarin.Forms.PlatformConfiguration;
 
 namespace TacControl.Common.Modules
 {
@@ -165,7 +164,8 @@ namespace TacControl.Common.Modules
                     }
                 else
                 {
-                    using (var writer = File.Create(Path.Combine(request.targetDirectory, path+"z")))
+                    path = path + "z"; //svgz
+                    using (var writer = File.Create(Path.Combine(request.targetDirectory, path)))
                     {
                         using (GZipStream compressionStream = new GZipStream(writer,
                             CompressionMode.Compress))

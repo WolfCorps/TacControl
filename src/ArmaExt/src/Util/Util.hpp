@@ -99,6 +99,8 @@ namespace Util
 
     std::filesystem::path GetCurrentDLLPath();
 
+    void* GetArmaHostProcAddress(std::string name);
+
 }
 
 

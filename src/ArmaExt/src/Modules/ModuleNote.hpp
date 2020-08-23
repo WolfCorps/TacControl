@@ -25,4 +25,4 @@ public:
     void SerializeState(JsonArchive& ar) override;
 };
 
-inline RadioModule GRadioModule;
+inline ModuleNote GModuleNote;

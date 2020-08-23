@@ -81,129 +81,25 @@ namespace TacControl
             
         }
 
-
-
-        private static readonly XNamespace xlink = "http://www.w3.org/1999/xlink";
-        private static readonly XNamespace svg = "http://www.w3.org/2000/svg";
-        private readonly XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
-
-
-        public struct SvgLayer
-        {
-            public string name;
-            public string content;
-        }
-
-        public List<SvgLayer> ParseLayers()
-        {
-            List<SvgLayer> ret = new List<SvgLayer>();
-            var mapPath = Path.Combine(Path.Combine(Directory.GetCurrentDirectory(), "maps"), $"{GameState.Instance.gameInfo.worldName}.svg");
-
-            bool isCompressed = !File.Exists(mapPath) && File.Exists(mapPath + "z"); //gzip
-            if (isCompressed) mapPath = mapPath + "z";
-
-            //var mapPath = @$"J:/dev/Arma/SVG/{GameState.Instance.gameInfo.worldName}.svg";
-            using (var fileStream = File.OpenRead(mapPath))
-            {
-                GZipStream decompressionStream = new GZipStream(fileStream, CompressionMode.Decompress);
-
-                Stream stream = isCompressed ? decompressionStream : (Stream)fileStream;
-
-                using (var reader = XmlReader.Create(stream, xmlReaderSettings, CreateSvgXmlContext()))
-                {
-                    var xdoc = XDocument.Load(reader);
-                    var svg = xdoc.Root;
-                    var ns = svg.Name.Namespace;
-
-                    var mainAttributes = svg.Attributes();
-                    var defs = svg.Element(ns + "defs");
-
-                    //Change land color from pure white to a better gray
-                    foreach (var def in defs.Descendants())
-                    {
-                        if (def.Attribute("id")?.Value == "colorLand")
-                        {
-                            def.Descendants(ns + "stop").First().SetAttributeValue("stop-color", "#DFDFDF");
-                        }
-                    }
-
-
-
-                    List<XElement> layers = new List<XElement>();
-                    List<XElement> rootElements = new List<XElement>();
-
-                    foreach (var xElement in svg.Elements())
-                    {
-                        if (xElement.Name == ns + "g")
-                        {
-                            layers.Add(xElement);
-                        }
-                        else
-                            rootElements.Add(xElement);
-                    }
-
-                    XDocument bareDoc = new XDocument(xdoc);
-                    List<XElement> toRemove = new List<XElement>();
-                    foreach (var xElement in bareDoc.Root.Elements())
-                    {
-                        if (xElement.Name == ns + "g")
-                            toRemove.Add(xElement);
-                    }
-                    toRemove.ForEach(x => x.Remove());
-
-                    var test = bareDoc.ToString();
-                    foreach (var xElement in layers)
-                    {
-                        XDocument newDoc = new XDocument(bareDoc);
-                        newDoc.Root.Add(xElement);
-                        SvgLayer x;
-                        x.content = newDoc.ToString();
-                        x.name = xElement.Attribute("id").Value;
-                        ret.Add(x);
-                    }
-
-
-
-                }
-
-                decompressionStream.Dispose();
-            }
-
-            return ret;
-        }
-
-        private static XmlParserContext CreateSvgXmlContext()
-        {
-            var table = new NameTable();
-            var manager = new XmlNamespaceManager(table);
-            manager.AddNamespace(string.Empty, svg.NamespaceName);
-            manager.AddNamespace("xlink", xlink.NamespaceName);
-            return new XmlParserContext(null, manager, null, XmlSpace.None);
-        }
-
         private void MapControl_OnLoaded(object sender, RoutedEventArgs e)
         {
+            Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
+        }
 
-
-            //MapControl.Map.Layers.Clear();
-            //
-            //
-            //MapControl.Map = new Map();
+        private void GenerateLayers(List<Helper.SvgLayer> layers)
+        {
             List<Task> layerLoadTasks = new List<Task>();
-
-            var layers = ParseLayers();
             int terrainWidth = 0;
             foreach (var svgLayer in layers)
             {
-
                 var layer = new Mapsui.Layers.ImageLayer(svgLayer.name);
 
-
-                if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" || svgLayer.name == "grid")
+                if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" ||
+                    svgLayer.name == "grid")
                 {
                     layer.Enabled = false;
                 }
-                
+
                 var head = svgLayer.content.Substring(0, svgLayer.content.IndexOf('\n'));
                 var widthSub = head.Substring(head.IndexOf("width"));
                 var width = widthSub.Substring(7, widthSub.IndexOf('"', 7) - 7);
@@ -212,18 +108,18 @@ namespace TacControl
                 currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
 
                 var features = new Features();
-                var feature = new Feature { Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name };
+                var feature = new Feature {Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name};
 
                 var x = new SvgStyle {image = new Svg.Skia.SKSvg()};
 
                 layerLoadTasks.Add(
-                Task.Run(() =>
-                {
-                    using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(svgLayer.content)))
+                    Task.Run(() =>
                     {
-                        x.image.Load(stream);
-                    }
-                }));
+                        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(svgLayer.content)))
+                        {
+                            x.image.Load(stream);
+                        }
+                    }));
 
                 feature.Styles.Add(x);
                 features.Add(feature);
@@ -239,10 +135,9 @@ namespace TacControl
             //MapControl.Map.Layers.Add(layer);
 
 
-            var svgRender = new SvgStyleRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = svgRender;
-            var tbitmRender = new TiledBitmapRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = tbitmRender;
+            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
             MapControl.Map.Limiter = new ViewportLimiter();
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
 
@@ -250,15 +145,15 @@ namespace TacControl
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
             GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(GPSTrackerLayer);
-            //GPSTrackerLayer.DataChanged += (a,b) => MapControl.RefreshData();
+            GPSTrackerLayer.DataChanged += (a,b) => MapControl.RefreshData();
+            // ^ without this create/delete only updates when screen is moved
 
             MapMarkersLayer.IsMapInfoLayer = true;
             MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds);
             MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
-            //MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
-
-
+            MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
+            // ^ without this create/delete only updates when screen is moved
 
             LayerList.Initialize(MapControl.Map.Layers);
             //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
@@ -291,45 +186,5 @@ namespace TacControl
                 
             }
         }
-
-
-
     }
-
-
-    public class BoundBox : Mapsui.Geometries.Geometry
-    {
-        public BoundBox(BoundingBox x)
-        {
-            BoundingBox = x;
-        }
-
-        public override bool IsEmpty()
-        {
-            return false;
-        }
-
-        public override bool Equals(Geometry geom)
-        {
-            var point = geom as BoundBox;
-            if (point == null) return false;
-            return BoundingBox.Equals(point.BoundingBox);
-        }
-
-        public override BoundingBox BoundingBox { get; }
-
-        public override double Distance(Point point)
-        {
-            return BoundingBox.Distance(point);
-        }
-
-        public override bool Contains(Point point)
-        {
-            return BoundingBox.Contains(point);
-        }
-    }
-
-
-   
-
 }

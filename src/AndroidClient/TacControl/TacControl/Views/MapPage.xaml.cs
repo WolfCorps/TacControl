@@ -55,24 +55,10 @@ namespace TacControl.Views
 
             MapControl.RotationLock = true;
 
-            //MapControl.TouchStarted += MapControlOnMouseLeftButtonDown;
+            MapControl.TouchStarted += MapControlOnMouseLeftButtonDown;
+            MapControl.MapClicked += MapControlOnClicked;
             MapControl_OnLoaded();
         }
-
-        //public MapPage(Action<IMapControl> setup, Func<MapControl, MapClickedEventArgs, bool> c = null)
-        //{
-        //    InitializeComponent();
-        //
-        //    MapControl.RotationLock = false;
-        //    MapControl.UnSnapRotationDegrees = 30;
-        //    MapControl.ReSnapRotationDegrees = 5;
-        //    MapControl.Info += MapControl_Info;
-        //
-        //    setup(MapControl);
-        //
-        //    Clicker = c;
-        //   
-        //}
 
         protected override void OnAppearing()
         {
@@ -97,137 +83,25 @@ namespace TacControl.Views
             }
         }
 
-
-
-
-
-
-
-        private static readonly XNamespace xlink = "http://www.w3.org/1999/xlink";
-        private static readonly XNamespace svg = "http://www.w3.org/2000/svg";
-        private readonly XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
-
-
-        public struct SvgLayer
-        {
-            public string name;
-            public string content;
-        }
-
-        public List<SvgLayer> ParseLayers()
-        {
-            List<SvgLayer> ret = new List<SvgLayer>();
-
-           
-
-            var wantedDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
-            string filePath = "";
-            if (File.Exists(Path.Combine(wantedDirectory, GameState.Instance.gameInfo.worldName + ".svgz")))
-                filePath = Path.Combine(wantedDirectory, GameState.Instance.gameInfo.worldName + ".svgz");
-            else if (File.Exists(Path.Combine(wantedDirectory, GameState.Instance.gameInfo.worldName + ".svg")))
-                filePath = Path.Combine(wantedDirectory, GameState.Instance.gameInfo.worldName + ".svg");
-
-            if (string.IsNullOrEmpty(filePath))
-            {
-                ImageDirectory.Instance.RequestMapfile(GameState.Instance.gameInfo.worldName, wantedDirectory)
-                    .ContinueWith(
-                        (x) =>
-                        {
-                            MapControl_OnLoaded();
-                        });
-                return ret;
-            }
-
-            bool isCompressed = filePath.EndsWith("z");
-
-            using (var fileStream = File.OpenRead(filePath))
-            {
-                GZipStream decompressionStream = new GZipStream(fileStream, CompressionMode.Decompress);
-
-                Stream stream = isCompressed ? decompressionStream : (Stream)fileStream;
-
-                using (var reader = XmlReader.Create(stream, xmlReaderSettings, CreateSvgXmlContext()))
-                {
-                    var xdoc = XDocument.Load(reader);
-                    var svg = xdoc.Root;
-                    var ns = svg.Name.Namespace;
-
-                    var mainAttributes = svg.Attributes();
-                    var defs = svg.Element("defs");
-                    List<XElement> layers = new List<XElement>();
-                    List<XElement> rootElements = new List<XElement>();
-
-                    foreach (var xElement in svg.Elements())
-                    {
-                        if (xElement.Name == ns + "g")
-                        {
-                            layers.Add(xElement);
-                        }
-                        else
-                            rootElements.Add(xElement);
-                    }
-
-                    XDocument bareDoc = new XDocument(xdoc);
-                    List<XElement> toRemove = new List<XElement>();
-                    foreach (var xElement in bareDoc.Root.Elements())
-                    {
-                        if (xElement.Name == ns + "g")
-                            toRemove.Add(xElement);
-                    }
-                    toRemove.ForEach(x => x.Remove());
-
-                    var test = bareDoc.ToString();
-                    foreach (var xElement in layers)
-                    {
-                        XDocument newDoc = new XDocument(bareDoc);
-                        newDoc.Root.Add(xElement);
-                        SvgLayer x;
-                        x.content = newDoc.ToString();
-                        x.name = xElement.Attribute("id").Value;
-                        ret.Add(x);
-                    }
-
-
-
-                }
-
-                decompressionStream.Dispose();
-            }
-
-            return ret;
-        }
-
-        private static XmlParserContext CreateSvgXmlContext()
-        {
-            var table = new NameTable();
-            var manager = new XmlNamespaceManager(table);
-            manager.AddNamespace(string.Empty, svg.NamespaceName);
-            manager.AddNamespace("xlink", xlink.NamespaceName);
-            return new XmlParserContext(null, manager, null, XmlSpace.None);
-        }
-
         private void MapControl_OnLoaded()
         {
+            Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
+        }
 
-
-            //MapControl.Map.Layers.Clear();
-            //
-            //
-            //MapControl.Map = new Map();
-
-
-            var layers = ParseLayers();
-            if (layers.Count == 0) return;
+        private void GenerateLayers(List<Helper.SvgLayer> layers)
+        {
+            List<Task> layerLoadTasks = new List<Task>();
             int terrainWidth = 0;
             foreach (var svgLayer in layers)
             {
-
                 var layer = new Mapsui.Layers.ImageLayer(svgLayer.name);
 
-
-                if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" || svgLayer.name == "grid")
+                if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" ||
+                    svgLayer.name == "grid")
                 {
                     layer.Enabled = false;
+                    if (System.Environment.OSVersion.Platform == PlatformID.Unix) //Android
+                        continue;
                 }
 
                 var head = svgLayer.content.Substring(0, svgLayer.content.IndexOf('\n'));
@@ -237,19 +111,19 @@ namespace TacControl.Views
 
                 currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
 
-                //
                 var features = new Features();
-                var feature = new Feature { Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name };
+                var feature = new Feature {Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name};
 
-                var x = new SvgStyle { image = new Svg.Skia.SKSvg() };
-          
-                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(svgLayer.content)))
-                {
-                    //using (var reader = XmlReader.Create(stream, xmlReaderSettings, CreateSvgXmlContext())) {
-                        x.image.Load(stream);
-                    //}
-                }
+                var x = new SvgStyle {image = new Svg.Skia.SKSvg()};
 
+                //layerLoadTasks.Add(
+                //    Task.Run(() =>
+                //    {
+                        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(svgLayer.content)))
+                        {
+                            x.image.Load(stream);
+                        }
+                //    }));
 
                 feature.Styles.Add(x);
                 features.Add(feature);
@@ -259,13 +133,16 @@ namespace TacControl.Views
                 MapControl.Map.Layers.Add(layer);
             }
 
+            //Task.WaitAll(layerLoadTasks.ToArray());
             //var layer = new Mapsui.Layers.ImageLayer("Base");
             //layer.DataSource = CreateMemoryProviderWithDiverseSymbols();
             //MapControl.Map.Layers.Add(layer);
 
 
-            var svgRender = new SvgStyleRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = svgRender;
+            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
+
             MapControl.Map.Limiter = new ViewportLimiter();
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
 
@@ -273,144 +150,47 @@ namespace TacControl.Views
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
             GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(GPSTrackerLayer);
-            //GPSTrackerLayer.DataChanged += (a,b) => MapControl.RefreshData();
+            GPSTrackerLayer.DataChanged += (a,b) => MapControl.RefreshData();
+            // ^ without this create/delete only updates when screen is moved
 
             MapMarkersLayer.IsMapInfoLayer = true;
             MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds);
             MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
-            //MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
-
-
+            MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
+            // ^ without this create/delete only updates when screen is moved
 
             //LayerList.Initialize(MapControl.Map.Layers);
             //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
-            //MapControl.Navigator.ZoomTo(1, new Point(512,512), 5);
+            MapControl.Navigator.ZoomTo(1, 0);
         }
 
-        //private void MapControlOnMouseLeftButtonDown(object sender, MouseButtonEventArgs args)
-        //{
-        //    GPSEditPopup.IsOpen = false;
-        //    if (args.ClickCount > 1)
-        //    {
-        //
-        //
-        //        var info = MapControl.GetMapInfo(args.GetPosition(MapControl).ToMapsui(), 12);
-        //
-        //        if (info.Feature is GPSTrackerFeature gpsTrackerFeature)
-        //        {
-        //
-        //            GPSEdit.Tracker = gpsTrackerFeature.Tracker;
-        //            GPSEditPopup.Placement = PlacementMode.Mouse;
-        //            GPSEditPopup.StaysOpen = false;
-        //            GPSEditPopup.AllowsTransparency = true;
-        //            GPSEditPopup.IsOpen = true;
-        //        }
-        //
-        //        args.Handled = true;
-        //    }
-        //    else
-        //    {
-        //
-        //    }
-        //}
 
-
-    }
-
-
-
-
-
-
-
-
-
-    public class BoundBox : Mapsui.Geometries.Geometry
-    {
-
-        public BoundBox(BoundingBox x)
+        private void MapControlOnMouseLeftButtonDown(object sender, TouchedEventArgs e)
         {
-            BoundingBox = x;
-        }
+            var info = MapControl.GetMapInfo(e.ScreenPoints.First(), 12);
 
-        public override bool IsEmpty()
-        {
-            return false;
-        }
-
-        public override bool Equals(Geometry geom)
-        {
-            var point = geom as BoundBox;
-            if (point == null) return false;
-            return BoundingBox.Equals(point.BoundingBox);
-        }
-
-        public override BoundingBox BoundingBox { get; }
-
-        public override double Distance(Mapsui.Geometries.Point point)
-        {
-            return BoundingBox.Distance(point);
-        }
-
-        public override bool Contains(Mapsui.Geometries.Point point)
-        {
-            return BoundingBox.Contains(point);
-        }
-    }
-
-
-    public class SvgStyleRenderer : ISkiaStyleRenderer
-    {
-        public bool Draw(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IFeature feature, IStyle style,
-            ISymbolCache symbolCache)
-        {
-
-            var image = ((SvgStyle)style).image;
-
-            var center = viewport.Center;
-
-            //SvgRenderer.Draw(canvas, image, -(float)viewport.Center.X, (float)viewport.Center.Y, (float)viewport.Rotation, 0,0,default, default, default, (float)viewport.Resolution);
-
-            canvas.Save();
-
-
-            var zoom = 1 / (float)viewport.Resolution;
-
-            var canvasSize = canvas.LocalClipBounds;
-
-            var canvasCenterX = canvasSize.Width / 2;
-            var canvasCenterY = canvasSize.Height / 2;
-
-
-            float width = (float)MapPage.currentBounds.Width;
-            float height = (float)MapPage.currentBounds.Height;
-
-
-            float num1 = (width / 2) * zoom;
-            float num2 = (-height) * zoom;
-            canvas.Translate(canvasCenterX, num2 + canvasCenterY);
-
-            canvas.Translate(-(float)viewport.Center.X * zoom, (float)viewport.Center.Y * zoom);
-
-            canvas.Scale(zoom, zoom);
-
-
-            canvas.RotateDegrees((float)viewport.Rotation, 0.0f, 0.0f);
-
-
-            canvas.DrawPicture(image.Picture, new SKPaint()
+            //GPSEditPopup.IsOpen = false;
+            if (info.Feature is GPSTrackerFeature gpsTrackerFeature)
             {
-                IsAntialias = true
-            });
-            canvas.Restore();
 
-
-
-
-
-
-            return true;
+                //GPSEdit.Tracker = gpsTrackerFeature.Tracker;
+                //GPSEditPopup.Placement = PlacementMode.Mouse;
+                //GPSEditPopup.StaysOpen = false;
+                //GPSEditPopup.AllowsTransparency = true;
+                //GPSEditPopup.IsOpen = true;
+                //e.Handled = true;
+            }
         }
+
+
+        private void MapControlOnClicked(object sender, MapClickedEventArgs e)
+        {
+            //Doesn't work.
+            //var info = MapControl.GetMapInfo(e.Point.ToMapsui(), 12);
+        }
+
+
+
     }
 }

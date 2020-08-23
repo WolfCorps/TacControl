@@ -6,6 +6,7 @@
 class JsonArchive;
 
 class ModuleGameInfo : public IModule, public IMessageReceiver, public IStateHolder {
+public: //#TODO private and getter
     std::string worldName;
 
 

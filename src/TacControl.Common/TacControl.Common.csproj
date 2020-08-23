@@ -21,10 +21,4 @@
     <PackageReference Include="WebSocket4Net" Version="0.15.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="Xamarin.Forms.Core">
-      <HintPath>..\..\..\Microsoft\Xamarin\NuGet\xamarin.forms\4.7.0.1142\lib\netstandard2.0\Xamarin.Forms.Core.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

@@ -20,9 +20,6 @@
                             BackgroundColor="Gray" 
                             Margin="10"
                             />
-            <Label x:Name="info" 
-                   HorizontalOptions="CenterAndExpand"
-                   Text="unknown" />
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

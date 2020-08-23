@@ -8,6 +8,10 @@
 #include <s3tc.h>
 #include <minilzo.h>
 
+
+#include "ModuleGameInfo.hpp"
+#include "Game/GameManager.hpp"
+
 void ModuleImageDirectory::LoadPboPrefixes() {
 
     auto pboList = Util::GenerateLoadedPBOList();
@@ -183,6 +187,64 @@ void ModuleImageDirectory::LoadTextureToCache(std::string_view path) {
 void ModuleImageDirectory::OnGameMessage(const std::vector<std::string_view>& function,
                                          const std::vector<std::string_view>& arguments) {
 
+    if (function.front() == "DoExport") {
+
+        auto exportPtr = Util::GetArmaHostProcAddress("?ExportSVG@@YAXPEBD_N1111@Z");
+
+        auto exportFunc = static_cast<void(*)(
+            const char* name,
+            bool drawLocationNames,
+            bool drawGrid,
+            bool drawCountlines,
+            bool drawTreeObjects,
+            bool drawMountainHeightpoints
+            )>(exportPtr);
+
+        auto myDirectory = Util::GetCurrentDLLPath().parent_path();
+        auto svgPath = myDirectory / "Maps" / std::filesystem::path(GModuleGameInfo.worldName + ".svg").replace_extension(".svg");
+        exportFunc(svgPath.string().data(), true, true, true, false, false);
+
+        auto msg = generateMapfileMessage(GModuleGameInfo.worldName+".svg").dump();
+        for (auto& it : waitingForMapExport)
+            it(msg);
+        waitingForMapExport.clear();
+    }
+}
+
+nlohmann::json ModuleImageDirectory::generateMapfileMessage(std::string_view path) {
+    auto myDirectory = Util::GetCurrentDLLPath().parent_path();
+
+    auto svgPath = myDirectory / "Maps" / std::filesystem::path(path).replace_extension(".svg");
+    auto svgzPath = myDirectory / "Maps" / std::filesystem::path(path).replace_extension(".svgz");
+
+    nlohmann::json msg;
+    msg["cmd"] = { "ImgDir", "MapFile" };
+    auto& args = msg["args"];
+
+    if (std::filesystem::exists(svgzPath)) {
+        args["name"] = svgzPath.filename().string();
+
+        std::vector<char> buffer;
+        buffer.resize(std::filesystem::file_size(svgzPath));
+        std::ifstream fstr(svgzPath, std::ifstream::binary | std::ifstream::in);
+        fstr.read(buffer.data(), buffer.size());
+
+        args["data"] = base64_encode(std::string_view(buffer.data(), buffer.size()));
+    } else if (std::filesystem::exists(svgPath)) {
+        args["name"] = svgPath.filename().string();
+
+
+        std::vector<char> buffer;
+        buffer.resize(std::filesystem::file_size(svgPath));
+        std::ifstream fstr(svgPath, std::ifstream::binary | std::ifstream::in);
+        fstr.read(buffer.data(), buffer.size());
+
+        args["data"] = base64_encode(std::string_view(buffer.data(), buffer.size()));
+    } else {
+        GGameManager.SendMessage("ImgDir.ReqExport", "");
+        return {};
+    }
+    return msg;
 }
 
 void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {
@@ -202,39 +264,12 @@ void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, co
     } else if (function[0] == "RequestMapfile") {
         std::string_view path = arguments["name"];
 
-        auto myDirectory = Util::GetCurrentDLLPath().parent_path();
+        nlohmann::json msg = generateMapfileMessage(path);
 
-        auto svgPath = myDirectory / "Maps" / std::filesystem::path(path).replace_extension(".svg");
-        auto svgzPath = myDirectory / "Maps" / std::filesystem::path(path).replace_extension(".svgz");
-
-        nlohmann::json msg;
-        msg["cmd"] = { "ImgDir", "MapFile" };
-        auto& args = msg["args"];
-
-        if (std::filesystem::exists(svgzPath)) {
-            args["name"] = svgzPath.filename().string();
-
-            std::vector<char> buffer;
-            buffer.resize(std::filesystem::file_size(svgzPath));
-            std::ifstream fstr(svgzPath, std::ifstream::binary | std::ifstream::in);
-            fstr.read(buffer.data(), buffer.size());
-
-            args["data"] = base64_encode(std::string_view(buffer.data(), buffer.size()));
-        } else if (std::filesystem::exists(svgPath)) {
-            args["name"] = svgPath.filename().string();
-
-
-            std::vector<char> buffer;
-            buffer.resize(std::filesystem::file_size(svgPath));
-            std::ifstream fstr(svgPath, std::ifstream::binary | std::ifstream::in);
-            fstr.read(buffer.data(), buffer.size());
-
-            args["data"] = base64_encode(std::string_view(buffer.data(), buffer.size()));
-        } else {
-            //#TODO generate svg
+        if (msg.is_null()) {
+            waitingForMapExport.push_back(replyFunc);
             return;
         }
-
 
         replyFunc(msg.dump());
     }

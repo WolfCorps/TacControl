@@ -277,3 +277,7 @@ std::filesystem::path Util::GetCurrentDLLPath() {
     return std::filesystem::path(path);
 }
 
+void* Util::GetArmaHostProcAddress(std::string name) {
+    return GetProcAddress(GetModuleHandleA(nullptr), name.data());
+}
+

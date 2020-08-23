@@ -16,7 +16,6 @@ class ModuleImageDirectory : public ThreadQueue, public IMessageReceiver {
         std::string prefix;
 
         PrefixPboFile(std::filesystem::path a, std::string b) : file(std::move(a)), prefix(std::move(b)) {}
-
     };
 
     std::vector<PrefixPboFile> pboWithPrefixes;
@@ -31,6 +30,11 @@ class ModuleImageDirectory : public ThreadQueue, public IMessageReceiver {
     std::vector<char> LoadRGBATexture(std::string_view path);
 
     std::map<std::string, std::vector<char>, std::less<>> imageCache;
+
+    nlohmann::json generateMapfileMessage(std::string_view path);
+
+    std::vector<std::function<void(std::string_view)>> waitingForMapExport;
+
 
 
 public:

@@ -72,7 +72,7 @@ namespace TacControl.Common.Maps
 
                         var symStyle = new SymbolStyle
                         {
-                            SymbolScale = 0.3,
+                            SymbolScale = 0.4,
                             SymbolOffset = new Offset(0.0, 0, true),
                             Fill = null,
                             Outline = null,

@@ -36,4 +36,12 @@ addMissionEventHandler ["ExtensionCallback", {
         _function = _function select [1, 9999];
         [_function, _arguments] call TC_main_fnc_Marker_onMessage;
     };
+
+    if (_function#0 == "ImgDir") then {
+        //There is only one possible command for ImgDir
+        call TC_main_fnc_exportTerrain;
+    };
+
+
+
 }];
