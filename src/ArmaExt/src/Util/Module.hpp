@@ -50,3 +50,4 @@ public:
     X(ModuleMarker) \
     X(ModuleImageDirectory) \
     X(ModuleGameInfo) \
+    X(ModuleNote) \

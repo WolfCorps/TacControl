@@ -24,6 +24,7 @@
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="20" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions >
@@ -33,7 +34,7 @@
         <Button Grid.Column="0" Content="Open TacRadio" Name="OpenTacRadio" Click="OpenTacRadio_Click"/>
         <Button Grid.Column="1" Content="Open TacMap" Name="OpenTacMap" Style="{StaticResource worldNameIsNull}" Click="OpenTacMap_Click"/>
 
-      
+      <local:NotesList Grid.Row="1" Grid.ColumnSpan="2"></local:NotesList>
 
     </Grid>
 </Window>

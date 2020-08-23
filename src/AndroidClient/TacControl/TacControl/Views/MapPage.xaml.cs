@@ -96,8 +96,12 @@ namespace TacControl.Views
             {
                 var layer = new Mapsui.Layers.ImageLayer(svgLayer.name);
 
-                if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" ||
-                    svgLayer.name == "grid")
+                if (
+                    svgLayer.name == "forests" ||
+                    svgLayer.name == "countLines" ||
+                    svgLayer.name == "rocks" ||
+                    svgLayer.name == "grid"
+                    )
                 {
                     layer.Enabled = false;
                     if (System.Environment.OSVersion.Platform == PlatformID.Unix) //Android

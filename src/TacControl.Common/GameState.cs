@@ -22,6 +22,9 @@ namespace TacControl.Common
 
         public ModuleGameInfo gameInfo { get; set; } = new ModuleGameInfo();
 
+        public ModuleNote note { get; set; } = new ModuleNote();
+
+
         public void test()
         {
             

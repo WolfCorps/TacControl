@@ -7,8 +7,20 @@
 
 class JsonArchive;
 
+struct Note {
+    int id;
+    std::string text;
+    std::string gpsTracker;
+    std::string radioFrequency;
+
+    void Serialize(JsonArchive& ar);
+};
+
+
 class ModuleNote : public ThreadQueue, public IMessageReceiver, public IStateHolder {
 
+    std::map<int, Note> notes;
+    int newNoteIdx = 0;
 public:
     //ThreadQueue
     void ModulePostInit() override { SetThreadName("TacControl_ModuleNote"); }

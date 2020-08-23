@@ -1,0 +1,28 @@
+<UserControl x:Class="TacControl.NotesList"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TacControl"
+             xmlns:ModuleNote="clr-namespace:TacControl.Common.Modules;assembly=TacControl.Common"
+             xmlns:generic="clr-namespace:System.Collections.Generic;assembly=mscorlib"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="NotesListCtrl">
+    <Grid>
+
+
+        <ListView HorizontalAlignment="Left" Margin="10,10,0,10" Width="772" Name="RadiosBox"
+                  ItemsSource="{Binding noteRef.notes, ElementName=NotesListCtrl}" HorizontalContentAlignment="Stretch"
+        >
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <local:NoteWidget NoteRef="{Binding Value}"/>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <Button Margin="0,10,18,0"  Content="CreateNew" Height="30" VerticalAlignment="Top" Click="Button_Click" HorizontalAlignment="Right" Width="73"/>
+
+    </Grid>
+
+</UserControl>

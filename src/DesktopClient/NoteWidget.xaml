@@ -1,0 +1,71 @@
+<UserControl x:Class="TacControl.NoteWidget"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TacControl"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:common="clr-namespace:TacControl.Common;assembly=TacControl.Common"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" x:Name="NoteWidgetCtrl">
+
+    <UserControl.Resources>
+        <common:GameState x:Key="gameState"/>
+    </UserControl.Resources>
+
+
+    <Grid>
+        <Grid VerticalAlignment="Top" HorizontalAlignment="Stretch">
+            <DockPanel HorizontalAlignment="Stretch">
+                <!--<TextBlock
+                                x:Name="DataGridTitle"
+                                VerticalAlignment="Top"
+                                DockPanel.Dock="Left"
+                            />-->
+                <TextBox
+                    Name="VerticallyExpandMe"
+                    AcceptsReturn="True"
+                    TextWrapping="Wrap"
+                    HorizontalAlignment="Stretch"
+                    Text="{Binding NoteRef.Text, ElementName=NoteWidgetCtrl, Delay=500, UpdateSourceTrigger=PropertyChanged}"
+                >
+                </TextBox>
+
+                <xctk:SplitButton
+                    Content="{Binding NoteRef.GPSTrackerDisplayName, ElementName=NoteWidgetCtrl}"
+                    Name="JumpToGPSButton"
+                    Click="BtnJumpToGPS_OnClick">
+
+                    <xctk:SplitButton.DropDownContent>
+                        <ListView
+                            ItemsSource="{Binding Source={x:Static common:GameState.Instance}, Path=gps.trackers}"
+                            Height="200"
+                            Width="200"
+                            SelectionChanged="JumpToGPS_Selected"
+                            >
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        
+
+
+
+<TextBlock Text="{Binding Value.displayName}" />
+                                    </Grid>
+
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        
+
+                    </xctk:SplitButton.DropDownContent>
+
+                </xctk:SplitButton>
+            </DockPanel>
+        </Grid>
+    </Grid>
+</UserControl>

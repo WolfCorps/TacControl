@@ -72,6 +72,10 @@ namespace TacControl
             InitializeComponent();
             //MouseWheel += MapControlMouseWheel;
             MapControl.MouseLeftButtonDown += MapControlOnMouseLeftButtonDown;
+
+            EventSystem.CenterMap += (position) => MapControl.Navigator.NavigateTo(position, 1, 500);
+
+
         }
 
         private void MapControl_OnInitialized(object sender, EventArgs e)
@@ -186,5 +190,6 @@ namespace TacControl
                 
             }
         }
+
     }
 }
