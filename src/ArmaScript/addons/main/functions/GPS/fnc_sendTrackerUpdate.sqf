@@ -12,7 +12,7 @@ TC_GPSTrackers = TC_GPSTrackers - [objNull];
 {
     private _trackerInfo = [];
     _trackerInfo pushBack (_x call BIS_fnc_netId);
-    _trackerInfo pushBack getPosWorld _x;
+    _trackerInfo pushBack getPosATL _x;
     _trackerInfo pushBack velocity _x;
 
 
