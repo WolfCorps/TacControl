@@ -25,7 +25,6 @@ void ModuleMarker::MarkerBrush::Serialize(JsonArchive& ar) {
 }
 
 void ModuleMarker::ActiveMarker::Serialize(JsonArchive& ar) {
-
     ar.Serialize("id", id);
     ar.Serialize("type", type);
     ar.Serialize("color", color);
@@ -36,10 +35,11 @@ void ModuleMarker::ActiveMarker::Serialize(JsonArchive& ar) {
     ar.Serialize("alpha", alpha);
     ar.Serialize("brush", brush);
     ar.Serialize("size", size);
+    ar.Serialize("channel", channel);
+    ar.Serialize("polyline", polyline);
 }
 
 void ModuleMarker::OnMarkerTypesRetrieved(const std::vector<std::basic_string_view<char>>& arguments) {
-
     auto types = Util::split(arguments[0], '\t');
     auto colors = Util::split(arguments[1], '\t');
     auto brushes = Util::split(arguments[2], '\t');
@@ -111,6 +111,16 @@ void ModuleMarker::OnMarkerCreated(const std::vector<std::basic_string_view<char
     newMarker.alpha = Util::parseArmaNumber(arguments[7]);
     newMarker.brush = arguments[8];
     newMarker.size = arguments[9];
+    newMarker.channel = Util::parseArmaNumberToInt(arguments[10]);
+    auto polyLineStr = arguments[11];
+    newMarker.polyline.clear();
+    for (auto& point : Util::split(polyLineStr, ';')) {
+        newMarker.polyline.push_back(Vector2D(point));
+    }
+
+
+
+
 
     markers[newMarker.id] = newMarker;
     GNetworkController.SendStateUpdate();

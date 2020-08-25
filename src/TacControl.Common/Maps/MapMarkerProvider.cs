@@ -7,6 +7,7 @@ using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Styles;
+using SkiaSharp;
 using TacControl.Common.Modules;
 
 namespace TacControl.Common.Maps
@@ -52,6 +53,10 @@ namespace TacControl.Common.Maps
                 if (!features.ContainsKey(keyValuePair.Key))
                 {
 
+
+                    CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+                    ci.NumberFormat.NumberDecimalSeparator = ".";
+
                     var marker = keyValuePair.Value;
 
                     if (!GameState.Instance.marker.markerColors.ContainsKey(marker.color)) continue;
@@ -70,38 +75,25 @@ namespace TacControl.Common.Maps
                                 {color = markerType.color, name = markerType.name};
 
 
-                        var symStyle = new SymbolStyle
+                        var symStyle = new MarkerIconStyle
                         {
-                            SymbolScale = 0.4,
-                            SymbolOffset = new Offset(0.0, 0, true),
-                            Fill = null,
-                            Outline = null,
-                            Line = null,
-                            SymbolType = SymbolType.Rectangle,
                             SymbolRotation = marker.dir,
-                            Opacity = marker.alpha
+                            Opacity = marker.alpha,
+                            size = marker.size.Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToArray(),
+                            typeSize = markerType.size,
+                            color = markerColor.ToSKColor(),
+                            shadow = markerType.shadow,
+                            text = marker.text
                         };
 
-                        MarkerCache.Instance.GetBitmapId(markerType, markerColor)
+                        MarkerCache.Instance.GetImage(markerType, null)
                             .ContinueWith(
-                                (bitmapId) =>
+                                (image) =>
                                 {
-                                    symStyle.BitmapId = bitmapId.Result;
+                                    symStyle.markerIcon = image.Result;
                                 });
 
                         feature.Styles.Add(symStyle);
-
-                        if (!string.IsNullOrEmpty(marker.text))
-                        {
-                            var font = new Mapsui.Styles.Font { FontFamily = "Verdana", Size = 24, Bold = true };
-                            var markerLabel = new MarkerLabelStyle(marker.text, markerType, markerColor);
-                            if (markerType.shadow)
-                                markerLabel.Halo = new Mapsui.Styles.Pen(Mapsui.Styles.Color.Black, 1D);
-                            markerLabel.Opacity = marker.alpha;
-
-                            feature.Styles.Add(markerLabel);
-                        }
-
                     }
                     else if (marker.shape == "RECTANGLE" || marker.shape == "ELLIPSE")
                     {
@@ -112,17 +104,13 @@ namespace TacControl.Common.Maps
                         if (marker.size == null)
                             marker.size = "64,44";
 
-                        CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
-                        ci.NumberFormat.NumberDecimalSeparator = ".";
-
-
-
                         var markerSize = marker.size.Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToArray();
 
+
+                        var center = new Point(marker.pos[0], marker.pos[1]);
+                        
                         //set rect
-                        //feature.Geometry = new Point(marker.pos[0], marker.pos[1]);
-
-
+                        feature.Geometry = new BoundBox(center.Offset(-markerSize[0], -markerSize[1]), center.Offset(markerSize[0], markerSize[1]));
 
                         var tiledBitmap = new TiledBitmapStyle {
                             image = null,
@@ -135,18 +123,24 @@ namespace TacControl.Common.Maps
                         feature.Styles.Add(tiledBitmap);
 
 
-                        MarkerCache.Instance.GetImage(markerBrush, markerColor).ContinueWith(
+                        MarkerCache.Instance.GetImage(markerBrush, null).ContinueWith(
                             (image) =>
                             {
                                 tiledBitmap.image = image.Result;
                             });
 
 
+                    } else if (marker.shape == "POLYLINE")
+                    {
+                        feature.Geometry = new BoundBox(marker.polyline);
+
+                        var polyMarker = new PolylineMarkerStyle(marker.polyline)
+                        {
+                            color = markerColor.ToSKColor()
+                        };
+                        feature.Styles.Add(polyMarker);
                     }
 
-                 
-
-                    
                     features[keyValuePair.Key] = feature;
 
                     keyValuePair.Value.PropertyChanged += (a, e) =>

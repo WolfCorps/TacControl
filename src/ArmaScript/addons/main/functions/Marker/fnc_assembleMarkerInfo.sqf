@@ -14,6 +14,8 @@ params ["_marker"];
     markerShape _marker,
     markerAlpha _marker,
     markerBrush _marker,
-    markerSize _marker joinString ","
+    markerSize _marker joinString ",",
+    markerChannel _marker,
+    markerPolyline _marker joinString ";"
 ]
 

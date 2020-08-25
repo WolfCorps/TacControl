@@ -1,14 +1,8 @@
 #include "script_component.hpp"
 
 
-//Register existing markers
-{_x call TC_main_fnc_Marker_onMarkerCreated} forEach allMapMarkers;
-
-
-
-
 //["created", TC_main_fnc_Marker_onMarkerCreated] call CBA_fnc_addMarkerEventHandler;
-["deleted", TC_main_fnc_Marker_onMarkerDeleted] call CBA_fnc_addMarkerEventHandler;
+//["deleted", TC_main_fnc_Marker_onMarkerDeleted] call CBA_fnc_addMarkerEventHandler;
 
 
 ["ace_markers_setMarkerPosLocal", TC_main_fnc_Marker_onMarkerPosChanged] call CBA_fnc_addEventHandler;
@@ -28,3 +22,7 @@
     //systemChat str ["netw", _this];
 
 }] call CBA_fnc_addEventHandler;
+
+
+addMissionEventHandler ["MarkerCreated", TC_main_fnc_Marker_onMarkerCreated];
+addMissionEventHandler ["MarkerDeleted", TC_main_fnc_Marker_onMarkerDeleted];

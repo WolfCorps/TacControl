@@ -13,7 +13,22 @@ namespace TacControl.Common.Maps
         public float rotation;
         public bool ellipse = false;
         public bool border;
-        public SKColor color;
+        public SKColorFilter colorFilter;
+        private SKColor colorInt;
+
+        public SKColor color
+        {
+            set
+            {
+                colorFilter = SkiaSharp.SKColorFilter.CreateLighting(value, new SKColor(0, 0, 0));
+                colorInt = value;
+            }
+            get
+            {
+                return colorInt;
+            }
+        }
+
 
         public double MinVisible { get; set; } = 0.0f;
         public double MaxVisible { get; set; } = double.MaxValue;

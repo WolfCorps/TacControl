@@ -51,6 +51,8 @@ class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateH
         float alpha;
         std::string brush;
         std::string size; //xxx,yyy really just two numbers
+        int channel;
+        std::vector<Vector2D> polyline;
 
         void Serialize(JsonArchive& ar);
     };

@@ -15,6 +15,34 @@ float fast_invsqrt(float number) {
     return y;
 }
 
+Vector2D::Vector2D(float x, float y) :m_x(x), m_y(y) {
+    
+}
+
+Vector2D::Vector2D(std::string_view coordinateString) {
+    coordinateString = Util::trim(coordinateString, "[]");
+    if (coordinateString.length() < 3)
+        return; //Fail
+    std::vector<std::string_view> coords; coords.reserve(2);
+    Util::split(coordinateString, ',', coords);
+    switch (coords.size()) {
+    case 2:
+        m_x = Util::parseArmaNumber(coords.at(0));
+        m_y = Util::parseArmaNumber(coords.at(1));
+        break;
+    }
+}
+
+std::tuple<float, float> Vector2D::get() const {
+    return{ m_x, m_y };
+}
+
+void Vector2D::Serialize(JsonArchive& ar) {
+    auto& js = *ar.getRaw();
+    js.push_back(m_x);
+    js.push_back(m_y);
+}
+
 Vector3D::Vector3D(float x, float y, float z) :m_x(x), m_y(y), m_z(z) {
 
 }

@@ -40,6 +40,7 @@ using Mapsui.Widgets.ScaleBar;
 using Mapsui.Widgets.Zoom;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
+using TacControl.Annotations;
 using TacControl.Common;
 using TacControl.Common.Maps;
 using TacControl.Common.Modules;
@@ -48,6 +49,7 @@ using Brush = Mapsui.Styles.Brush;
 using Color = Mapsui.Styles.Color;
 using Geometry = Mapsui.Geometries.Geometry;
 using LineStringRenderer = Mapsui.Rendering.Skia.LineStringRenderer;
+using Math = System.Math;
 using MultiLineStringRenderer = Mapsui.Rendering.Skia.MultiLineStringRenderer;
 using MultiPolygonRenderer = Mapsui.Rendering.Skia.MultiPolygonRenderer;
 using Path = System.IO.Path;
@@ -57,9 +59,34 @@ using SymbolCache = Mapsui.Rendering.Skia.SymbolCache;
 
 namespace TacControl
 {
-    /// <summary>
-    /// Interaction logic for MapView.xaml
-    /// </summary>
+    public class MyMap : Mapsui.Map
+    {
+        private List<double> res = GetResolutions();
+
+        static List<double> GetResolutions()
+        {
+            List<double> ret = new List<double>();
+
+            for (float i = 0.01f; i < 7f; i+=0.1f)
+            {
+                ret.Add(Math.Exp(i));
+            }
+
+            return ret;
+        }
+
+
+        public new IReadOnlyList<double> Resolutions
+        {
+            get
+            {
+                return res;
+            }
+        }
+    }
+
+
+
     public partial class MapView : UserControl
     {
 
@@ -72,11 +99,32 @@ namespace TacControl
             InitializeComponent();
             //MouseWheel += MapControlMouseWheel;
             MapControl.MouseLeftButtonDown += MapControlOnMouseLeftButtonDown;
+            //MapControl.Map = new MyMap();
+
+            MapControl.MouseWheel += MapControlMouseWheel;
+            MapControl.MouseWheelAnimation.Duration = 0;
 
             EventSystem.CenterMap += (position) => MapControl.Navigator.NavigateTo(position, 1, 500);
-
+            //MapControl.Map.Resolutions;
 
         }
+
+        private double resolution = 6;
+
+        private void MapControlMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (MapControl.Map.ZoomLock) return;
+            if (!MapControl.Viewport.HasSize) return;
+
+            var _currentMousePosition = e.GetPosition(this).ToMapsui();
+
+            resolution = Math.Exp((e.Delta/120) * -0.1f) * resolution;
+            // Limit target resolution before animation to avoid an animation that is stuck on the max resolution, which would cause a needless delay
+            resolution = MapControl.Map.Limiter.LimitResolution(resolution, MapControl.Viewport.Width, MapControl.Viewport.Height, MapControl.Map.Resolutions, MapControl.Map.Envelope);
+            MapControl.Navigator.ZoomTo(resolution, _currentMousePosition, MapControl.MouseWheelAnimation.Duration, MapControl.MouseWheelAnimation.Easing);
+        }
+
+
 
         private void MapControl_OnInitialized(object sender, EventArgs e)
         {
@@ -142,8 +190,11 @@ namespace TacControl
             MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
             MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
             MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
             MapControl.Map.Limiter = new ViewportLimiter();
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
+            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 7);
 
             GPSTrackerLayer.IsMapInfoLayer = true;
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
@@ -162,6 +213,7 @@ namespace TacControl
             LayerList.Initialize(MapControl.Map.Layers);
             //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
             //MapControl.Navigator.ZoomTo(1, new Point(512,512), 5);
+            MapControl.Navigator.ZoomTo(6);
         }
 
         private void MapControlOnMouseLeftButtonDown(object sender, MouseButtonEventArgs args)

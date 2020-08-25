@@ -22,7 +22,7 @@ namespace TacControl.Common.Maps
 
             if (style.image == null) return false;
 
-            var position = feature.Geometry as Point;
+            var position = feature.Geometry.BoundingBox.Centroid;
             var dest = viewport.WorldToScreen(position);
 
 
@@ -48,6 +48,7 @@ namespace TacControl.Common.Maps
 
 
                 paint.Shader = SKShader.CreateImage(style.image, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, shaderTransform);
+                paint.ColorFilter = style.colorFilter;
 
                 //style.image.Encode().SaveTo(File.Create($"P:/{style.image.UniqueId}.png"));
 

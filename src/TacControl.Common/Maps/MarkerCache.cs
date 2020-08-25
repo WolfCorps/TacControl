@@ -19,21 +19,35 @@ namespace TacControl.Common.Maps
         private class MarkerRequest
         {
             public string path;
-            public TaskCompletionSource<int> completionSource;
+            public TaskCompletionSource<SKImage> completionSource;
         }
 
         private Dictionary<string, MarkerRequest> requests = new Dictionary<string, MarkerRequest>(StringComparer.InvariantCultureIgnoreCase);
 
-        public Task<int> GetBitmapId(ModuleMarker.MarkerType type, ModuleMarker.MarkerColor color)
+        public async Task<int> GetBitmapId(ModuleMarker.MarkerType type, ModuleMarker.MarkerColor color)
+        {
+            var image = await GetImage(type, color);
+
+            var content = new MemoryStream(image.Encode().ToArray());
+            int bitmapId;
+            lock (BitmapRegistry.Instance)
+            {
+                bitmapId = BitmapRegistry.Instance.Register(content);
+            }
+
+            return bitmapId;
+        }
+
+        public Task<SKImage> GetImage(ModuleMarker.MarkerType type, ModuleMarker.MarkerColor color)
         {
             lock (requests)
             {
-                var path = $"{type.name}_{color.name}";
+                var path = $"{type.name}_{color?.name ?? ""}";
 
                 if (requests.ContainsKey(path))
                     return requests[path].completionSource.Task;
 
-                var request = new MarkerRequest { path = path, completionSource = new TaskCompletionSource<int>() };
+                var request = new MarkerRequest { path = path, completionSource = new TaskCompletionSource<SKImage>() };
                 requests[path] = request;
 
 
@@ -43,14 +57,15 @@ namespace TacControl.Common.Maps
                             {
                                 var image = x.Result;
 
-                                image = image.ApplyImageFilter(
-                                    SkiaSharp.SKImageFilter.CreateColorFilter(
-                                        SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))
-                                    ),
-                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                    new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                    out var outSUbs,
-                                    out SKPoint outoffs);
+                                if (color != null)
+                                    image = image.ApplyImageFilter(
+                                        SkiaSharp.SKImageFilter.CreateColorFilter(
+                                            SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))
+                                        ),
+                                        new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                        new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                        out var outSUbs,
+                                        out SKPoint outoffs);
 
                                 if (type.shadow)
                                 {
@@ -63,22 +78,13 @@ namespace TacControl.Common.Maps
                                     );
                                 }
 
-
-
-
-                                var content = new MemoryStream(image.Encode().ToArray());
-                                int bitmapId;
-                                lock (BitmapRegistry.Instance)
-                                {
-                                    bitmapId = BitmapRegistry.Instance.Register(content);
-                                }
-
-                                request.completionSource.SetResult(bitmapId);
+                                request.completionSource.SetResult(image);
                             });
 
                 return request.completionSource.Task;
             }
         }
+
 
         private class BrushRequest
         {
@@ -95,7 +101,7 @@ namespace TacControl.Common.Maps
         {
             lock (brushRequests)
             {
-                var path = $"{brush.name}_{color.name}";
+                var path = $"{brush.name}_{color?.name ?? ""}";
 
                 if (brushRequests.ContainsKey(path))
                     return brushRequests[path].completionSource.Task;
@@ -135,14 +141,15 @@ namespace TacControl.Common.Maps
 
                     var bmp = SKImage.FromPixelCopy(new SKImageInfo(width, height, SKColorType.Rgba8888), data);
 
-                    bmp = bmp.ApplyImageFilter(
-                        SkiaSharp.SKImageFilter.CreateColorFilter(
-                            SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))
-                        ),
-                        new SkiaSharp.SKRectI(0, 0, bmp.Width, bmp.Height),
-                        new SkiaSharp.SKRectI(0, 0, bmp.Width, bmp.Height),
-                        out var outSUbs,
-                        out SKPoint outoffs);
+                    if (color != null)
+                        bmp = bmp.ApplyImageFilter(
+                            SkiaSharp.SKImageFilter.CreateColorFilter(
+                                SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))
+                            ),
+                            new SkiaSharp.SKRectI(0, 0, bmp.Width, bmp.Height),
+                            new SkiaSharp.SKRectI(0, 0, bmp.Width, bmp.Height),
+                            out var outSUbs,
+                            out SKPoint outoffs);
                     request.completionSource.SetResult(bmp);
                 }
                 else
@@ -152,15 +159,15 @@ namespace TacControl.Common.Maps
                                 {
                                     var image = x.Result;
                                     
-                                    
-                                    image = image.ApplyImageFilter(
-                                        SkiaSharp.SKImageFilter.CreateColorFilter(
-                                            SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))
-                                        ),
-                                        new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                        new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                        out var outSUbs,
-                                        out SKPoint outoffs);
+                                    if (color != null)
+                                        image = image.ApplyImageFilter(
+                                            SkiaSharp.SKImageFilter.CreateColorFilter(
+                                                SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))
+                                            ),
+                                            new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                            new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                            out var outSUbs,
+                                            out SKPoint outoffs);
 
                                     request.completionSource.SetResult(image);
                                 });

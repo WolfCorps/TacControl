@@ -67,12 +67,15 @@ namespace TacControl.Common.Modules
             public string type { get; set; }
             public string color { get; set; }
             public float dir { get; set; }
-            public ObservableCollection<float> pos { get; set; } = new ObservableCollection<float> { };
+            public ObservableCollection<float> pos { get; set; } = new ObservableCollection<float>();
             public string text { get; set; }
             public string shape { get; set; }
             public float alpha { get; set; }
             public string brush { get; set; }
             public string size { get; set; }
+            public int channel { get; set; }
+
+            public ObservableCollection<float[]> polyline { get; set; } = new ObservableCollection<float[]>();
 
 
             ActiveMarker()

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Mapsui.Geometries;
 
@@ -11,6 +12,33 @@ namespace TacControl.Common.Maps
         {
             BoundingBox = x;
         }
+
+        public BoundBox(Point minPoint, Point maxPoint)
+        {
+            BoundingBox = new BoundingBox(minPoint, maxPoint);
+        }
+
+        public BoundBox(IEnumerable<float[]> points)
+        {
+
+            var firstPoint = new Point(points.First()[0], points.First()[1]);
+            var boundingBox = new BoundingBox(firstPoint, firstPoint);
+            foreach (var point in points.Skip(1))
+            {
+                var X = point[0];
+                var Y = point[1];
+
+                boundingBox.Min.X = X < boundingBox.Min.X ? X : boundingBox.Min.X;
+                boundingBox.Min.Y = Y < boundingBox.Min.Y ? Y : boundingBox.Min.Y;
+                boundingBox.Max.X = X > boundingBox.Max.X ? X : boundingBox.Max.X;
+                boundingBox.Max.Y = Y > boundingBox.Max.Y ? Y : boundingBox.Max.Y;
+            }
+
+            BoundingBox = boundingBox;
+        }
+
+
+        
 
         public override bool IsEmpty()
         {

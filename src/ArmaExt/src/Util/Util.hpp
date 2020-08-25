@@ -103,7 +103,28 @@ namespace Util
 
 }
 
+class Vector2D {
+public:
+    Vector2D() = default;
+    Vector2D(float x, float y);
+    Vector2D(std::string_view coordinateString);
+    //Vector2D(Vector2D&& vec) noexcept : m_x(vec.m_x), m_y(vec.m_y) {};
+    //Vector2D(const Vector2D& vec) = default;
 
+    std::tuple<float, float> get() const; //#TODO instead of using get.. how about operator[] ?
+    float& operator[](int offs) {
+        switch (offs) {
+        case 0: return m_x;
+        case 1: return m_y;
+        default: throw std::out_of_range("Index out of range. A 3D vector only has 3 values.");
+        }
+    }
+
+    void Serialize(JsonArchive& ar);
+protected:
+    float m_x = 0.f;
+    float m_y = 0.f;
+};
 
 class Vector3D {
 public:
