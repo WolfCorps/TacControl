@@ -142,7 +142,7 @@ namespace TacControl
             int terrainWidth = 0;
             foreach (var svgLayer in layers)
             {
-                var layer = new Mapsui.Layers.ImageLayer(svgLayer.name);
+                var layer = new MemoryLayer(svgLayer.name);
 
                 if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" ||
                     svgLayer.name == "grid")

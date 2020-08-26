@@ -57,6 +57,14 @@ namespace TacControl.Views
 
             MapControl.TouchStarted += MapControlOnMouseLeftButtonDown;
             MapControl.MapClicked += MapControlOnClicked;
+
+
+            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
+
             MapControl_OnLoaded();
         }
 
@@ -94,7 +102,7 @@ namespace TacControl.Views
             int terrainWidth = 0;
             foreach (var svgLayer in layers)
             {
-                var layer = new Mapsui.Layers.ImageLayer(svgLayer.name);
+                var layer = new Mapsui.Layers.MemoryLayer(svgLayer.name);
 
                 if (
                     svgLayer.name == "forests" ||
@@ -120,14 +128,14 @@ namespace TacControl.Views
 
                 var x = new SvgStyle {image = new Svg.Skia.SKSvg()};
 
-                //layerLoadTasks.Add(
-                //    Task.Run(() =>
-                //    {
+                layerLoadTasks.Add(
+                    Task.Run(() =>
+                    {
                         using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(svgLayer.content)))
                         {
                             x.image.Load(stream);
                         }
-                //    }));
+                    }));
 
                 feature.Styles.Add(x);
                 features.Add(feature);
@@ -137,18 +145,14 @@ namespace TacControl.Views
                 MapControl.Map.Layers.Add(layer);
             }
 
-            //Task.WaitAll(layerLoadTasks.ToArray());
+            Task.WaitAll(layerLoadTasks.ToArray());
             //var layer = new Mapsui.Layers.ImageLayer("Base");
             //layer.DataSource = CreateMemoryProviderWithDiverseSymbols();
             //MapControl.Map.Layers.Add(layer);
-
-
-            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
-
+            
             MapControl.Map.Limiter = new ViewportLimiter();
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
+            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 7);
 
             GPSTrackerLayer.IsMapInfoLayer = true;
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
