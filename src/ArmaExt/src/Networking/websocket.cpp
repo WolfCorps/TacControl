@@ -87,6 +87,7 @@ void shared_state::updateState(const nlohmann::json& newState)
         if (auto sp = wp.lock()) {
 
             auto diff = nlohmann::json::diff(sp->lastState, newState);
+            if (diff.empty()) continue; //don't send empty diffs
             sp->lastState = newState;
 
             nlohmann::json stateUpdate;
