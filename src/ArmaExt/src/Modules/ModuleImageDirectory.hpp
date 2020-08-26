@@ -26,10 +26,10 @@ class ModuleImageDirectory : public ThreadQueue, public IMessageReceiver {
 
     std::vector<char> LoadFileToBuffer(std::string_view path);
 
-    //RGBA 8-8-8-8
-    std::vector<char> LoadRGBATexture(std::string_view path);
+    //RGBA 8-8-8-8, width, heigth
+    std::tuple<std::vector<char>, int, int> LoadRGBATexture(std::string_view path);
 
-    std::map<std::string, std::vector<char>, std::less<>> imageCache;
+    std::map<std::string, std::tuple<std::vector<char>, int, int>, std::less<>> imageCache;
 
     nlohmann::json generateMapfileMessage(std::string_view path);
 

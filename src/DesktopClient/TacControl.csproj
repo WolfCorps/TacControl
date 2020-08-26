@@ -93,6 +93,9 @@
     <Compile Include="LayerListItem.xaml.cs">
       <DependentUpon>LayerListItem.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MapCreateMarker.xaml.cs">
+      <DependentUpon>MapCreateMarker.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MapEditGPS.xaml.cs">
       <DependentUpon>MapEditGPS.xaml</DependentUpon>
     </Compile>
@@ -138,6 +141,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="MapCreateMarker.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MapEditGPS.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

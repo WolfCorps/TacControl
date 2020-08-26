@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -14,8 +15,10 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SkiaSharp;
+using TacControl.Common;
 
 namespace TacControl.Common.Modules
 {
@@ -54,7 +57,7 @@ namespace TacControl.Common.Modules
                     $@"{{
                         ""cmd"": [""ImgDir"", ""RequestTexture""],
                         ""args"": {{
-                            ""path"": ""{path.Replace("\\","\\\\")}""
+                            ""path"": {JsonConvert.ToString(path)}
                         }}
                     }}"
                 );
@@ -106,6 +109,8 @@ namespace TacControl.Common.Modules
             {
                 var path = args["path"].Value<string>();
                 var data = args["data"].Value<string>();
+                int width = args["width"].Value<int>();
+                int height = args["height"].Value<int>();
 
                 ImageRequest request;
 
@@ -117,9 +122,7 @@ namespace TacControl.Common.Modules
                 }
 
                 var dataBytes = Convert.FromBase64String(data);
-             
-                int width = (int) Math.Sqrt(dataBytes.Length/4);
-
+                
                 //ARGB -> BGRA
                 for (int i = 0; i < dataBytes.Length; i += 4)
                 {
@@ -134,7 +137,8 @@ namespace TacControl.Common.Modules
                     dataBytes[i + 3] = A;
                 }
 
-                var bmp = SKImage.FromPixelCopy(new SKImageInfo(width, width, SKColorType.Bgra8888), dataBytes);
+                var bmp = SKImage.FromPixelCopy(new SKImageInfo(width, height, SKColorType.Bgra8888), dataBytes);
+                //if (bmp == null) Debugger.Break();
                 request.completionSource.SetResult(bmp);
 
                 lock (imageCache)

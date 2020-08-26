@@ -70,13 +70,14 @@ namespace TacControl.Common.Maps
 
             if (style.shadow)
             {
-                var targetRect = new SKRect(-32, -32, 32, 32);
-                var shadowOffset = style.ShadowOffsetRotated;
+                var targetRect = style.finalRect;
+                var shadowOffset = style.ShadowOffset;
 
                 targetRect.Offset(shadowOffset);
                 renderPaint.Color = new SKColor(0, 0, 0, (byte) (style.Opacity * 0.8f * 255));
                 renderPaint.ColorFilter = SkiaSharp.SKColorFilter.CreateLighting(renderPaint.Color, new SKColor(0, 0, 0));
                 canvas.DrawImage(style.markerIcon, targetRect, renderPaint);
+                //canvas.DrawRect(targetRect, renderPaint);
 
                 if (!string.IsNullOrEmpty(style.text) && zoom > 1)
                 {
@@ -88,7 +89,7 @@ namespace TacControl.Common.Maps
 
             renderPaint.Color = SKColor.Empty.WithAlpha((byte)(style.Opacity * 255));
             renderPaint.ColorFilter = style.colorFilter;
-            canvas.DrawImage(style.markerIcon, new SKRect(-32,-32,32,32), renderPaint);
+            canvas.DrawImage(style.markerIcon, style.finalRect, renderPaint);
             if (!string.IsNullOrEmpty(style.text))
             {
                 renderPaint.Color = style.color.WithAlpha((byte)(style.Opacity * 255));

@@ -117,7 +117,7 @@ public:
 
 };
 
-std::vector<char> ModuleImageDirectory::LoadRGBATexture(std::string_view path) {
+std::tuple<std::vector<char>, int, int> ModuleImageDirectory::LoadRGBATexture(std::string_view path) {
 
     auto found = imageCache.find(path);
     if (found != imageCache.end()) {
@@ -173,13 +173,14 @@ std::vector<char> ModuleImageDirectory::LoadRGBATexture(std::string_view path) {
         BlockDecompressImageDXT1(width, height, reinterpret_cast<unsigned char*>(DXTData->data()), reinterpret_cast<unsigned long*>(output.data()));
     }
 
-    return output;
+    return { output, width, height };
 }
 
 void ModuleImageDirectory::LoadTextureToCache(std::string_view path) {
 
     auto tex = LoadRGBATexture(path);
-    if (tex.empty()) return;
+    auto& [data, width, height] = tex;
+    if (data.empty()) return;
 
     imageCache[std::string(path)] = tex;
 }
@@ -252,13 +253,15 @@ void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, co
     if (function[0] == "RequestTexture") {
         std::string_view path = arguments["path"];
 
-        auto tex = LoadRGBATexture(path);
+        auto& [data, width, height] = LoadRGBATexture(path);
 
         nlohmann::json msg;
         msg["cmd"] = {"ImgDir", "TextureFile"};
         auto& args = msg["args"];
         args["path"] = path;
-        args["data"] = base64_encode(std::string_view(tex.data(), tex.size()));
+        args["data"] = base64_encode(std::string_view(data.data(), data.size()));
+        args["width"] = width;
+        args["height"] = height;
 
         replyFunc(msg.dump());
     } else if (function[0] == "RequestMapfile") {

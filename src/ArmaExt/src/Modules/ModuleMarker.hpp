@@ -39,6 +39,7 @@ class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateH
     };
 
     std::map<std::string, MarkerBrush, std::less<>> markerBrushes;
+    std::string playerDirectPlayID;
 
     struct ActiveMarker {
         std::string id;
@@ -70,6 +71,9 @@ public:
     void OnMarkerUpdated(const std::vector<std::basic_string_view<char>>& arguments);
     void OnGameMessage(const std::vector<std::string_view>& function,
                        const std::vector<std::string_view>& arguments) override;
+
+    void OnDoCreateMarker(const nlohmann::json& arguments);
+    void OnDoDeleteMarker(const nlohmann::json& arguments);
 
     void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) override;
 

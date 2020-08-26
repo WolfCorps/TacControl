@@ -18,7 +18,7 @@ namespace TacControl.Common.Maps
             get
             {
                 var size = finalSize;
-                return SKMatrix.CreateRotation(SymbolRotation).MapPoint(ShadowOffset);
+                return SKMatrix.CreateRotation(-SymbolRotation).MapPoint(ShadowOffset);
             }
         }
 
@@ -26,7 +26,7 @@ namespace TacControl.Common.Maps
         {
             get
             {
-                return new SKPoint(typeSize * 0.07f, typeSize * 0.08f);
+                return new SKPoint(typeSize * 0.12f, typeSize * 0.12f);
             }
         }
 
@@ -37,6 +37,16 @@ namespace TacControl.Common.Maps
                 return new SKSize(size[0] * typeSize, size[1] * typeSize); //#TODO cache this, don't recalc on rendering
             }
         }
+
+        public SKRect finalRect
+        {
+            get
+            {
+                return new SKRect(-finalSize.Width, -finalSize.Height, finalSize.Width, finalSize.Height);
+            }
+        }
+
+
 
         public SKColorFilter colorFilter;
         public bool shadow;

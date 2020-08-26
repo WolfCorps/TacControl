@@ -119,6 +119,7 @@ public:
         default: throw std::out_of_range("Index out of range. A 3D vector only has 3 values.");
         }
     }
+    std::string toString() const;
 
     void Serialize(JsonArchive& ar);
 protected:

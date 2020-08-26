@@ -29,5 +29,9 @@
             <local:MapEditGPS x:Name="GPSEdit"/>
         </Popup>
 
+        <Popup Name="MarkerCreatePopup">
+            <local:MapCreateMarker x:Name="MarkerCreate"/>
+        </Popup>
+
     </Grid>
 </UserControl>

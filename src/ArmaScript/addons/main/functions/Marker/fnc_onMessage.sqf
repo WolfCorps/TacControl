@@ -51,10 +51,16 @@ if (_function#0 == "Cmd") then {
             ["Marker.MarkerTypes", [
                 _markerTypes joinString toString [9],
                 _markerColors joinString toString [9],
-                _markerBrushes joinString toString [9]
+                _markerBrushes joinString toString [9],
+                getPlayerDpId
             ]] call TC_main_fnc_sendMessage;
         };
-
+        case "CreateMarker": {
+            [_arguments] call TC_main_fnc_Marker_doCreateMarker;
+        };
+        case "DeleteMarker": {
+            deleteMarker (_arguments select 0);
+        };
 
     };
 

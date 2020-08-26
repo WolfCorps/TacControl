@@ -24,7 +24,7 @@ namespace TacControl.Common.Maps
 
         private Dictionary<string, MarkerRequest> requests = new Dictionary<string, MarkerRequest>(StringComparer.InvariantCultureIgnoreCase);
 
-        public async Task<int> GetBitmapId(ModuleMarker.MarkerType type, ModuleMarker.MarkerColor color)
+        public async Task<int> GetBitmapId(MarkerType type, MarkerColor color)
         {
             var image = await GetImage(type, color);
 
@@ -38,7 +38,7 @@ namespace TacControl.Common.Maps
             return bitmapId;
         }
 
-        public Task<SKImage> GetImage(ModuleMarker.MarkerType type, ModuleMarker.MarkerColor color)
+        public Task<SKImage> GetImage(MarkerType type, MarkerColor color)
         {
             lock (requests)
             {
@@ -51,35 +51,48 @@ namespace TacControl.Common.Maps
                 requests[path] = request;
 
 
-                ImageDirectory.Instance.GetImage(type.icon)
+                void ContinuationFunction(SKImage image)
+                {
+                    if (color != null)
+                        image = image.ApplyImageFilter(
+                            SkiaSharp.SKImageFilter.CreateColorFilter(SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))),
+                            new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                            new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                            out var outSUbs,
+                            out SKPoint outoffs
+                        );
+
+                    if (type.shadow)
+                    {
+                        image = image.ApplyImageFilter(
+                            SkiaSharp.SKImageFilter.CreateDropShadow(2, 2, 2, 2, SKColors.Black),
+                            new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                            new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                            out var outSUbs2,
+                            out SKPoint outoffs2
+                        );
+                    }
+
+                    request.completionSource.SetResult(image);
+                }
+
+
+                if (type.iconImage != null)
+                    ContinuationFunction(type.iconImage);
+                else if (type.icon.StartsWith("#"))
+                {
+                    var image = GenerateProcedural(type.icon);
+
+                    ContinuationFunction(image);
+                }
+                else
+                {
+                    ImageDirectory.Instance.GetImage(type.icon)
                         .ContinueWith(
-                            (x) =>
-                            {
-                                var image = x.Result;
+                            x => ContinuationFunction(x.Result));
+                }
 
-                                if (color != null)
-                                    image = image.ApplyImageFilter(
-                                        SkiaSharp.SKImageFilter.CreateColorFilter(
-                                            SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))
-                                        ),
-                                        new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                        new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                        out var outSUbs,
-                                        out SKPoint outoffs);
 
-                                if (type.shadow)
-                                {
-                                    image = image.ApplyImageFilter(
-                                        SkiaSharp.SKImageFilter.CreateDropShadow(2, 2, 2, 2, SKColors.Black),
-                                        new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                        new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                                        out var outSUbs2,
-                                        out SKPoint outoffs2
-                                    );
-                                }
-
-                                request.completionSource.SetResult(image);
-                            });
 
                 return request.completionSource.Task;
             }
@@ -97,7 +110,7 @@ namespace TacControl.Common.Maps
 
 
 
-        public Task<SKImage> GetImage(ModuleMarker.MarkerBrush brush, ModuleMarker.MarkerColor color)
+        public Task<SKImage> GetImage(MarkerBrush brush, MarkerColor color)
         {
             lock (brushRequests)
             {
@@ -115,31 +128,7 @@ namespace TacControl.Common.Maps
 
                 if (brush.texture.StartsWith("#"))
                 {
-                    if (!brush.texture.StartsWith("#(argb"))
-                        Debugger.Break();
-
-                    var split = brush.texture.Trim('#', '(', ')').Replace(")color(", ",").Split(',');
-
-                    var format = split[0];
-                    var width = int.Parse(split[1]);
-                    var height = int.Parse(split[2]);
-                    //Mipmaps 3
-
-                    CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
-                    ci.NumberFormat.NumberDecimalSeparator = ".";
-                    var colorArr = split.Skip(4).Select(xy => (byte)(float.Parse(xy, NumberStyles.Any, ci)*255)).ToList();
-
-
-                    byte[] data = new byte[width*height*4];
-                    for (int i = 0; i < width * height * 4; i += 4)
-                    {
-                        data[i] = colorArr[0];
-                        data[i + 1] = colorArr[1];
-                        data[i + 2] = colorArr[2];
-                        data[i + 3] = colorArr[3];
-                    }
-
-                    var bmp = SKImage.FromPixelCopy(new SKImageInfo(width, height, SKColorType.Rgba8888), data);
+                    var bmp = GenerateProcedural(brush.texture);
 
                     if (color != null)
                         bmp = bmp.ApplyImageFilter(
@@ -174,6 +163,36 @@ namespace TacControl.Common.Maps
 
                 return request.completionSource.Task;
             }
+        }
+
+        private static SKImage GenerateProcedural(string texture)
+        {
+            if (!texture.StartsWith("#(argb"))
+                Debugger.Break();
+
+            var split = texture.Trim('#', '(', ')').Replace(")color(", ",").Split(',');
+
+            var format = split[0];
+            var width = int.Parse(split[1]);
+            var height = int.Parse(split[2]);
+            //Mipmaps 3
+
+            CultureInfo ci = (CultureInfo) CultureInfo.CurrentCulture.Clone();
+            ci.NumberFormat.NumberDecimalSeparator = ".";
+            var colorArr = split.Skip(4).Select(xy => (byte) (float.Parse(xy, NumberStyles.Any, ci) * 255)).ToList();
+
+
+            byte[] data = new byte[width * height * 4];
+            for (int i = 0; i < width * height * 4; i += 4)
+            {
+                data[i] = colorArr[0];
+                data[i + 1] = colorArr[1];
+                data[i + 2] = colorArr[2];
+                data[i + 3] = colorArr[3];
+            }
+
+            var bmp = SKImage.FromPixelCopy(new SKImageInfo(width, height, SKColorType.Rgba8888), data);
+            return bmp;
         }
     }
 }

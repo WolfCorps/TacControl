@@ -4,6 +4,8 @@
 #include "ModuleImageDirectory.hpp"
 #include "Networking/NetworkController.hpp"
 #include "Networking/Serialize.hpp"
+#include <fmt/format.h>
+#undef SendMessage
 
 void ModuleMarker::MarkerType::Serialize(JsonArchive& ar) {
     ar.Serialize("name", name);
@@ -43,6 +45,7 @@ void ModuleMarker::OnMarkerTypesRetrieved(const std::vector<std::basic_string_vi
     auto types = Util::split(arguments[0], '\t');
     auto colors = Util::split(arguments[1], '\t');
     auto brushes = Util::split(arguments[2], '\t');
+    playerDirectPlayID = arguments[3];
 
     for (auto& it : types) {
         auto split = Util::split(it, '\n');
@@ -169,8 +172,73 @@ void ModuleMarker::OnGameMessage(const std::vector<std::string_view>& function,
 
 }
 
+
+void ModuleMarker::OnDoCreateMarker(const nlohmann::json& arguments) {
+
+
+    std::string markerName = arguments["name"];
+    std::string markerType = arguments["type"];
+    std::string markerColor = arguments["color"];
+    float markerDir = arguments["dir"];
+
+    const nlohmann::json& posRef = arguments["pos"];
+    JsonArchive PosAr(posRef);
+    Vector3D markerPos;
+    markerPos.Serialize(PosAr);
+    std::string markerText = arguments["text"];
+    std::string markerShape = arguments["shape"];
+    float markerAlpha = arguments["alpha"];
+    std::string markerBrush = arguments["brush"];
+    std::string markerSize = arguments["size"]; // "[1,2]"
+    int markerChannel = arguments["channel"];
+    std::vector<Vector2D> polyLine;
+    for (auto& it : arguments["polyline"]) {
+        polyLine.emplace_back(it[0], it[1]);
+    }
+
+    std::string polyLineString = "[";
+    for (auto& it : polyLine) {
+        polyLineString += it.toString();
+        polyLineString += ",";
+    }
+
+    if (!polyLine.empty()) //remove last comma
+        polyLineString.pop_back();
+    polyLineString += "]";
+
+
+    auto args = fmt::format("{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+        markerName,
+        markerType,
+        markerColor,
+        markerDir,
+        markerPos.toString(),
+        markerText.empty() ? " " : markerText, //cannot be empty otherwise splitString parsing fails, whitespace works
+        markerShape,
+        markerAlpha,
+        markerBrush,
+        markerSize,
+        markerChannel,
+        polyLineString
+    );
+    GGameManager.SendMessage("Marker.Cmd.CreateMarker", args);
+}
+
+void ModuleMarker::OnDoDeleteMarker(const nlohmann::json& arguments) {
+
+
+    GGameManager.SendMessage("Marker.Cmd.DeleteMarker", arguments["name"]);
+}
+
+
+
 void ModuleMarker::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {
-    
+    if (function[0] == "CreateMarker") {
+        OnDoCreateMarker(arguments);
+    }
+    if (function[0] == "DeleteMarker") {
+        OnDoDeleteMarker(arguments);
+    }
 }
 
 void ModuleMarker::SerializeState(JsonArchive& ar) {
@@ -213,9 +281,9 @@ void ModuleMarker::SerializeState(JsonArchive& ar) {
             markersAr.Serialize(key.data(), value);
         }
 
+        ar.Serialize("playerDirectPlayID", playerDirectPlayID);
+
         ar.Serialize("markers", markersAr);
-
-
 
         });
     fut.wait();

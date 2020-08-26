@@ -27,3 +27,4 @@ PREP_SUB(Marker,onMarkerCreated); //TC_main_fnc_Marker_onMarkerCreated
 PREP_SUB(Marker,onMarkerDeleted); //TC_main_fnc_Marker_onMarkerDeleted
 PREP_SUB(Marker,onMarkerPosChanged); //TC_main_fnc_Marker_onMarkerPosChanged
 PREP_SUB(Marker,assembleMarkerInfo); //TC_main_fnc_Marker_assembleMarkerInfo
+PREP_SUB(Marker,doCreateMarker); //TC_main_fnc_Marker_doCreateMarker

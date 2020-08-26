@@ -85,8 +85,6 @@ namespace TacControl
         }
     }
 
-
-
     public partial class MapView : UserControl
     {
 
@@ -129,14 +127,14 @@ namespace TacControl
         private void MapControl_OnInitialized(object sender, EventArgs e)
         {
 
-
-            
         }
 
         private void MapControl_OnLoaded(object sender, RoutedEventArgs e)
         {
             Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
         }
+
+        private int markNum = 0;
 
         private void GenerateLayers(List<Helper.SvgLayer> layers)
         {
@@ -178,6 +176,8 @@ namespace TacControl
 
                 //
                 layer.DataSource = new MemoryProvider(features);
+                layer.MinVisible = 0;
+                layer.MaxVisible = double.MaxValue;
                 MapControl.Map.Layers.Add(layer);
             }
 
@@ -214,6 +214,31 @@ namespace TacControl
             //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
             //MapControl.Navigator.ZoomTo(1, new Point(512,512), 5);
             MapControl.Navigator.ZoomTo(6);
+
+            foreach (var markerMarkerType in GameState.Instance.marker.markerTypes)
+            {
+                markNum++;
+                MarkerCache.Instance.GetImage(markerMarkerType.Value, (MarkerColor)null).ContinueWith((x) =>
+                {
+                    markerMarkerType.Value.iconImage = x.Result; //#TODO use this for markerCache caching in general, store cached images in there
+                    markNum--;
+                });
+            }
+
+
+            var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
+            MarkerCreate.OnChannelChanged += (oldID) =>
+            {
+                markerProvider?.RemoveMarker(oldID);
+                markerProvider?.AddMarker(MarkerCreate.MarkerRef);
+            };
+
+            MarkerCreatePopup.Closed += (x, y) =>
+            {
+                if (MarkerCreate.MarkerRef != null)
+                    markerProvider?.RemoveMarker(MarkerCreate.MarkerRef.id);
+                MarkerCreate.MarkerRef = null;
+            };
         }
 
         private void MapControlOnMouseLeftButtonDown(object sender, MouseButtonEventArgs args)
@@ -222,8 +247,8 @@ namespace TacControl
             if (args.ClickCount > 1)
             {
 
-
-                var info = MapControl.GetMapInfo(args.GetPosition(MapControl).ToMapsui(), 12);
+                var mapsPos = args.GetPosition(MapControl).ToMapsui();
+                var info = MapControl.GetMapInfo(mapsPos, 12);
 
                 if (info.Feature is GPSTrackerFeature gpsTrackerFeature)
                 {
@@ -233,6 +258,39 @@ namespace TacControl
                     GPSEditPopup.StaysOpen = false;
                     GPSEditPopup.AllowsTransparency = true;
                     GPSEditPopup.IsOpen = true;
+                }
+                else
+                {
+                    MarkerCreate.Init();
+                    MarkerCreate.MarkerRef = new ActiveMarker
+                    {
+                        id = GameState.Instance.marker.GenerateMarkerName(MarkerChannel.Global),
+                        channel = 0,
+                        color = "ColorBlack",
+                        type = "hd_dot",
+                        shape = "ICON",
+                        text = "",
+                        size = "1,1",
+                        alpha = 1,
+                        dir = 0,
+                        brush= "Solid"
+                    };
+                    MarkerCreate.MarkerRef.dir = 0;
+
+
+                    MarkerCreate.MarkerRef.pos.Clear();
+                    MarkerCreate.MarkerRef.pos.Add((float)info.WorldPosition.X);
+                    MarkerCreate.MarkerRef.pos.Add((float)info.WorldPosition.Y);
+                   
+
+                    MarkerCreatePopup.Placement = PlacementMode.Mouse;
+                    MarkerCreatePopup.HorizontalOffset = 5;
+                    MarkerCreatePopup.StaysOpen = false;
+                    MarkerCreatePopup.AllowsTransparency = true;
+
+                    var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
+                    markerProvider?.AddMarker(MarkerCreate.MarkerRef);
+                    MarkerCreatePopup.IsOpen = true;
                 }
 
                 args.Handled = true;

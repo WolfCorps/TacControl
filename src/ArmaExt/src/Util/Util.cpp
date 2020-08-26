@@ -1,6 +1,6 @@
 #include "Util.hpp"
-
 #include "Networking/Serialize.hpp"
+#include <sstream>
 
 float fast_invsqrt(float number) {
     //Quake is awesome!
@@ -37,10 +37,21 @@ std::tuple<float, float> Vector2D::get() const {
     return{ m_x, m_y };
 }
 
+std::string Vector2D::toString() const {
+    std::stringstream out;
+    out << "[" << m_x << "," << m_y << "]";
+    return out.str();
+}
+
 void Vector2D::Serialize(JsonArchive& ar) {
     auto& js = *ar.getRaw();
-    js.push_back(m_x);
-    js.push_back(m_y);
+    if (ar.reading()) {
+        m_x = js[0];
+        m_y = js[1];
+    } else {
+        js.push_back(m_x);
+        js.push_back(m_y);
+    }
 }
 
 Vector3D::Vector3D(float x, float y, float z) :m_x(x), m_y(y), m_z(z) {
@@ -106,9 +117,18 @@ Vector3D Vector3D::operator/(float div) const {
 
 void Vector3D::Serialize(JsonArchive& ar) {
     auto& js = *ar.getRaw();
-    js.push_back(m_x);
-    js.push_back(m_y);
-    js.push_back(m_z);
+
+    if (ar.reading()) {
+        m_x = js[0];
+        m_y = js[1];
+        if (js.size() > 2)
+            m_z = js[2];
+    } else {
+
+        js.push_back(m_x);
+        js.push_back(m_y);
+        js.push_back(m_z);
+    }
 }
 
 std::tuple<float, float, float> Vector3D::get() const {
@@ -154,9 +174,8 @@ bool Vector3D::isNull() const {
 }
 
 std::string Vector3D::toString() const {
-    //auto [x, y, z] = get();
-    //std::stringstream out;
-    //out << "[" << x << "," << y << "," << z << "]";
-    //return out.str();
-    return "";
+    auto [x, y, z] = get();
+    std::stringstream out;
+    out << "[" << x << "," << y << "," << z << "]";
+    return out.str();
 }

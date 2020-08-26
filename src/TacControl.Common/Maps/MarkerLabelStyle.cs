@@ -11,7 +11,7 @@ namespace TacControl.Common.Maps
     public class MarkerLabelStyle : LabelStyle
     {
         static Font markerFont = new Mapsui.Styles.Font { FontFamily = "Verdana", Size = 24, Bold = true };
-        public MarkerLabelStyle(string text, ModuleMarker.MarkerType type, ModuleMarker.MarkerColor color)
+        public MarkerLabelStyle(string text, MarkerType type, MarkerColor color)
         {
             Text = text;
             

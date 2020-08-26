@@ -43,7 +43,7 @@ public:
 class JsonArchive {
 public:
     JsonArchive() : pJson(new nlohmann::json()), isReading(false) {}
-    JsonArchive(nlohmann::json& js) : pJson(&js), isReading(true) {}
+    JsonArchive(const nlohmann::json& js) : pJson(&const_cast<nlohmann::json&>(js)), isReading(true) {}
     ~JsonArchive() { if (!isReading) delete pJson; }
     bool reading() const { return isReading; }
     nlohmann::json* getRaw() const { return pJson; }
