@@ -144,7 +144,8 @@ namespace TacControl.Common.Maps
             }
             else if (e.PropertyName == nameof(ActiveMarker.dir))
             {
-                foreach (var sym in Styles.Where(x => x is MarkerIconStyle)) (sym as SymbolStyle).SymbolRotation = marker.dir;
+                foreach (var sym in Styles.Where(x => x is MarkerIconStyle)) //#TODO just store the style in a variable
+                    (sym as MarkerIconStyle).SymbolRotation = marker.dir;
                 DataHasChanged();
             }
             else if (e.PropertyName == nameof(ActiveMarker.type))

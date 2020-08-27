@@ -153,7 +153,66 @@ namespace TacControl
             InitializeComponent();
            
             cmbColors.ItemsSource = GameState.Instance.marker.markerColors.Values;
+            DirSlider.ApplyTemplate();
+            var t1 = DirSlider.Template.FindName("PART_Track", DirSlider);
+            thumb = (t1 as Track).Thumb;
+            //Magic needed to get slider drag while clicking on one of the outer buttons
+            (t1 as Track).DecreaseRepeatButton.AddHandler(
+                RepeatButton.PreviewMouseLeftButtonDownEvent,
+                new MouseButtonEventHandler(UIElement_OnMouseDown),
+                true
+            );
+            (t1 as Track).IncreaseRepeatButton.AddHandler(
+                RepeatButton.PreviewMouseLeftButtonDownEvent,
+                new MouseButtonEventHandler(UIElement_OnMouseDown),
+                true
+            );
+
+
+            // Create and initialize timer
+            _timer = new System.Windows.Threading.DispatcherTimer();
+            _timer.Tick += timer_Tick;
+            _timer.Interval = new TimeSpan(0, 0, 0, 0, 50); // 50 millisecond interval
+
         }
+
+        private Thumb thumb;
+
+        System.Windows.Threading.DispatcherTimer _timer;
+        //#TODO stuttery slider https://social.msdn.microsoft.com/Forums/en-US/ff4cc6dd-b280-4ed8-a3a3-eee2524fe33f/serious-bug-in-slider?forum=wpf
+
+
+
+
+        private void AlphaSlider_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            _timer.Start();
+        }
+
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            _timer.Stop();
+            MarkerRef.dir = (float)Math.Round(DirSlider.Value); //#TODO its Direction, not alpha
+            // Put your original Value Changed Code here.
+        }
+
+
+        private void UIElement_OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && e.MouseDevice.Captured == null)
+            {
+                MouseButtonEventArgs args = new MouseButtonEventArgs(e.MouseDevice, e.Timestamp, MouseButton.Left);
+                args.RoutedEvent = MouseLeftButtonDownEvent;
+                thumb.RaiseEvent(args);
+
+
+                MouseEventArgs args2 = new MouseEventArgs(e.MouseDevice, e.Timestamp);
+                args2.RoutedEvent = MouseEnterEvent;
+                thumb.RaiseEvent(args);
+            }
+        }
+
+
 
         public void Init()
         {
@@ -192,5 +251,7 @@ namespace TacControl
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+ 
     }
 }

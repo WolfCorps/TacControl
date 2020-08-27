@@ -6,7 +6,8 @@
              xmlns:local="clr-namespace:TacControl"
              xmlns:modules="clr-namespace:TacControl.Common.Modules;assembly=TacControl.Common"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Name="MapCreateMarkerCtrl">
+             d:DesignHeight="450" d:DesignWidth="800" Name="MapCreateMarkerCtrl"
+             MinWidth="150">
 
     <UserControl.Resources>
         <local:SKImageToImageConverter x:Key="SKImageToImageConverter" />
@@ -14,25 +15,133 @@
         <local:SKColorConverter x:Key="SKColorConverter" />
         <local:MarkerTypeStringConverter x:Key="MarkerTypeStringConverter" />
         <local:MarkerColorStringConverter x:Key="MarkerColorStringConverter" />
+
+        <Style x:Key="ComboBoxTest2" TargetType="{x:Type ComboBox}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Grid.Column="2" Focusable="false" IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}" >
+                                <ToggleButton.Template>
+                                    <ControlTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="5*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border x:Name="Border"  Grid.ColumnSpan="2" Background="#222" BorderBrush="Black" BorderThickness="1" />
+                                            <Border Grid.Column="0" Margin="1"  Background="#222"  BorderBrush="White" BorderThickness="0,0,1,0" />
+                                            <Path x:Name="Arrow" Grid.Column="1"  Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                        </Grid>
+
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="3"  />
+                            <TextBox x:Name="PART_EditableTextBox" Visibility="Hidden" IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                            <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True"  Focusable="False" PopupAnimation="Slide">
+                                <Grid  Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder" Background="#222" />
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SliderThumb" TargetType="Thumb">
+            <Setter Property="Focusable" Value="true" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Rectangle Height="20" Width="0" Fill="RoyalBlue" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ControlTemplate x:Key="Slider"  TargetType="Slider">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Track Grid.Row="1" Name="PART_Track">
+                    <Track.DecreaseRepeatButton>
+                        <RepeatButton>
+                            <RepeatButton.Template>
+                                <ControlTemplate TargetType="RepeatButton">
+                                    <Border SnapsToDevicePixels="True" Background="#CCA9A9A9"/>
+                                </ControlTemplate>
+                            </RepeatButton.Template>
+                        </RepeatButton>
+                    </Track.DecreaseRepeatButton>
+                    <Track.Thumb>
+                        <Thumb Style="{StaticResource SliderThumb}"  />
+                    </Track.Thumb>
+                    <Track.IncreaseRepeatButton>
+                        <RepeatButton>
+                            <RepeatButton.Template>
+                                <ControlTemplate TargetType="RepeatButton" >
+                                    <Border SnapsToDevicePixels="True" Background="#CC000000" />
+                                </ControlTemplate>
+                            </RepeatButton.Template>
+                        </RepeatButton>
+                    </Track.IncreaseRepeatButton>
+                </Track>
+            </Grid>
+        </ControlTemplate>
+
+        <Style x:Key="Horizontal_Slider" TargetType="Slider">
+            <Setter Property="Focusable" Value="True"/>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Template" Value="{StaticResource Slider}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+
+
+
+
+
     </UserControl.Resources>
     
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="2"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="20"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="20"/><!-- 0 Header -->
+            <RowDefinition Height="2"/> <!-- 1 Spacer -->
+            <RowDefinition Height="20"/> <!-- 2 DescriptionLabel -->
+            <RowDefinition Height="20"/> <!-- 3 DescriptionBox -->
+            <RowDefinition Height="20"/> <!-- 4 Type combo -->
+            <RowDefinition Height="20"/> <!-- 5 Color combo -->
+            <RowDefinition Height="20"/> <!-- 6 DirSlider -->
+            <RowDefinition Height="20"/> <!-- 7 DirText -->
+            <RowDefinition Height="*"/> <!-- 8 Spacer -->
+            <RowDefinition Height="20"/> <!-- 9 Buttons -->
         </Grid.RowDefinitions>
-        <Label Grid.Row="0" Content="Edit GPS Tracker" Background="#B2279546" Foreground="White" FontWeight="Bold" FontFamily="Arial" FontStyle="Normal" FontSize="11" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" Padding="5,4,5,0" ScrollViewer.CanContentScroll="True" UseLayoutRounding="False"/>
+        <Label Grid.Row="0" Content="Create Marker" Background="#B2279546" Foreground="White" FontWeight="Bold" FontFamily="Arial" FontStyle="Normal" FontSize="11" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" Padding="5,4,5,0" ScrollViewer.CanContentScroll="True" UseLayoutRounding="False"/>
         <Label Grid.Row="2" Content="Description:" Background="#CC313538" Foreground="White" FontWeight="Normal" FontFamily="Arial" FontStyle="Normal" FontSize="9" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" Padding="5,4,5,0" ScrollViewer.CanContentScroll="True" UseLayoutRounding="False"/>
         <TextBox Grid.Row="3" Background="#CC313538" Text="{Binding MarkerRef.text, ElementName=MapCreateMarkerCtrl}"/>
 
 
-        <ComboBox Grid.Row="4" Name="cmbTypes" SelectedItem="{Binding MarkerRef.type, ElementName=MapCreateMarkerCtrl, Converter={StaticResource MarkerTypeStringConverter}, Mode=TwoWay}">
+        <ComboBox
+            Grid.Row="4"
+            Name="cmbTypes"
+            SelectedItem="{Binding MarkerRef.type, ElementName=MapCreateMarkerCtrl, Converter={StaticResource MarkerTypeStringConverter}, Mode=TwoWay}"
+            Background="Black"
+            Foreground="White"
+            Style="{StaticResource ComboBoxTest2}"
+            >
+
             <ComboBox.ItemTemplate>
                 <DataTemplate DataType="modules:MarkerType">
                     <StackPanel Orientation="Horizontal">
@@ -43,7 +152,13 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
 
-        <ComboBox Grid.Row="5" Name="cmbColors" SelectedItem="{Binding MarkerRef.color, ElementName=MapCreateMarkerCtrl, Converter={StaticResource MarkerColorStringConverter}, Mode=TwoWay}">
+        <ComboBox
+            Grid.Row="5"
+            Name="cmbColors"
+            SelectedItem="{Binding MarkerRef.color, ElementName=MapCreateMarkerCtrl, Converter={StaticResource MarkerColorStringConverter}, Mode=TwoWay}"
+            Foreground="White"
+            Style="{StaticResource ComboBoxTest2}"
+            >
             <ComboBox.ItemTemplate>
                 <DataTemplate DataType="modules:MarkerColor">
                     <StackPanel Orientation="Horizontal">
@@ -53,8 +168,45 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
+        <!-- Value="{Binding MarkerRef.dir, ElementName=MapCreateMarkerCtrl}"-->
+        <Slider
+            Grid.Row="6"
+            ValueChanged="AlphaSlider_OnValueChanged"
+            Maximum="180"
+            Minimum="-180"
+            SmallChange="1"
+            Style="{StaticResource Horizontal_Slider}"
+            MinHeight="30"
+            IsMoveToPointEnabled="True"
+            IsSelectionRangeEnabled="True"
+            Name="DirSlider"
 
-        <Grid Grid.Row="7"  HorizontalAlignment="Stretch">
+            >
+            <!-- <Slider.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <LinearGradientBrush.GradientStops>
+                        <GradientStop Color="#FF000000" Offset="{Binding Source=}" />
+                        <GradientStop Color="#FF00FF00" Offset="1" />
+                    </LinearGradientBrush.GradientStops>
+                </LinearGradientBrush>
+            </Slider.Background>-->
+        </Slider>
+
+        <Label Grid.Row="7"
+                Content="{Binding MarkerRef.dir, ElementName=MapCreateMarkerCtrl}" ContentStringFormat="Direction: {0}"
+
+               Background="#CC313538"
+               Foreground="White"
+               FontWeight="Bold"
+               FontFamily="Arial"
+               FontStyle="Normal"
+               FontSize="15"
+               VerticalAlignment="Stretch"
+               HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" Padding="5,4,5,0" ScrollViewer.CanContentScroll="True" UseLayoutRounding="False"/>
+
+
+
+        <Grid Grid.Row="9"  HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="5"/>
