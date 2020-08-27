@@ -198,7 +198,7 @@ namespace TacControl
             MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
             MapControl.Map.Limiter = new ViewportLimiter();
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
-            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 7);
+            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 10);
 
             GPSTrackerLayer.IsMapInfoLayer = true;
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
