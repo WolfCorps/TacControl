@@ -35,9 +35,22 @@ namespace TacControl.Common.Maps
                 path.LineTo(point);
             }
 
+            markerPolyline.CollectionChanged += (x, y) =>
+            {
+                foreach (var it in y.NewItems)
+                {
+                    var p = (float[])it;
+                    var point = new SKPoint(p[0], p[1]);
+                    point.Offset((float)-start.X, (float)-start.Y);
+                    point.Offset(0, (float)-point.Y * 2);
+
+                    path.LineTo(point);
+                }
+            };
+
+
 
         }
-
 
         public double MinVisible { get; set; } = 0.0f;
         public double MaxVisible { get; set; } = double.MaxValue;

@@ -184,7 +184,7 @@ namespace TacControl.Common.Modules
                             ""brush"": {JsonConvert.ToString(markerRef.brush)},
                             ""size"": {JsonConvert.ToString($"[{markerRef.size}]")},
                             ""channel"": {markerRef.channel},
-                            ""polyline"": [{(markerRef.polyline.Count == 0 ? "" : markerRef.polyline.Select(x => $"[{x[0]},{x[0]}]").Aggregate((i,j) => i+","+j))}]
+                            ""polyline"": [{(markerRef.polyline.Count == 0 ? "" : markerRef.polyline.Select(x => $"[{x[0].ToString(ci)},{x[1].ToString(ci)}]").Aggregate((i,j) => i+","+j))}]
                         }}
                     }}"
             );

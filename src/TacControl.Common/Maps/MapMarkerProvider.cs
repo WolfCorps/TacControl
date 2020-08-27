@@ -196,7 +196,7 @@ namespace TacControl.Common.Maps
     }
     public class MapMarkerProvider : IProvider, IDisposable
     {
-        public Layer MapMarkerLayer { get; private set; }
+        public ILayer MapMarkerLayer { get; private set; }
         private BoundingBox _boundingBox;
 
         public string CRS { get; set; } = "";
@@ -204,7 +204,7 @@ namespace TacControl.Common.Maps
         private Dictionary<string, IFeature> features = new Dictionary<string, IFeature>();
 
 
-        public MapMarkerProvider(Layer mapMarkerLayer, BoundingBox boundingBox)
+        public MapMarkerProvider(ILayer mapMarkerLayer, BoundingBox boundingBox)
         {
             MapMarkerLayer = mapMarkerLayer;
             _boundingBox = boundingBox;
@@ -230,18 +230,18 @@ namespace TacControl.Common.Maps
             foreach (var keyValuePair in GameState.Instance.marker.markers)
             {
                 if (!features.ContainsKey(keyValuePair.Key))
-                    AddMarker(keyValuePair.Value);
+                    AddMarker(keyValuePair.Value, false);
             }
 
             features.Where(x => !GameState.Instance.marker.markers.ContainsKey(x.Key)).Select(x => x.Key)
                 .ToList()
-                .ForEach(RemoveMarker);
+                .ForEach(x => RemoveMarker(x, false));
 
             MapMarkerLayer.DataHasChanged();
         }
 
 
-        public void AddMarker(ActiveMarker marker)
+        public void AddMarker(ActiveMarker marker, bool fireDataChanged = true)
         {
             if (features.ContainsKey(marker.id)) return;
 
@@ -250,6 +250,7 @@ namespace TacControl.Common.Maps
                 var feature = new MarkerFeature(marker);
                 feature.DataChanged += (x,y) => MapMarkerLayer.DataHasChanged();
                 features[marker.id] = feature;
+                if (fireDataChanged) MapMarkerLayer.DataHasChanged();
             }
             catch (InvalidOperationException ex)
             {
@@ -257,9 +258,10 @@ namespace TacControl.Common.Maps
             }
         }
 
-        public void RemoveMarker(string id)
+        public void RemoveMarker(string id, bool fireDataChanged = true)
         {
             features.Remove(id);
+            if (fireDataChanged) MapMarkerLayer.DataHasChanged();
         }
 
         public virtual IEnumerable<IFeature> GetFeaturesInView(

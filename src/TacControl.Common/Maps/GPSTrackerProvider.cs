@@ -12,7 +12,7 @@ namespace TacControl.Common.Maps
 {
     public class GPSTrackerProvider : IProvider, IDisposable
     {
-        public Layer GpsTrackerLayer { get; private set; }
+        public ILayer GpsTrackerLayer { get; private set; }
         private BoundingBox _boundingBox;
 
         public string CRS { get; set; } = "";
@@ -20,7 +20,7 @@ namespace TacControl.Common.Maps
         private Dictionary<string, IFeature> features = new Dictionary<string, IFeature>();
 
 
-        public GPSTrackerProvider(Layer gpsTrackerLayer, BoundingBox boundingBox)
+        public GPSTrackerProvider(ILayer gpsTrackerLayer, BoundingBox boundingBox)
         {
             GpsTrackerLayer = gpsTrackerLayer;
             _boundingBox = boundingBox;
