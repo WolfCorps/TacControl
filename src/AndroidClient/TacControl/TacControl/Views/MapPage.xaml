@@ -12,14 +12,24 @@
              >
 
     <ContentPage.Content>
-        <StackLayout>
-            <forms:MapView x:Name="MapControl"
-                            IsVisible="False"
-                            VerticalOptions="FillAndExpand"
-                            HorizontalOptions="Fill"
-                            BackgroundColor="Gray" 
-                            Margin="10"
-                            />
-        </StackLayout>
+
+        <Grid>
+            <AbsoluteLayout>
+                <forms:MapView x:Name="MapControl"
+                               IsVisible="False"
+                               VerticalOptions="FillAndExpand"
+                               HorizontalOptions="Fill"
+                               BackgroundColor="Gray"
+                               AbsoluteLayout.LayoutBounds="0, 0, 1, 1"
+                               AbsoluteLayout.LayoutFlags="All" 
+                />
+
+                <Button Text="Draw" x:Name="DrawButton"
+                        BackgroundColor="#AA000000"
+                        AbsoluteLayout.LayoutFlags="PositionProportional"  
+                        AbsoluteLayout.LayoutBounds=".95,.95,80,80" 
+                        Clicked="Handle_DrawModeChanged" />
+            </AbsoluteLayout>
+        </Grid>
     </ContentPage.Content>
 </ContentPage>

@@ -43,8 +43,8 @@ namespace TacControl.Views
     {
         public Func<MapControl, MapClickedEventArgs, bool> Clicker { get; set; }
 
-        private Layer GPSTrackerLayer = new Mapsui.Layers.Layer("GPS Trackers");
-        private Layer MapMarkersLayer = new Mapsui.Layers.Layer("Map Markers");
+        private MemoryLayer GPSTrackerLayer = new Mapsui.Layers.MemoryLayer("GPS Trackers");
+        private MemoryLayer MapMarkersLayer = new Mapsui.Layers.MemoryLayer("Map Markers");
         public static BoundingBox currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, 0, 0);
 
 
@@ -56,6 +56,8 @@ namespace TacControl.Views
             MapControl.RotationLock = true;
 
             MapControl.TouchStarted += MapControlOnMouseLeftButtonDown;
+            MapControl.TouchEnded += MapControlOnTouchEnded;
+            MapControl.TouchMove += MapControlOnMouseMove;
             MapControl.MapClicked += MapControlOnClicked;
 
 
@@ -65,6 +67,8 @@ namespace TacControl.Views
             MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
             MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
 
+            MapControl.IsNorthingButtonVisible = false;
+            MapControl.IsMyLocationButtonVisible = false;
             MapControl_OnLoaded();
         }
 
@@ -174,10 +178,12 @@ namespace TacControl.Views
         }
 
 
+
+        private ActiveMarker polyDraw = null;
         private void MapControlOnMouseLeftButtonDown(object sender, TouchedEventArgs e)
         {
             var info = MapControl.GetMapInfo(e.ScreenPoints.First(), 12);
-
+            
             //GPSEditPopup.IsOpen = false;
             if (info.Feature is GPSTrackerFeature gpsTrackerFeature)
             {
@@ -189,7 +195,67 @@ namespace TacControl.Views
                 //GPSEditPopup.IsOpen = true;
                 //e.Handled = true;
             }
+
+            if (polyDraw == null && CanDraw)
+            {
+
+                polyDraw = new ActiveMarker
+                {
+                    id = GameState.Instance.marker.GenerateMarkerName(MarkerChannel.Global),
+                    channel = 0,
+                    color = "ColorBlack",
+                    type = "hd_dot",
+                    shape = "POLYLINE",
+                    text = "",
+                    size = "1,1",
+                    alpha = 1,
+                    dir = 0,
+                    brush = "Solid"
+                };
+
+                polyDraw.pos.Clear();
+                polyDraw.pos.Add((float)info.WorldPosition.X);
+                polyDraw.pos.Add((float)info.WorldPosition.Y);
+
+                polyDraw.polyline.Add(new float[] { (float)info.WorldPosition.X, (float)info.WorldPosition.Y });
+
+                var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
+                markerProvider?.AddMarker(polyDraw, false);
+                MapMarkersLayer.DataHasChanged();
+            }
+
+
+
         }
+
+        private void MapControlOnMouseMove(object sender, TouchedEventArgs e)
+        {
+            if (polyDraw == null) return;
+
+            var info = MapControl.GetMapInfo(e.ScreenPoints.First(), 12);
+
+            var lastPos = polyDraw.polyline.Last();
+
+
+            if (new Point(lastPos[0], lastPos[1]).Distance(new Point(info.WorldPosition.X, info.WorldPosition.Y)) > 5)
+            {
+                polyDraw.polyline.Add(new float[] { (float)info.WorldPosition.X, (float)info.WorldPosition.Y });
+                MapMarkersLayer.DataHasChanged();
+            }
+        }
+
+
+        private void MapControlOnTouchEnded(object sender, TouchedEventArgs e)
+        {
+            if (polyDraw == null) return;
+            //MapMarkersLayer.Delayer.MillisecondsToWait = 500;
+            GameState.Instance.marker.CreateMarker(polyDraw);
+            var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
+            markerProvider?.RemoveMarker(polyDraw.id);
+            polyDraw = null;
+        }
+
+
 
 
         private void MapControlOnClicked(object sender, MapClickedEventArgs e)
@@ -198,7 +264,18 @@ namespace TacControl.Views
             //var info = MapControl.GetMapInfo(e.Point.ToMapsui(), 12);
         }
 
+        private bool CanDraw = false;
+        private void Handle_DrawModeChanged(object sender, EventArgs e)
+        {
+            CanDraw = !CanDraw;
+            if (CanDraw)
+                DrawButton.BackgroundColor = new Xamarin.Forms.Color(1, 0, 0, 0.5);
+            else
+                DrawButton.BackgroundColor = new Xamarin.Forms.Color(1, 1, 1, 0.5);
 
 
+            MapControl.PanLock = CanDraw;
+
+        }
     }
 }
