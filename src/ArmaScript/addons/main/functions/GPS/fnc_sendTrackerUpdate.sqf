@@ -12,7 +12,7 @@ TC_GPSTrackers = TC_GPSTrackers - [objNull];
 {
     private _trackerInfo = [];
     _trackerInfo pushBack (_x call BIS_fnc_netId);
-    _trackerInfo pushBack getPosATL _x;
+    _trackerInfo pushBack getPos _x; //AGLS above sea or ground level
     _trackerInfo pushBack velocity _x;
 
 
