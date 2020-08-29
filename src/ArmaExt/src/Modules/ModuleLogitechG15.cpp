@@ -48,9 +48,9 @@ void ModuleLogitechG15::Run() {
 
         if (firstSR) {
             if (firstSR->currentChannel != -1)
-                radio1 = fmt::format("SR C{} ({})", firstSR->currentChannel + 1, firstSR->channels[firstSR->currentChannel].frequency);
+                radio1 = fmt::format("SC{} ({})", firstSR->currentChannel + 1, firstSR->channels[firstSR->currentChannel].frequency);
             if (firstSR->currentAltChannel != -1)
-                radio2 = fmt::format("SR A{} ({})", firstSR->currentAltChannel + 1, firstSR->channels[firstSR->currentAltChannel].frequency);
+                radio3 = fmt::format("SA{} ({})", firstSR->currentAltChannel + 1, firstSR->channels[firstSR->currentAltChannel].frequency);
 
         } else {
             //LogiLcdMonoSetText(0, L"No SR");
@@ -58,9 +58,9 @@ void ModuleLogitechG15::Run() {
 
         if (firstLR) {
             if (firstLR->currentChannel != -1)
-                radio2 = fmt::format("LR C{} ({})", firstLR->currentChannel + 1, firstLR->channels[firstLR->currentChannel].frequency);
+                radio2 = fmt::format("LC{} ({})", firstLR->currentChannel + 1, firstLR->channels[firstLR->currentChannel].frequency);
             if (firstLR->currentAltChannel != -1)
-                radio3 = fmt::format("LR A{} ({})", firstLR->currentAltChannel + 1, firstLR->channels[firstLR->currentAltChannel].frequency);
+                radio4 = fmt::format("LA{} ({})", firstLR->currentAltChannel + 1, firstLR->channels[firstLR->currentAltChannel].frequency);
 
         }
         else {
@@ -93,12 +93,12 @@ void ModuleLogitechG15::Run() {
             isTransmitting[0] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0);
             GRadioModule.DoRadioTransmit(firstSR->id, firstSR->currentChannel, isTransmitting[0]);
         }
-        if (firstSR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1) != isTransmitting[1]) {
-            isTransmitting[1] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1);
-            GRadioModule.DoRadioTransmit(firstSR->id, firstSR->currentAltChannel, isTransmitting[1]);
-        }
         if (firstLR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_2) != isTransmitting[2]) {
             isTransmitting[2] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_2);
+            GRadioModule.DoRadioTransmit(firstSR->id, firstSR->currentAltChannel, isTransmitting[1]);
+        }
+        if (firstSR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1) != isTransmitting[1]) {
+            isTransmitting[1] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1);
             GRadioModule.DoRadioTransmit(firstLR->id, firstLR->currentChannel, isTransmitting[2]);
         }
         if (firstLR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_3) != isTransmitting[3]) {
