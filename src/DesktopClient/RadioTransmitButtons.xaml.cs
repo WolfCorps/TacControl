@@ -45,10 +45,7 @@ namespace TacControl
         }
 
         public static readonly DependencyProperty RadioRefProperty = DependencyProperty.Register(nameof(RadioRef), typeof(TFARRadio), typeof(RadioTransmitButtons),
-            new FrameworkPropertyMetadata(
-                null,
-                new PropertyChangedCallback(OnRadioPropertyChanged))
-
+            new FrameworkPropertyMetadata(null, OnRadioPropertyChanged)
             );
 
         private static void OnRadioPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -69,7 +66,19 @@ namespace TacControl
             set => SetValue(ChannelProperty, value);
         }
 
-        public static readonly DependencyProperty ChannelProperty = DependencyProperty.Register(nameof(Channel), typeof(int), typeof(RadioTransmitButtons));
+        public static readonly DependencyProperty ChannelProperty = DependencyProperty.Register(nameof(Channel), typeof(int), typeof(RadioTransmitButtons),
+            new FrameworkPropertyMetadata(-1, OnChannelPropertyChanged));
+
+        private static void OnChannelPropertyChanged(DependencyObject bindable, DependencyPropertyChangedEventArgs e)
+        {
+            if (bindable is RadioTransmitButtons self)
+            {
+                self.OnPropertyChanged(nameof(TXColor));
+                self.OnPropertyChanged(nameof(LatchColor));
+                self.OnPropertyChanged(nameof(StopColor));
+            }
+        }
+
 
         public bool IsTransmitting => RadioRef != null && RadioRef.tx == Channel;
 

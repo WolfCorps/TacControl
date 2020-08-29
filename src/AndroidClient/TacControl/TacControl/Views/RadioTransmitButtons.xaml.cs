@@ -49,7 +49,6 @@ namespace TacControl.Views
 
                 if (newValue != null) ((TFARRadio)newValue).PropertyChanged += self.RadioPropChanged;
             }
-        
         }
 
 
@@ -60,8 +59,21 @@ namespace TacControl.Views
         }
 
         public static readonly BindableProperty ChannelProperty =
-            BindableProperty.Create(nameof(Channel), typeof(int), typeof(RadioTransmitButtons), null);
+            BindableProperty.Create(nameof(Channel), typeof(int), typeof(RadioTransmitButtons), null, BindingMode.OneWay, null, OnChannelPropertyChanged);
 
+
+        private static void OnChannelPropertyChanged(BindableObject bindable,
+            object oldValue,
+            object newValue)
+        {
+            if (bindable is RadioTransmitButtons self)
+            {
+                self.OnPropertyChanged(nameof(TXColor));
+                self.OnPropertyChanged(nameof(LatchColor));
+                self.OnPropertyChanged(nameof(StopColor));
+            }
+        }
+        
         public bool IsTransmitting => RadioRef != null && RadioRef.tx == Channel;
 
         public bool IsLatched => IsTransmitting && WantLatch;

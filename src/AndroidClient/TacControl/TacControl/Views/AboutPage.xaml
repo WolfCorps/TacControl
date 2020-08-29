@@ -17,83 +17,46 @@
                         SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <!-- x:DataType="modules:TFARRadio" -->
-                <DataTemplate >
+                <DataTemplate x:DataType="modules:TFARRadio">
                     <StackLayout Orientation="Vertical">
-                        <StackLayout Orientation="Vertical">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions >
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Label Text="CH1" Grid.Row="0" TextColor="Black"/>
-                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="0" Grid.Row="1"/>
-                            </Grid>
+                        <Label Text="{Binding displayName, StringFormat='Radio {0}'}" TextColor="Black"/>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions >
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Label Text="{Binding CurrentChannel, StringFormat='CH {0}'}" Grid.Row="0" Grid.Column="0" TextColor="Black"/>
+                            <Label Text="{Binding CurrentMainFreq, StringFormat='Freq {0}'}" Grid.Row="0" Grid.Column="1" TextColor="Black"/>
+                            <views:RadioTransmitButtons
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="2"
+                                RadioRef="{Binding .}"
+                                Channel="{Binding currentChannel}"/>
+                        </Grid>
 
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions >
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Label Text="CH2" Grid.Row="0" TextColor="Black"/>
-                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="1" Grid.Row="1"/>
-                            </Grid>
-
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions >
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Label Text="CH3" Grid.Row="0" TextColor="Black"/>
-                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="2" Grid.Row="1"/>
-                            </Grid>
-
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions >
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Label Text="CH4" Grid.Row="0" TextColor="Black"/>
-                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="3" Grid.Row="1"/>
-                            </Grid>
-
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions >
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Label Text="CH5" Grid.Row="0" TextColor="Black"/>
-                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="4" Grid.Row="1"/>
-                            </Grid>
-
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="*" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions >
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Label Text="CH6" Grid.Row="0" TextColor="Black"/>
-                                <views:RadioTransmitButtons RadioRef="{Binding .}" Channel="5" Grid.Row="1"/>
-                            </Grid>
-
-
-                        </StackLayout>
+                        <Grid IsVisible="{Binding HasAltChannel}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions >
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Label Text="{Binding CurrentAltChannel, StringFormat='CH {0}'}" Grid.Row="0" Grid.Column="0" TextColor="Black"/>
+                            <Label Text="{Binding CurrentAltFreq, StringFormat='Freq {0}'}" Grid.Row="0" Grid.Column="1" TextColor="Black"/>
+                            <views:RadioTransmitButtons
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="2"
+                                RadioRef="{Binding .}"
+                                Channel="{Binding currentAltChannel}"/>
+                        </Grid>
                     </StackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>

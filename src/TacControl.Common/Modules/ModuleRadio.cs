@@ -8,6 +8,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
 
 namespace TacControl.Common.Modules
 {
@@ -19,6 +20,20 @@ namespace TacControl.Common.Modules
         public int currentAltChannel { get; set; }
         public bool rx { get; set; }
         public int tx { get; set; }
+
+        [JsonIgnore]
+        public bool HasAltChannel => currentAltChannel != -1;
+
+
+        [JsonIgnore]
+        public int CurrentChannel => currentChannel + 1;
+        [JsonIgnore]
+        public int CurrentAltChannel => currentAltChannel + 1;
+
+        [JsonIgnore]
+        public string CurrentMainFreq => currentChannel != -1 ? channels[currentChannel] : "";
+        [JsonIgnore]
+        public string CurrentAltFreq => currentAltChannel != -1 ? channels[currentAltChannel] : "";
 
         public ObservableCollection<string> channels { get; set; } = new ObservableCollection<string>();
         public event PropertyChangedEventHandler PropertyChanged;
@@ -35,6 +50,20 @@ namespace TacControl.Common.Modules
 
         public void RadioTransmit(TFARRadio radioRef, int channel, bool isTransmitting)
         {
+            if (isTransmitting)
+            {
+                //Stop all other currently transmitting radios, because that wouldn't work.
+
+                foreach (var tfarRadio in radios)
+                {
+                        if (tfarRadio.tx != -1)
+                            RadioTransmit(tfarRadio, tfarRadio.tx, false);
+                }
+            }
+
+
+
+
             Networking.Instance.SendMessage(
 
                 $@"{{
