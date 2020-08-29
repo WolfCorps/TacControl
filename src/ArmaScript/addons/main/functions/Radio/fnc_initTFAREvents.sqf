@@ -23,10 +23,16 @@ private _evtOnTangent = {
     ["Radio.Transmit", [TRANSFORM_LR_RADIO_TO_EXT(_radio), _currentChannel, _start]] call TC_main_fnc_sendMessage;
 };
 
-private _evtOnSWchannelSet = {
+private _evtOnSWChannelSet = {
     params ["", "_radio", "", ""];
 
     [_radio] call TC_main_fnc_Radio_doUpdateRadio;
+};
+
+private _evtOnLRChannelSet = {
+    params ["", "_radioObj", "_radioQualif", "", ""];
+
+    [[_radioObj, _radioQualif]] call TC_main_fnc_Radio_doUpdateRadio;
 };
 
 private _evtOnRadiosReceived = {
@@ -49,6 +55,7 @@ private _evtOnFrequencyChangedFromUI = {
 
 
 ["TFAR_event_OnTangent", _evtOnTangent] call CBA_fnc_addEventHandler;
-["TFAR_event_OnSWchannelSet", _evtOnSWchannelSet] call CBA_fnc_addEventHandler;
+["TFAR_event_OnSWchannelSet", _evtOnSWChannelSet] call CBA_fnc_addEventHandler;
+["TFAR_event_OnLRchannelSet", _evtOnLRChannelSet] call CBA_fnc_addEventHandler;
 ["TFAR_event_OnRadiosReceived", _evtOnRadiosReceived] call CBA_fnc_addEventHandler;
 ["TFAR_event_OnFrequencyChangedFromUI", _evtOnFrequencyChangedFromUI] call CBA_fnc_addEventHandler;

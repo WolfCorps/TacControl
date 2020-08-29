@@ -8,8 +8,5 @@ TC_TFAR_Radios = [];
 call TC_main_fnc_Radio_initTFAREvents;
 
 [{
-
-call TC_main_fnc_Radio_checkDeletedRadios;
-
-
+    call TC_main_fnc_Radio_checkDeletedRadios;
 }, 5] call CBA_fnc_addPerFrameHandler

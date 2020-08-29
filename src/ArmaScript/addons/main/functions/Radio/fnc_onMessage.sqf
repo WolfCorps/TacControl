@@ -14,7 +14,7 @@ if (_function#0 == "Cmd") then {
 
             if (" " in _radioClass) then {
                 private _splitClass = _radioClass splitString " ";
-                _splitClass set [0, (_radioClass select 0) call TC_main_fnc_Radio_getLRRadioByNetId];
+                _splitClass set [0, ((_splitClass select 0) call TC_main_fnc_Radio_getLRRadioByNetId) select 0];
 
                 _radioClass = _splitClass;
             };
