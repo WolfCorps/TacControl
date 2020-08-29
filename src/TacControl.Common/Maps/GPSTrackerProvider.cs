@@ -45,8 +45,8 @@ namespace TacControl.Common.Maps
 
         void OnDataChanged()
         {
-            //GpsTrackerLayer.DataHasChanged();
-            GpsTrackerLayer.RefreshData(GetExtents(), 1, ChangeType.Discrete);
+            GpsTrackerLayer.DataHasChanged();
+            //GpsTrackerLayer.RefreshData(GetExtents(), 1, ChangeType.Discrete);
         }
         private void OnTrackersUpdated()
         {
