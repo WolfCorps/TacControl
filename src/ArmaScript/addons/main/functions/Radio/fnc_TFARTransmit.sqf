@@ -7,12 +7,12 @@ if (_radio isEqualType []) then {
         if (!call TFAR_fnc_isAbleToUseRadio) exitWith {call TFAR_fnc_unableToUseHint;false};
 
         private _frequency = [_radio, _radioChannel + 1] call TFAR_fnc_getChannelFrequency;
-        [_radio, _radioChannel, _frequency, false] call TFAR_fnc_dolRTransmit;
-        TF_tangent_sw_pressed = true;
+        [_radio, _radioChannel, _frequency, false] call TFAR_fnc_doLRTransmit;
+        TF_tangent_lr_pressed = true;
     } else {
         private _frequency = [_radio, _radioChannel + 1] call TFAR_fnc_getChannelFrequency;
-        [_radio, _radioChannel, _frequency, false] call TFAR_fnc_dolRTransmitEnd;
-        TF_tangent_sw_pressed = true;
+        [_radio, _radioChannel, _frequency, false] call TFAR_fnc_doLRTransmitEnd;
+        TF_tangent_lr_pressed = false;
     };
 } else {
    if (_startTransmit) then {
@@ -24,7 +24,7 @@ if (_radio isEqualType []) then {
     } else {
         private _frequency = [_radio, _radioChannel + 1] call TFAR_fnc_getChannelFrequency;
         [_radio, _radioChannel, _frequency, false] call TFAR_fnc_doSRTransmitEnd;
-        TF_tangent_sw_pressed = true;
+        TF_tangent_sw_pressed = false;
     };
 }
 
