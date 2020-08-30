@@ -281,3 +281,12 @@ void* Util::GetArmaHostProcAddress(std::string name) {
     return GetProcAddress(GetModuleHandleA(nullptr), name.data());
 }
 
+bool Util::IsDebuggerPresent() {
+    return ::IsDebuggerPresent();
+}
+
+void Util::BreakToDebuggerIfPresent() {
+    if (::IsDebuggerPresent())
+        __debugbreak();
+}
+

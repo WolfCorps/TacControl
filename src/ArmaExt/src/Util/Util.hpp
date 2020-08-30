@@ -101,6 +101,10 @@ namespace Util
 
     void* GetArmaHostProcAddress(std::string name);
 
+    bool IsDebuggerPresent();
+
+    void BreakToDebuggerIfPresent();
+
 }
 
 class Vector2D {

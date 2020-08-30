@@ -23,7 +23,7 @@ namespace TacControl.Common
         public ModuleGameInfo gameInfo { get; set; } = new ModuleGameInfo();
 
         public ModuleNote note { get; set; } = new ModuleNote();
-
+        public ModuleVehicle vehicle { get; set; } = new ModuleVehicle();
 
         public void test()
         {

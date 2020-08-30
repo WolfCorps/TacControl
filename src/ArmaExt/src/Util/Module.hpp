@@ -51,3 +51,4 @@ public:
     X(ModuleImageDirectory) \
     X(ModuleGameInfo) \
     X(ModuleNote) \
+    X(ModuleVehicle) \

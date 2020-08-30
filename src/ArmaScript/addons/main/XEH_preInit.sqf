@@ -13,6 +13,7 @@ if (isDedicated) exitWith { call TC_main_fnc_GPS_preInit; };
 call TC_main_fnc_Radio_preInit;
 call TC_main_fnc_GPS_preInit;
 call TC_main_fnc_Marker_preInit;
+call TC_main_fnc_Vehicle_preInit;
 
 ["GameInfo.WorldLoaded", [worldName]] call TC_main_fnc_sendMessage;
 
@@ -36,7 +37,10 @@ addMissionEventHandler ["ExtensionCallback", {
         _function = _function select [1, 9999];
         [_function, _arguments] call TC_main_fnc_Marker_onMessage;
     };
-
+    if (_function#0 == "Vehicle") then {
+        _function = _function select [1, 9999];
+        [_function, _arguments] call TC_main_fnc_Vehicle_onMessage;
+    };
     if (_function#0 == "ImgDir") then {
         //There is only one possible command for ImgDir
         call TC_main_fnc_exportTerrain;

@@ -28,3 +28,12 @@ PREP_SUB(Marker,onMarkerDeleted); //TC_main_fnc_Marker_onMarkerDeleted
 PREP_SUB(Marker,onMarkerPosChanged); //TC_main_fnc_Marker_onMarkerPosChanged
 PREP_SUB(Marker,assembleMarkerInfo); //TC_main_fnc_Marker_assembleMarkerInfo
 PREP_SUB(Marker,doCreateMarker); //TC_main_fnc_Marker_doCreateMarker
+
+
+
+PREP_SUB(Vehicle,preInit); //TC_main_fnc_Vehicle_preInit
+PREP_SUB(Vehicle,postInit); //TC_main_fnc_Vehicle_postInit
+PREP_SUB(Vehicle,onMessage); //TC_main_fnc_Vehicle_onMessage
+PREP_SUB(Vehicle,onVehicleChanged); //TC_main_fnc_Vehicle_onVehicleChanged
+PREP_SUB(Vehicle,updatePassengers); //TC_main_fnc_Vehicle_updatePassengers
+PREP_SUB(Vehicle,updateAnimSources); //TC_main_fnc_Vehicle_updateAnimSources
