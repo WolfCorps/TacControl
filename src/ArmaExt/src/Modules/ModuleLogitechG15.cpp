@@ -95,11 +95,11 @@ void ModuleLogitechG15::Run() {
         }
         if (firstLR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_2) != isTransmitting[2]) {
             isTransmitting[2] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_2);
-            GRadioModule.DoRadioTransmit(firstSR->id, firstSR->currentAltChannel, isTransmitting[1]);
+            GRadioModule.DoRadioTransmit(firstSR->id, firstSR->currentAltChannel, isTransmitting[2]);
         }
         if (firstSR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1) != isTransmitting[1]) {
             isTransmitting[1] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1);
-            GRadioModule.DoRadioTransmit(firstLR->id, firstLR->currentChannel, isTransmitting[2]);
+            GRadioModule.DoRadioTransmit(firstLR->id, firstLR->currentChannel, isTransmitting[1]);
         }
         if (firstLR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_3) != isTransmitting[3]) {
             isTransmitting[3] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_3);
