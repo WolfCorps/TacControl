@@ -59,7 +59,10 @@ void ModuleMarker::OnMarkerTypesRetrieved(const std::vector<std::basic_string_vi
         type.icon = split[4];
         type.shadow = Util::parseArmaNumberToInt(split[5]) > 0;
 
-        GModuleImageDirectory.LoadTextureToCache(type.icon);
+        AddTask([icon = type.icon]()
+        {
+            GModuleImageDirectory.LoadTextureToCache(icon); //#TODO do that in imageDirectory thread
+        });
 
         markerTypes.emplace(classname, type);
     }
@@ -92,12 +95,15 @@ void ModuleMarker::OnMarkerTypesRetrieved(const std::vector<std::basic_string_vi
 }
 
 void ModuleMarker::OnMarkerDeleted(const std::vector<std::basic_string_view<char>>& arguments) {
-    auto markerName = arguments[0];
+    std::string markerName = std::string(arguments[0]);
 
-    auto found = markers.find(markerName);
-    if (found != markers.end()) markers.erase(found);
+    AddTask([this, markerName = std::move(markerName)]()
+    {
+        auto found = markers.find(markerName);
+        if (found != markers.end()) markers.erase(found);
 
-    GNetworkController.SendStateUpdate();
+        GNetworkController.SendStateUpdate();
+    });
 }
 
 void ModuleMarker::OnMarkerCreated(const std::vector<std::basic_string_view<char>>& arguments) {
@@ -122,11 +128,11 @@ void ModuleMarker::OnMarkerCreated(const std::vector<std::basic_string_view<char
     }
 
 
-
-
-
-    markers[newMarker.id] = newMarker;
-    GNetworkController.SendStateUpdate();
+    AddTask([this, newMarker = std::move(newMarker)]()
+    {
+        markers[newMarker.id] = newMarker;
+        GNetworkController.SendStateUpdate();
+    });
 }
 
 void ModuleMarker::OnMarkerUpdated(const std::vector<std::basic_string_view<char>>& arguments) {
@@ -143,8 +149,11 @@ void ModuleMarker::OnMarkerUpdated(const std::vector<std::basic_string_view<char
     newMarker.alpha = Util::parseArmaNumber(arguments[7]);
     newMarker.brush = arguments[8];
 
-    markers[newMarker.id] = newMarker;
-    GNetworkController.SendStateUpdate();
+    AddTask([this, newMarker = std::move(newMarker)]()
+    {
+        markers[newMarker.id] = newMarker;
+        GNetworkController.SendStateUpdate();
+    });
 }
 
 void ModuleMarker::OnGameMessage(const std::vector<std::string_view>& function,
