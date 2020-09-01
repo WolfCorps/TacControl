@@ -41,6 +41,7 @@ public:
     void TransferNetworkMessage(std::vector<std::string_view>&& function, nlohmann::json&& arguments, const std::function<void(std::string_view)>& replyFunc);
 
     void CollectGameState(JsonArchive& ar);
+    void CollectGameState(JsonArchive& ar, std::string_view subset);
 };
 
 

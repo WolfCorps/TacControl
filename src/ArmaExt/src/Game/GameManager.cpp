@@ -53,8 +53,28 @@ namespace detail
     template<typename T>
     typename std::enable_if<!std::is_base_of_v<IStateHolder, T>>::type
         CollectState(T* module, JsonArchive& targetContainer) {
-
     }
+
+    template<typename T>
+    typename std::enable_if<std::is_base_of_v<IStateHolder, T>>::type
+        CollectState(T* module, JsonArchive& targetContainer, std::string_view subset) {
+
+        IStateHolder* stateHolder = static_cast<IStateHolder*>(module);
+
+        auto stateName = stateHolder->GetStateHolderName();
+        if (stateName != subset) return;
+
+        JsonArchive state;
+        stateHolder->SerializeState(state);
+
+        targetContainer.Serialize(stateName.data(), state);
+    }
+
+    template<typename T>
+    typename std::enable_if<!std::is_base_of_v<IStateHolder, T>>::type
+        CollectState(T* module, JsonArchive& targetContainer, std::string_view subset) {
+    }
+
 
     template<typename T>
     typename std::enable_if<std::is_base_of_v<IPreInitReceiver, T>>::type
@@ -196,6 +216,14 @@ void GameManager::CollectGameState(JsonArchive& ar) {
 
 }
 
+void GameManager::CollectGameState(JsonArchive& ar, std::string_view subset) {
+#define MODULES_PullState(x) \
+    detail::CollectState(&(G##x), ar, subset);
+
+    MODULES_LIST(MODULES_PullState);
+
+#undef MODULES_PullState
+}
 
 
 //#TODOD on dlldetach

@@ -19,15 +19,15 @@ void NetworkController::ModuleInit() {
         };
 
         try {
-        auto msg = nlohmann::json::parse(message);
+            auto msg = nlohmann::json::parse(message);
 
-        if (msg.contains("cmd")) {
-            std::vector<std::string_view> command;
-            for (auto& it : msg["cmd"])
-                command.emplace_back(it);
+            if (msg.contains("cmd")) {
+                std::vector<std::string_view> command;
+                for (auto& it : msg["cmd"])
+                    command.emplace_back(it);
 
-            GGameManager.TransferNetworkMessage(std::move(command), std::move(msg["args"]), replyFunc);
-        }
+                GGameManager.TransferNetworkMessage(std::move(command), std::move(msg["args"]), replyFunc);
+            }
         } catch (...) {
             Util::BreakToDebuggerIfPresent();
             return;
@@ -38,12 +38,21 @@ void NetworkController::ModuleInit() {
 
 
 void NetworkController::SendStateUpdate() {
-
     AddTask([this]() {
-        JsonArchive state;
+        JsonArchive state(currentState, false);
 
         GGameManager.CollectGameState(state);
 
         wsServer->state_->updateState(*(state.getRaw()));
     }); 
+}
+
+void NetworkController::SendStateUpdate(std::string_view subset) {
+    AddTask([this, subset]() {
+        JsonArchive state(currentState, false);
+
+        GGameManager.CollectGameState(state, subset);
+
+        wsServer->state_->updateState(*(state.getRaw()));
+    });
 }

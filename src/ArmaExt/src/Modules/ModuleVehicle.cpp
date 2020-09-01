@@ -83,7 +83,7 @@ void ModuleVehicle::OnGameMessage(const std::vector<std::string_view>& function,
     }
 
     if (stateHasChanged)
-        GNetworkController.SendStateUpdate();
+        GNetworkController.SendStateUpdate(GetStateHolderName());
 }
 
 void ModuleVehicle::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments,

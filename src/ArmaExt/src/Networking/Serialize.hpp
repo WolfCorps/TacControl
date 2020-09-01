@@ -42,9 +42,9 @@ public:
 
 class JsonArchive {
 public:
-    JsonArchive() : pJson(new nlohmann::json()), isReading(false) {}
-    JsonArchive(const nlohmann::json& js) : pJson(&const_cast<nlohmann::json&>(js)), isReading(true) {}
-    ~JsonArchive() { if (!isReading) delete pJson; }
+    JsonArchive() : pJson(new nlohmann::json()), isReading(false), ownsBuffer(true){}
+    JsonArchive(const nlohmann::json& js, bool reading = true) : pJson(&const_cast<nlohmann::json&>(js)), isReading(reading) {}
+    ~JsonArchive() { if (ownsBuffer) delete pJson; }
     bool reading() const { return isReading; }
     nlohmann::json* getRaw() const { return pJson; }
     std::string to_string();
@@ -314,6 +314,7 @@ public:
 private:
     nlohmann::json* pJson;
     bool isReading;
+    bool ownsBuffer = false;
 };
 
 class Serialize {
