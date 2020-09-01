@@ -24,16 +24,36 @@ int(*GameManager::extensionCallback)(char const* name, char const* function, cha
 
 namespace detail
 {
-    template<typename T, typename C>
-    typename std::enable_if<std::is_base_of_v<IMessageReceiver, T>>::type
-    RegisterReceiver(T* module, C&& container) {
-        container.insert(std::pair<std::string, IMessageReceiver*>{ module->GetMessageReceiverName(), static_cast<IMessageReceiver*>(module) });
+    template<
+        typename T,
+        typename C,
+        typename Key = typename C::key_type,
+        typename Value = typename C::mapped_type
+    >
+    typename std::enable_if<std::is_base_of_v<IMessageReceiver, T>&& std::is_base_of_v<ThreadQueue, T>>::type
+        RegisterReceiver(T* module, C& container) {
+        container.insert(std::pair<Key, Value>{ module->GetMessageReceiverName(), std::pair{ static_cast<IMessageReceiver*>(module), static_cast<ThreadQueue*>(module) } });
     }
 
-    template<typename T, typename C>
+    template<
+        typename T,
+        typename C,
+        typename Key = typename C::key_type,
+        typename Value = typename C::mapped_type
+    >
+    typename std::enable_if<std::is_base_of_v<IMessageReceiver, T> && !std::is_base_of_v<ThreadQueue, T>>::type
+    RegisterReceiver(T* module, C& container) {
+        container.insert(std::pair{ module->GetMessageReceiverName(), std::pair{ static_cast<IMessageReceiver*>(module), static_cast<ThreadQueue*>(nullptr) } });
+    }
+
+    template<
+        typename T,
+        typename C,
+        typename Key = typename C::key_type,
+        typename Value = typename C::mapped_type
+    >
     typename std::enable_if<!std::is_base_of_v<IMessageReceiver, T>>::type
-    RegisterReceiver(T* module, C&& container) {
-        
+    RegisterReceiver(T* module, C& container) {
     }
 
     template<typename T>
@@ -96,8 +116,6 @@ namespace detail
     typename std::enable_if<!std::is_base_of_v<IPostInitReceiver, T>>::type
         DoPostInit(T* module) {}
 
-
-
 }
 
 
@@ -141,13 +159,7 @@ void RVExtension(char* output, int outputSize, const char* function)
 
 int RVExtensionArgs(char* output, int outputSize, const char* function, const char** argv, int argc)
 {
-	std::vector<std::string_view> args;
-	args.reserve(argc);
-    for (int i = 0; i < argc; ++i) {
-		args.emplace_back(Util::trim(std::string_view(argv[i]), "\"")); //Check if " trim is needed
-    }
-
-	GGameManager.IncomingMessage(std::string_view(function), args);
+	GGameManager.IncomingMessage(std::make_unique<GameMessage>(function, argv, argc));
 
 	return 0;
 }
@@ -162,20 +174,22 @@ void RVExtensionRegisterCallback(int(*callbackProc)(char const* name, char const
 	GameManager::extensionCallback = callbackProc;
 }
 
-void GameManager::IncomingMessage(std::string_view function, const std::vector<std::string_view>& arguments) {
+void GameManager::IncomingMessage(std::unique_ptr<GameMessage> message) {
 
-	auto functionPath = Util::split(function, '.');
-
-	auto found = messageReceiverLookup.find(functionPath[0]);
+    auto found = messageReceiverLookup.find(message->funcPopFront());
     if (found == messageReceiverLookup.end()) {
 		__debugbreak();
         return;
     }
 
-	//remove root entry
-	functionPath.erase(functionPath.begin());
-
-	found->second->OnGameMessage(functionPath, arguments);
+    auto [msgRecv, threadQueue] = found->second;
+    if (threadQueue) {
+        threadQueue->AddTask([msgRecv, msg = std::move(message)]() {
+            msgRecv->OnGameMessage(msg->function, msg->arguments);
+        });
+    } else {
+        msgRecv->OnGameMessage(message->function, message->arguments);
+    }
 }
 
 void GameManager::SendMessage(std::string_view function, std::string_view arguments) {
@@ -184,7 +198,8 @@ void GameManager::SendMessage(std::string_view function, std::string_view argume
 }
 
 void GameManager::SendMessageInternal(std::string_view function, const std::vector<std::string_view>& arguments) {
-    IncomingMessage(function, arguments);
+    __debugbreak(); //Not implemented, new constructor for GameMessage that takes function and arguments vector
+    //IncomingMessage(function, arguments);
 }
 
 void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& function, nlohmann::json&& arguments, const std::function<void(std::string_view)>& replyFunc) {
@@ -201,8 +216,8 @@ void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& functio
 
     //remove root entry
     funcSpan = funcSpan.subspan(1);
-
-    found->second->OnNetMessage(funcSpan, arguments, replyFunc);
+    auto [msgRecv, threadQueue] = found->second;
+    msgRecv->OnNetMessage(funcSpan, arguments, replyFunc);
 }
 
 void GameManager::CollectGameState(JsonArchive& ar) {

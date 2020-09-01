@@ -74,7 +74,7 @@ void ThreadQueue::StopThread() {
     myThread = nullptr;
 }
 
-std::future<void> ThreadQueue::AddTask(std::function<void()>&& task) {
+std::future<void> ThreadQueue::AddTask(task<void()> task) {
     std::future<void> fut;
     {
         std::lock_guard<std::mutex> lock(taskQueueMutex);
