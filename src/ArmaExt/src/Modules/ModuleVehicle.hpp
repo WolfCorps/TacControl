@@ -27,6 +27,12 @@ class JsonArchive;
     XX(AutoHover, bool, false) \
     XX(LightOn, bool, false) \
     XX(CollisionLight, bool, false) \
+    XX(CanGear, bool, false) \
+    XX(FuelCapacity, float, 0.f) \
+    XX(FuelConsumptionRate, float, 0.f) \
+    XX(Picture, std::string, std::string{}) \
+    XX(DisplayName, std::string, std::string{}) \
+    XX(CanLight, bool, false) \
 
 
 class IVehicleProperty {

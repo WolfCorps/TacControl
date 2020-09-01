@@ -15,7 +15,6 @@ private _updateArray = [];
     XX(HorizonBank) \
     XX(HorizonDive) \
     XX(VertSpeed) \
-    XX(Fuel) \
     XX(EngineTemp) \
     XX(Rpm) \
     XX(Speed) \
@@ -31,6 +30,7 @@ private _updateArray = [];
 ANIMSOURCES
 
 _updateArray append ["AutoHover", isAutoHoverOn _vehicle]; //hax, meh
+_updateArray append ["AnimFuel", fuel _vehicle]; //someone being extra lazy here //#TODO remove "Anim", its not anim anymore
 
 
 ["Vehicle.Update", _updateArray] call TC_main_fnc_sendMessage;

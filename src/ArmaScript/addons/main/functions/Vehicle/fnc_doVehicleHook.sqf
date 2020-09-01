@@ -2,7 +2,15 @@ params ["_vehicle", "_hook"];
 
 
 if (_hook) then {
-    _vehicle action ["HookCargo", _vehicle];
+    private _possibleObjects = nearestObjects [_vehicle, ["AllVehicles"], 40];
+    private _index = _possibleObjects findIf {_vehicle canSlingLoad _x};
+    if (_index == -1) exitWith {};
+    private _targetObject = _possibleObjects select _index;
+
+    _targetObject enableRopeAttach true;
+    _vehicle enableRopeAttach true;
+    _vehicle setSlingLoad _targetObject;
+
     //#TODO param, cargo object
 /*
 
@@ -29,6 +37,6 @@ if (_hook) then {
 
 
 } else {
-    _vehicle action ["UnhookCargo", _vehicle];
+    _vehicle setSlingLoad objNull;
 };
-_vehicle call TC_main_fnc_Vehicle_updateAnimSources;
+//Update is in EH

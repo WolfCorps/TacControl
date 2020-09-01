@@ -8,6 +8,8 @@ systemChat str ["vecChan", _this];
     XX(Engine,TC_main_fnc_Vehicle_onEngineChanged) \
     XX(GetIn,TC_main_fnc_Vehicle_updatePassengers) \
     XX(GetOut,TC_main_fnc_Vehicle_updatePassengers) \
+    XX(RopeAttach,TC_main_fnc_Vehicle_onSlingloadChanged) \
+    XX(RopeBreak,TC_main_fnc_Vehicle_onSlingloadChanged) \
 
 if (!isNull _oldVehicle) then {
 #define XX(name,handler) \
@@ -46,9 +48,37 @@ EVENTHANDLERS;
 
 TC_Vehicle_PFH = [{
      TC_Vehicle_CurrentVec call TC_main_fnc_Vehicle_updateAnimSources;
-}, 0.05] call CBA_fnc_addPerFrameHandler;
+}, 0.2] call CBA_fnc_addPerFrameHandler;
+
+private _vehicleCapabilities = [];
+
+private _config = configOf _vehicle;
 
 
+if (getNumber (_config >> "gearRetracting") == 1) then{
+    _vehicleCapabilities append ["CanGear", 1];
+};
+
+_vehicleCapabilities append ["FuelCapacity", getNumber (_config >> "fuelCapacity")];
+_vehicleCapabilities append ["FuelConsumptionRate", getNumber (_config >> "fuelConsumptionRate")];
+_vehicleCapabilities append ["FuelConsumptionRate", getNumber (_config >> "fuelConsumptionRate")];
+_vehicleCapabilities append ["Picture", getText (_config >> "picture")];
+_vehicleCapabilities append ["DisplayName", getText (_config >> "displayName ")];
+
+_vehicleCapabilities append ["CanLight", 1]; //#TODO if _config>>Reflectors contains a light
+
+// _config >> slingLoadMaxCargoMass //#TODO use for sling loading to check mass
+// _config >> slingLoadMemoryPoint
+//#TODO slongLoadCargoMemoryPoints to check if a object supports to be slingloaded
+// _config >> maxSpeed, should be max for animSource but should not use animsource
+// _config >> picture, icon
+//"cargoDoor"
+//"sideDoors1"
+
+//AnimationSources has entry with source="door" its a door, need to use animateDoor on it
+
+
+//#TODO ACE Cargo support, button to airdrop cargo
 
 ["Vehicle.Update", ["CollisionLight", isCollisionLightOn _vehicle, "EngineOn", isEngineOn _vehicle, "LightOn", isLightOn _vehicle]] call TC_main_fnc_sendMessage;
 _vehicle call TC_main_fnc_Vehicle_updatePassengers;

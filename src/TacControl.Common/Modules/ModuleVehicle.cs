@@ -35,6 +35,14 @@ namespace TacControl.Common.Modules
             public bool AutoHover { get; set; }
             public bool LightOn { get; set; }
             public bool CollisionLight { get; set; }
+            public bool SlingLoaded { get; set; }
+
+            public bool CanGear { get; set; }
+            public float FuelCapacity { get; set; }
+            public float FuelConsumptionRate { get; set; }
+            public string Picture { get; set; }
+            public string DisplayName { get; set; }
+            public bool CanLight { get; set; }
 
             public event PropertyChangedEventHandler PropertyChanged;
 

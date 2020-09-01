@@ -64,5 +64,20 @@ namespace TacControl
         {
             VecRef.SetAutoHover(!VecRef.props.AutoHover);
         }
+
+        private void DoHookButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            VecRef.SetHook(true);
+        }
+
+        private void LightButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            VecRef.SetLight(!VecRef.props.LightOn);
+        }
+
+        private void CollisionLight_OnClick(object sender, RoutedEventArgs e)
+        {
+            VecRef.SetCollisionLight(!VecRef.props.CollisionLight);
+        }
     }
 }

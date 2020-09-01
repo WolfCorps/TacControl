@@ -6,7 +6,7 @@
 
 template <>
 void VehicleProperty<float>::Set(std::string_view newVal) {
-    value = Util::parseArmaNumber(newVal);
+    value = std::ceil(Util::parseArmaNumber(newVal) * 100.0f) / 100.0f; //rounding to prevent extremely small delta state updates
 }
 template <>
 void VehicleProperty<float>::Serialize(JsonArchive& ar) {
@@ -19,6 +19,15 @@ void VehicleProperty<bool>::Set(std::string_view newVal) {
 }
 template <>
 void VehicleProperty<bool>::Serialize(JsonArchive& ar) {
+    ar.Serialize(name.c_str(), value);
+}
+
+template <>
+void VehicleProperty<std::string>::Set(std::string_view newVal) {
+    value = newVal;
+}
+template <>
+void VehicleProperty<std::string>::Serialize(JsonArchive& ar) {
     ar.Serialize(name.c_str(), value);
 }
 

@@ -38,6 +38,7 @@ PREP_SUB(Vehicle,onVehicleChanged); //TC_main_fnc_Vehicle_onVehicleChanged
 PREP_SUB(Vehicle,updatePassengers); //TC_main_fnc_Vehicle_updatePassengers
 PREP_SUB(Vehicle,updateAnimSources); //TC_main_fnc_Vehicle_updateAnimSources
 PREP_SUB(Vehicle,onEngineChanged); //TC_main_fnc_Vehicle_onEngineChanged
+PREP_SUB(Vehicle,onSlingloadChanged); //TC_main_fnc_Vehicle_onSlingloadChanged
 PREP_SUB(Vehicle,doVehicleActiveSensors); //TC_main_fnc_Vehicle_doVehicleActiveSensors
 PREP_SUB(Vehicle,doVehicleAutoHover); //TC_main_fnc_Vehicle_doVehicleAutoHover
 PREP_SUB(Vehicle,doVehicleCollisionLight); //TC_main_fnc_Vehicle_doVehicleCollisionLight

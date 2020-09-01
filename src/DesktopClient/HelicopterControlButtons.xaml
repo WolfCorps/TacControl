@@ -10,12 +10,17 @@
 
     <UserControl.Resources>
         <local:BoolToButtonColorRedGreen x:Key="BoolToButtonColorRedGreen" />
+        <BooleanToVisibilityConverter x:Key="VisibleIfTrueConverter" />
     </UserControl.Resources>
 
 
 
     <StackPanel>
-        <Button Name="GearButton" Click="GearButton_OnClick">
+
+        <ProgressBar Height="20" HorizontalAlignment="Stretch" Minimum="0" Maximum="1" Value="{Binding VecRef.props.AnimFuel, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"></ProgressBar>
+
+
+        <Button Name="GearButton" Click="GearButton_OnClick" Visibility="{Binding VecRef.props.CanGear, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource VisibleIfTrueConverter}}">
             <Button.Content>
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch" Margin="5">
                     <TextBlock Text="Gear"></TextBlock>
@@ -25,6 +30,9 @@
         </Button>
         <Button Name="EngineButton" Content="Engine" Click="EngineButton_OnClick" Background="{Binding VecRef.props.EngineOn, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource BoolToButtonColorRedGreen}}" />
         <Button Name="AutoHoverButton" Content="AutoHover" Click="AutoHoverButton_OnClick" Background="{Binding VecRef.props.AutoHover, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource BoolToButtonColorRedGreen}}" />
+        <Button Name="DoHookButton" Content="Hook Slingload" Click="DoHookButton_OnClick" Background="{Binding VecRef.props.SlingLoaded, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource BoolToButtonColorRedGreen}}" />
+        <Button Name="LightButton" Content="LightButton" Click="LightButton_OnClick" Background="{Binding VecRef.props.LightOn, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource BoolToButtonColorRedGreen}}" />
+        <Button Name="CollisionLightButton" Content="CollisionLight" Click="CollisionLight_OnClick" Background="{Binding VecRef.props.CollisionLight, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource BoolToButtonColorRedGreen}}" />
 
 
 
