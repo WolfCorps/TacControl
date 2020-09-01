@@ -68,7 +68,7 @@ class CfgAmmo {
         ace_minedetector_detectable = 0;
 
         mineTrigger = "RemoteTrigger";
-        simulation = ""; //shotMine
+        simulation = "shotPipeBomb"; //shotMine
     };
 };
 
