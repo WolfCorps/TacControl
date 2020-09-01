@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using TacControl.Common;
 
 namespace TacControl
 {
@@ -20,6 +21,7 @@ namespace TacControl
     /// </summary>
     public partial class RadioWidget : UserControl
     {
+        public GameState gsRef { get; set; } = GameState.Instance;
         public RadioWidget()
         {
             InitializeComponent();

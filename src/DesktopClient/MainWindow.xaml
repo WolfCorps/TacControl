@@ -4,39 +4,77 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TacControl"
+        xmlns:system="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="TacControl" Height="450" Width="800"
         x:Name="MainWindowCtrl">
     <Window.Resources>
-        <Style x:Key="worldNameIsNull" TargetType="{x:Type Button}">
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding gsRef.gameInfo.worldName, ElementName=MainWindowCtrl}" Value="{x:Null}">
-                    <Setter Property="IsEnabled" Value="False"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding gsRef.gameInfo.worldName, ElementName=MainWindowCtrl}" Value="">
-                    <Setter Property="IsEnabled" Value="False"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
+        <system:Boolean x:Key="TRUE">True</system:Boolean>
+        <system:Boolean x:Key="FALSE">False</system:Boolean>
+        <BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Window.Resources>
-
-
-
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="20" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions >
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <Button Grid.Column="0" Content="Open TacRadio" Name="OpenTacRadio" Click="OpenTacRadio_Click"/>
-        <Button Grid.Column="1" Content="Open TacMap" Name="OpenTacMap" Style="{StaticResource worldNameIsNull}" Click="OpenTacMap_Click"/>
+        <WrapPanel Margin="5">
+            <Menu VerticalAlignment="Center">
+                <MenuItem Header="File">
+                    <MenuItem Command="{Binding NewTacMapCommand}" Header="TacMap" />
+                    <MenuItem Command="{Binding NewTacRadioCommand}" Header="TacRadio" />
+                    <MenuItem Command="{Binding NewTacVecCommand}" Header="TacVec" />
+                    <MenuItem Command="{Binding NewTacNoteCommand}" Header="TacNote" />
+                </MenuItem>
+                <MenuItem Header="Layout">
+                    <MenuItem Command="{Binding LoadLayoutCommand, ElementName=MainWindowCtrl}" Header="Load" />
+                    <MenuItem Command="{Binding SaveLayoutCommand, ElementName=MainWindowCtrl}" Header="Save" />
+                </MenuItem>
+            </Menu>
+            <ComboBox
+				DisplayMemberPath="Item1"
+				ItemsSource="{Binding Themes}"
+				SelectedItem="{Binding SelectedTheme}" />
+        </WrapPanel>
+        <!--  AnchorablesSource="{Binding Tools}" DocumentsSource="{Binding Files}"  -->
+        <DockingManager
+			x:Name="dockManager"
+			Grid.Row="1"
+			AnchorablesSource="{Binding Tools}"
+            Theme="{Binding SelectedTheme.Item2}">
+            <DockingManager.LayoutItemTemplateSelector>
+                <local:PanesTemplateSelector />
+            </DockingManager.LayoutItemTemplateSelector>
 
-        <local:NotesList Grid.Row="1" Grid.ColumnSpan="2"></local:NotesList>
-        <local:HelicopterControlButtons Grid.Row="2" Grid.ColumnSpan="2"></local:HelicopterControlButtons>
+            <DockingManager.LayoutItemContainerStyleSelector>
+                <local:PanesStyleSelector>
+                    <local:PanesStyleSelector.ToolStyle>
+                        <Style TargetType="{x:Type LayoutAnchorableItem}">
+                            <Setter Property="Title" Value="{Binding Model.Title}" />
+                            <Setter Property="CanClose" Value="True" />
+                            <Setter Property="IconSource" Value="{Binding Model.IconSource}" />
+                            <Setter Property="Visibility" Value="{Binding Model.IsVisible, Mode=TwoWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter={StaticResource FALSE}}" />
+                            <Setter Property="ContentId" Value="{Binding Model.ContentId}" />
+                            <Setter Property="IsSelected" Value="{Binding Model.IsSelected, Mode=TwoWay}" />
+                            <Setter Property="IsActive" Value="{Binding Model.IsActive, Mode=TwoWay}" />
+                        </Style>
+                    </local:PanesStyleSelector.ToolStyle>
+                </local:PanesStyleSelector>
+            </DockingManager.LayoutItemContainerStyleSelector>
+            <DockingManager.LayoutUpdateStrategy>
+                <local:LayoutInitializer />
+            </DockingManager.LayoutUpdateStrategy>
 
+            <LayoutRoot>
+                <LayoutPanel Orientation="Vertical">
+                    <LayoutAnchorablePane Name="ToolsPane" DockHeight="150" />
+                </LayoutPanel>
+            </LayoutRoot>
+        </DockingManager>
     </Grid>
+
+
+
+
+
 </Window>

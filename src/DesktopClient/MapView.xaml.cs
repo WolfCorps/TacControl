@@ -108,6 +108,16 @@ namespace TacControl
             EventSystem.CenterMap += (position) => MapControl.Navigator.NavigateTo(position, 1, 500);
             //MapControl.Map.Resolutions;
 
+            GameState.Instance.gameInfo.PropertyChanged += (a, b) =>
+            {
+                if (b.PropertyName == nameof(ModuleGameInfo.worldName))
+                    Helper.ParseLayers().ContinueWith(x =>
+                        Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
+            };
+
+            if (GameState.Instance.gameInfo.worldName != null)
+                Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));;
+
         }
 
 
@@ -130,12 +140,7 @@ namespace TacControl
 
         private void MapControl_OnInitialized(object sender, EventArgs e)
         {
-
-        }
-
-        private void MapControl_OnLoaded(object sender, RoutedEventArgs e)
-        {
-            Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
+            
         }
 
         private int markNum = 0;
@@ -200,18 +205,18 @@ namespace TacControl
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
             MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 10);
 
-            GPSTrackerLayer.IsMapInfoLayer = true;
-            GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
-            GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
-            MapControl.Map.Layers.Add(GPSTrackerLayer);
-            GPSTrackerLayer.DataChanged += (a,b) => MapControl.RefreshData();
-            // ^ without this create/delete only updates when screen is moved
-
             MapMarkersLayer.IsMapInfoLayer = true;
             MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds);
             MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
             MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
+            // ^ without this create/delete only updates when screen is moved
+
+            GPSTrackerLayer.IsMapInfoLayer = true;
+            GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
+            GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
+            MapControl.Map.Layers.Add(GPSTrackerLayer);
+            GPSTrackerLayer.DataChanged += (a, b) => MapControl.RefreshData();
             // ^ without this create/delete only updates when screen is moved
 
             LayerList.Initialize(MapControl.Map.Layers);

@@ -20,7 +20,6 @@ namespace TacControl
     /// </summary>
     public partial class RadioWindow : Window
     {
-        public GameState gsRef { get; set; } = GameState.Instance;
         public RadioWindow()
         {
             InitializeComponent();
