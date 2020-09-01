@@ -5,6 +5,8 @@
 #include <cmath>
 #include <filesystem>
 
+#include <fmt/format.h>
+
 class JsonArchive;
 using namespace std::string_view_literals;
 

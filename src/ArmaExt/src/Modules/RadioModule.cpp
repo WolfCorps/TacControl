@@ -7,12 +7,7 @@
 #include "Networking/Serialize.hpp"
 #include "Util/Logger.hpp"
 
-#include <fmt/format.h>
-
 #include "Networking/NetworkController.hpp"
-
-#undef SendMessage
-//#TODO Find out how windows.h gets in here
 
 void TFARRadio::Serialize(JsonArchive& ar) {
     ar.Serialize("id", id);
@@ -145,7 +140,6 @@ void RadioModule::OnGamePreInit() {
 
 void RadioModule::DoRadioTransmit(std::string_view radioId, int8_t channel, bool transmitting) {
     GGameManager.SendMessage("Radio.Cmd.Transmit", fmt::format("{}\n{}\n{}", radioId, channel, transmitting));
-
 }
 
 std::optional<TFARRadio> RadioModule::GetFirstSRRadio() {

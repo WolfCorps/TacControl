@@ -44,7 +44,7 @@ target_include_directories(${PLUGIN_NAME} PRIVATE
 
 target_link_libraries(${PLUGIN_NAME} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(${PLUGIN_NAME} PUBLIC Boost::boost)
-target_link_libraries(${PLUGIN_NAME} PUBLIC fmt::fmt-header-only)
+target_link_libraries(${PLUGIN_NAME} PUBLIC fmt::fmt)
 target_link_libraries(${PLUGIN_NAME} PUBLIC ArmaPboLib)
 target_link_libraries(${PLUGIN_NAME} PUBLIC MipMapToolLib)
 
