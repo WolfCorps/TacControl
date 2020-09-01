@@ -138,7 +138,7 @@ protected:
     };
 
     std::vector<PeriodicTask> periodicTasks;
-    std::mutex periodicTasksMutex;
+    std::recursive_mutex periodicTasksMutex;
     std::chrono::milliseconds periodicDuration = 1000ms;
 
 

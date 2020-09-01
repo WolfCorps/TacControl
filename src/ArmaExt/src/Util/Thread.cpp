@@ -65,7 +65,7 @@ void ThreadQueue::StopThread() {
         return;
 
     {
-        std::lock_guard<std::mutex> lock(taskQueueMutex);
+        std::unique_lock<std::mutex> lock(taskQueueMutex);
         shouldRun = false;
     }
     threadWorkCondition.notify_one();
@@ -77,7 +77,7 @@ void ThreadQueue::StopThread() {
 std::future<void> ThreadQueue::AddTask(task<void()> task) {
     std::future<void> fut;
     {
-        std::lock_guard<std::mutex> lock(taskQueueMutex);
+        std::unique_lock<std::mutex> lock(taskQueueMutex);
         ThreadTask newTask;
         newTask.job = std::move(task);
 
@@ -98,14 +98,15 @@ void ThreadQueuePeriodic::Run() {
         if (!taskQueue.empty()) {
             auto task(std::move(taskQueue.front()));
             taskQueue.pop();
-
+            taskQueueMutex.unlock();
             task.job();
             task.prom.set_value();
+            taskQueueMutex.lock();
         }
 
         auto currentTime = std::chrono::system_clock::now();
 
-        std::unique_lock<std::mutex> lockPeriodic(periodicTasksMutex);
+        std::unique_lock<std::recursive_mutex> lockPeriodic(periodicTasksMutex);
         for (PeriodicTask& it : periodicTasks) {
             if (it.nextExecute < currentTime) {
                 it.task();
@@ -123,13 +124,13 @@ void ThreadQueuePeriodic::AddPeriodicTask(std::string_view taskName, std::chrono
     newTask.task = std::move(task);
 
     {
-        std::unique_lock<std::mutex> lockPeriodic(periodicTasksMutex);
+        std::unique_lock<std::recursive_mutex> lockPeriodic(periodicTasksMutex);
         periodicTasks.emplace_back(std::move(newTask));
     }
 }
 
 void ThreadQueuePeriodic::RemovePeriodicTask(std::string_view taskName) {
-    std::unique_lock<std::mutex> lockPeriodic(periodicTasksMutex);
+    std::unique_lock<std::recursive_mutex> lockPeriodic(periodicTasksMutex);
 
     std::erase_if(periodicTasks, [taskName](const PeriodicTask& task) {
             return task.taskName == taskName;
