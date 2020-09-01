@@ -18,7 +18,7 @@ void NetworkController::ModuleInit() {
             sender->send(ss);
         };
 
-
+        try {
         auto msg = nlohmann::json::parse(message);
 
         if (msg.contains("cmd")) {
@@ -27,6 +27,10 @@ void NetworkController::ModuleInit() {
                 command.emplace_back(it);
 
             GGameManager.TransferNetworkMessage(std::move(command), std::move(msg["args"]), replyFunc);
+        }
+        } catch (...) {
+            Util::BreakToDebuggerIfPresent();
+            return;
         }
     });
     ThreadQueue::ModuleInit();
