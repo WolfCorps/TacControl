@@ -7,7 +7,7 @@ if (_function#0 == "Cmd") then {
 
     switch (_function#1) do {
         case "GetMarkerTypes": {
-
+//#TODO do at preStart or extension load
             private _markerTypes = [];
 
             {

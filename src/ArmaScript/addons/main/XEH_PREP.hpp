@@ -37,3 +37,12 @@ PREP_SUB(Vehicle,onMessage); //TC_main_fnc_Vehicle_onMessage
 PREP_SUB(Vehicle,onVehicleChanged); //TC_main_fnc_Vehicle_onVehicleChanged
 PREP_SUB(Vehicle,updatePassengers); //TC_main_fnc_Vehicle_updatePassengers
 PREP_SUB(Vehicle,updateAnimSources); //TC_main_fnc_Vehicle_updateAnimSources
+PREP_SUB(Vehicle,onEngineChanged); //TC_main_fnc_Vehicle_onEngineChanged
+PREP_SUB(Vehicle,doVehicleActiveSensors); //TC_main_fnc_Vehicle_doVehicleActiveSensors
+PREP_SUB(Vehicle,doVehicleAutoHover); //TC_main_fnc_Vehicle_doVehicleAutoHover
+PREP_SUB(Vehicle,doVehicleCollisionLight); //TC_main_fnc_Vehicle_doVehicleCollisionLight
+PREP_SUB(Vehicle,doVehicleEngine); //TC_main_fnc_Vehicle_doVehicleEngine
+PREP_SUB(Vehicle,doVehicleGear); //TC_main_fnc_Vehicle_doVehicleGear
+PREP_SUB(Vehicle,doVehicleHook); //TC_main_fnc_Vehicle_doVehicleHook
+PREP_SUB(Vehicle,doVehicleLight); //TC_main_fnc_Vehicle_doVehicleLight
+PREP_SUB(Vehicle,doVehicleWheelsBrake); //TC_main_fnc_Vehicle_doVehicleWheelsBrake

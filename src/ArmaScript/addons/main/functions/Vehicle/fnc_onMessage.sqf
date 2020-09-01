@@ -89,18 +89,27 @@ params ["_function", "_arguments"];
 
 */
 
+#define VEHICLE_DOs \
+  XX(ActiveSensors) \
+  XX(AutoHover) \
+  XX(CollisionLight) \
+  XX(Engine) \
+  XX(Gear) \
+  XX(Hook) \
+  XX(Light) \
+  XX(WheelsBrake)
 
+systemChat str _this;
 
 if (_function#0 == "Cmd") then {
 
     switch (_function#1) do {
-        case "Gear": {
-
-        };
-        case "Engine": {
-
+        #define XX(name) case #name : { \
+            private _want = (_arguments select 0) == "true"; \
+            [TC_Vehicle_CurrentVec, _want] call TC_main_fnc_Vehicle_doVehicle##name; \
         };
 
+VEHICLE_DOs;
     };
 
 

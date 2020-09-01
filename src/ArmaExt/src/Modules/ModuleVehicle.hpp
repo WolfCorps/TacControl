@@ -25,6 +25,8 @@ class JsonArchive;
     XX(AnimTailRotorHFullyDestroyed, float, 0.f) \
     XX(AnimActiveSensorsOn, float, 0.f) \
     XX(AutoHover, bool, false) \
+    XX(LightOn, bool, false) \
+    XX(CollisionLight, bool, false) \
 
 
 class IVehicleProperty {

@@ -7,4 +7,4 @@ if (_light) then {
 } else {
     player action ["LightOff", _vehicle];
 };
-//#TODO update state
+["Vehicle.Update", ["LightOn", _light]] call TC_main_fnc_sendMessage;

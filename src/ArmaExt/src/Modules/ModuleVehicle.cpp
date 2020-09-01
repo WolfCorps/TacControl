@@ -1,6 +1,6 @@
 #include "ModuleVehicle.hpp"
 
-
+#include "Game/GameManager.hpp"
 #include "Networking/NetworkController.hpp"
 #include "Networking/Serialize.hpp"
 
@@ -87,7 +87,15 @@ void ModuleVehicle::OnGameMessage(const std::vector<std::string_view>& function,
 }
 
 void ModuleVehicle::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments,
-    const std::function<void(std::string_view)>& replyFunc) {}
+    const std::function<void(std::string_view)>& replyFunc) {
+
+    if (function[0] == "Do") {
+        std::string_view type = arguments["type"];
+        bool state = arguments["state"];
+
+        GGameManager.SendMessage(fmt::format("Vehicle.Cmd.{}",type), fmt::format("{}", state));
+    }
+}
 
 void ModuleVehicle::SerializeState(JsonArchive& ar) {
     JsonArchive properties;

@@ -1,0 +1,32 @@
+<UserControl x:Class="TacControl.HelicopterControlButtons"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TacControl"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             x:Name="HelicopterControlButtonsCtrl">
+
+    <UserControl.Resources>
+        <local:BoolToButtonColorRedGreen x:Key="BoolToButtonColorRedGreen" />
+    </UserControl.Resources>
+
+
+
+    <StackPanel>
+        <Button Name="GearButton" Click="GearButton_OnClick">
+            <Button.Content>
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch" Margin="5">
+                    <TextBlock Text="Gear"></TextBlock>
+                    <ProgressBar Height="20" Width="500" HorizontalAlignment="Stretch" Minimum="0" Maximum="1" Value="{Binding VecRef.props.AnimGearReversed, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"></ProgressBar>
+                </StackPanel>
+            </Button.Content>
+        </Button>
+        <Button Name="EngineButton" Content="Engine" Click="EngineButton_OnClick" Background="{Binding VecRef.props.EngineOn, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource BoolToButtonColorRedGreen}}" />
+        <Button Name="AutoHoverButton" Content="AutoHover" Click="AutoHoverButton_OnClick" Background="{Binding VecRef.props.AutoHover, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource BoolToButtonColorRedGreen}}" />
+
+
+
+    </StackPanel>
+</UserControl>

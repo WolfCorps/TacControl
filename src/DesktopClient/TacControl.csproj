@@ -87,6 +87,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="HelicopterControlButtons.xaml.cs">
+      <DependentUpon>HelicopterControlButtons.xaml</DependentUpon>
+    </Compile>
     <Compile Include="LayerList.xaml.cs">
       <DependentUpon>LayerList.xaml</DependentUpon>
     </Compile>
@@ -121,6 +124,10 @@
     <Compile Include="RadioWindow.xaml.cs">
       <DependentUpon>RadioWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="HelicopterControlButtons.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="LayerList.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

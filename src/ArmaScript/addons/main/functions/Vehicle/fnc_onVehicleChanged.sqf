@@ -46,11 +46,11 @@ EVENTHANDLERS;
 
 TC_Vehicle_PFH = [{
      TC_Vehicle_CurrentVec call TC_main_fnc_Vehicle_updateAnimSources;
-}, 0.2] call CBA_fnc_addPerFrameHandler
+}, 0.05] call CBA_fnc_addPerFrameHandler;
 
 
 
-
+["Vehicle.Update", ["CollisionLight", isCollisionLightOn _vehicle, "EngineOn", isEngineOn _vehicle, "LightOn", isLightOn _vehicle]] call TC_main_fnc_sendMessage;
 _vehicle call TC_main_fnc_Vehicle_updatePassengers;
 _vehicle call TC_main_fnc_Vehicle_updateAnimSources;
 ["Vehicle.VecEntered", [_isDriver]] call TC_main_fnc_sendMessage;
