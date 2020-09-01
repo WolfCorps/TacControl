@@ -29,6 +29,7 @@ class ModuleImageDirectory : public ThreadQueue, public IMessageReceiver {
     //RGBA 8-8-8-8, width, heigth
     std::tuple<std::vector<char>, int, int> LoadRGBATexture(std::string_view path);
 
+    std::mutex cacheLock;
     std::map<std::string, std::tuple<std::vector<char>, int, int>, std::less<>> imageCache;
 
     nlohmann::json generateMapfileMessage(std::string_view path);

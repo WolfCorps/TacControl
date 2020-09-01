@@ -119,10 +119,12 @@ public:
 
 std::tuple<std::vector<char>, int, int> ModuleImageDirectory::LoadRGBATexture(std::string_view path) {
 
+    std::unique_lock lock(cacheLock);
     auto found = imageCache.find(path);
     if (found != imageCache.end()) {
         return found->second;
     }
+    lock.unlock();
 
     auto paaData = LoadFileToBuffer(path);
     if (paaData.empty()) return {};
@@ -178,10 +180,15 @@ std::tuple<std::vector<char>, int, int> ModuleImageDirectory::LoadRGBATexture(st
 
 void ModuleImageDirectory::LoadTextureToCache(std::string_view path) {
 
+
+    auto found = imageCache.find(path);
+    if (found != imageCache.end()) return; //already in cache
+
     auto tex = LoadRGBATexture(path);
     auto& [data, width, height] = tex;
     if (data.empty()) return;
 
+    std::unique_lock lock(cacheLock);
     imageCache[std::string(path)] = tex;
 }
 
