@@ -30,6 +30,17 @@ namespace TacControl.Common.Modules
 
 
         [JsonIgnore]
+        public string DisplayName
+        {
+            get => displayName;
+            set
+            {
+                displayName = value; //Manually set text first to get rid of visual glitch
+                SetDisplayName(value); //Then tell server to change it too
+            }
+        }
+
+        [JsonIgnore]
         public bool HasAltChannel => currentAltChannel != -1;
 
 
@@ -49,7 +60,25 @@ namespace TacControl.Common.Modules
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+            if (propertyName == nameof(channels))
+            {
+                OnPropertyChanged(nameof(CurrentMainFreq));
+                OnPropertyChanged(nameof(CurrentAltFreq));
+            }
+
         }
+
+
+        TFARRadio()
+        {
+            channels.CollectionChanged += (a, b) => OnPropertyChanged(nameof(channels));
+        }
+
+
+
+
+
 
         public void SetChannelFrequency(int channel, string text)
         {
