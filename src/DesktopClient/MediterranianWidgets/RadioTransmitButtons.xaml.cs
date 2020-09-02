@@ -41,7 +41,6 @@ namespace TacControl
                 OnPropertyChanged(nameof(TXColor));
                 OnPropertyChanged(nameof(StopColor));
             }
-            
         }
 
         public static readonly DependencyProperty RadioRefProperty = DependencyProperty.Register(nameof(RadioRef), typeof(TFARRadio), typeof(RadioTransmitButtons),
@@ -56,7 +55,6 @@ namespace TacControl
 
                 ((TFARRadio)e.NewValue).PropertyChanged += self.RadioPropChanged;
             }
-
         }
 
 

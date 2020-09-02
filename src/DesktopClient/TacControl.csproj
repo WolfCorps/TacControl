@@ -87,42 +87,48 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="HelicopterControlButtons.xaml.cs">
+    <Compile Include="BigWidgets\HelicopterControlButtons.xaml.cs">
       <DependentUpon>HelicopterControlButtons.xaml</DependentUpon>
     </Compile>
-    <Compile Include="LayerList.xaml.cs">
+    <Compile Include="BigWidgets\Map\LayerList.xaml.cs">
       <DependentUpon>LayerList.xaml</DependentUpon>
     </Compile>
-    <Compile Include="LayerListItem.xaml.cs">
+    <Compile Include="BigWidgets\Map\LayerListItem.xaml.cs">
       <DependentUpon>LayerListItem.xaml</DependentUpon>
     </Compile>
+    <Compile Include="BigWidgets\RadioSettingsList.xaml.cs">
+      <DependentUpon>RadioSettingsList.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MediterranianWidgets\RadioSettings.xaml.cs">
+      <DependentUpon>RadioSettings.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DockFramework\LayoutInitializer.cs" />
-    <Compile Include="MapCreateMarker.xaml.cs">
+    <Compile Include="BigWidgets\Map\MapCreateMarker.xaml.cs">
       <DependentUpon>MapCreateMarker.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MapEditGPS.xaml.cs">
+    <Compile Include="BigWidgets\Map\MapEditGPS.xaml.cs">
       <DependentUpon>MapEditGPS.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MapView.xaml.cs">
+    <Compile Include="BigWidgets\Map\MapView.xaml.cs">
       <DependentUpon>MapView.xaml</DependentUpon>
     </Compile>
     <Compile Include="MapViewWindow.xaml.cs">
       <DependentUpon>MapViewWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="NotesList.xaml.cs">
+    <Compile Include="BigWidgets\NotesList.xaml.cs">
       <DependentUpon>NotesList.xaml</DependentUpon>
     </Compile>
-    <Compile Include="NoteWidget.xaml.cs">
+    <Compile Include="BigWidgets\NoteWidget.xaml.cs">
       <DependentUpon>NoteWidget.xaml</DependentUpon>
     </Compile>
     <Compile Include="DockFramework\PanesStyleSelector.cs" />
     <Compile Include="DockFramework\PanesTemplateSelector.cs" />
     <Compile Include="DockViewModels\PaneViewModel.cs" />
     <Compile Include="Properties\Annotations.cs" />
-    <Compile Include="RadioTransmitButtons.xaml.cs">
+    <Compile Include="MediterranianWidgets\RadioTransmitButtons.xaml.cs">
       <DependentUpon>RadioTransmitButtons.xaml</DependentUpon>
     </Compile>
-    <Compile Include="RadioWidget.xaml.cs">
+    <Compile Include="BigWidgets\RadioWidget.xaml.cs">
       <DependentUpon>RadioWidget.xaml</DependentUpon>
     </Compile>
     <Compile Include="RadioWindow.xaml.cs">
@@ -133,15 +139,23 @@
     <Compile Include="DockViewModels\UserControlViewModel.cs" />
     <Compile Include="DockViewModels\ViewModelBase.cs" />
     <Compile Include="DockFramework\Workspace.cs" />
-    <Page Include="HelicopterControlButtons.xaml">
+    <Page Include="BigWidgets\HelicopterControlButtons.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="LayerList.xaml">
+    <Page Include="BigWidgets\Map\LayerList.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="LayerListItem.xaml">
+    <Page Include="BigWidgets\Map\LayerListItem.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="BigWidgets\RadioSettingsList.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MediterranianWidgets\RadioSettings.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -157,15 +171,15 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="MapCreateMarker.xaml">
+    <Page Include="BigWidgets\Map\MapCreateMarker.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MapEditGPS.xaml">
+    <Page Include="BigWidgets\Map\MapEditGPS.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MapView.xaml">
+    <Page Include="BigWidgets\Map\MapView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -173,19 +187,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="NotesList.xaml">
+    <Page Include="BigWidgets\NotesList.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="NoteWidget.xaml">
+    <Page Include="BigWidgets\NoteWidget.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="RadioTransmitButtons.xaml">
+    <Page Include="MediterranianWidgets\RadioTransmitButtons.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="RadioWidget.xaml">
+    <Page Include="BigWidgets\RadioWidget.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -276,6 +290,8 @@
       <Name>SkiaSharp.Extended.Svg</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="TinyWidgets\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
