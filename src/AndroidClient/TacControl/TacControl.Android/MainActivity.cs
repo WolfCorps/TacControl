@@ -11,6 +11,9 @@ using Android.Views;
 using Android.Widget;
 using Android.OS;
 using Java.Nio;
+using Microsoft.AppCenter;
+using Microsoft.AppCenter.Analytics;
+using Microsoft.AppCenter.Distribute;
 using SkiaSharp;
 using SkiaSharp.Views.Android;
 using TacControl.Common.Modules;
@@ -24,6 +27,8 @@ namespace TacControl.Droid
         private WifiManager.MulticastLock castLock;
         protected override void OnCreate(Bundle savedInstanceState)
         {
+            AppCenter.Start("b17f9c9d-e90c-488f-8c4b-92ef3e305c0d", typeof(Analytics), typeof(Distribute));
+
 
             WifiManager wifiMgr = (WifiManager) ApplicationContext.GetSystemService(Context.WifiService);
             castLock = wifiMgr.CreateMulticastLock("TacControl-udp");
