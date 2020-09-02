@@ -43,19 +43,40 @@ private _evtOnRadiosReceived = {
         [_radio] call TC_main_fnc_Radio_doUpdateRadio;
     } forEach _radios;
 
-    [TC_main_fnc_Radio_checkDeletedRadios]call CBA_fnc_execNextFrame;
+    [TC_main_fnc_Radio_checkDeletedRadios] call CBA_fnc_execNextFrame;
 };
 
 private _evtOnFrequencyChangedFromUI = {
     params ["", "_radio", "", ""];
 
     [_radio] call TC_main_fnc_Radio_doUpdateRadio;
-    [TC_main_fnc_Radio_checkDeletedRadios]call CBA_fnc_execNextFrame;
+    [TC_main_fnc_Radio_checkDeletedRadios] call CBA_fnc_execNextFrame;
 };
 
+private _evtOnFrequencyChanged = {
+    params ["", "_radio", "_channel", "_oldFrequency", "_frequency"];
+
+    [_radio] call TC_main_fnc_Radio_doUpdateRadio;
+    [TC_main_fnc_Radio_checkDeletedRadios] call CBA_fnc_execNextFrame;
+};
+
+private _evtOnSWStereoSet = {
+    params ["", "_radio", "", ""];
+
+    [_radio] call TC_main_fnc_Radio_doUpdateRadio;
+};
+
+private _evtOnLRStereoSet = {
+    params ["", "_radioObj", "_radioQualif", "", ""];
+
+    [[_radioObj, _radioQualif]] call TC_main_fnc_Radio_doUpdateRadio;
+};
 
 ["TFAR_event_OnTangent", _evtOnTangent] call CBA_fnc_addEventHandler;
 ["TFAR_event_OnSWchannelSet", _evtOnSWChannelSet] call CBA_fnc_addEventHandler;
 ["TFAR_event_OnLRchannelSet", _evtOnLRChannelSet] call CBA_fnc_addEventHandler;
 ["TFAR_event_OnRadiosReceived", _evtOnRadiosReceived] call CBA_fnc_addEventHandler;
 ["TFAR_event_OnFrequencyChangedFromUI", _evtOnFrequencyChangedFromUI] call CBA_fnc_addEventHandler;
+["TFAR_event_OnFrequencyChanged", _evtOnFrequencyChanged] call CBA_fnc_addEventHandler;
+["TFAR_event_OnSWstereoSet", _evtOnSWStereoSet] call CBA_fnc_addEventHandler;
+["TFAR_event_OnLRstereoSet", _evtOnLRStereoSet] call CBA_fnc_addEventHandler;

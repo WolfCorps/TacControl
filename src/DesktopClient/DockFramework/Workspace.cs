@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using TacControl.BigWidgets;
 using TacControl.Common;
 
 namespace TacControl
@@ -118,6 +119,29 @@ namespace TacControl
                 return _newTacNoteCommand;
             }
         }
+
+
+
+        private RelayCommand _newTacRadioPropertiesCommand = null;
+
+        private void OpenTacRadioProperties(object parameter)
+        {
+            Tools.Add(new UserControlViewModel(typeof(RadioSettingsList)));
+        }
+
+        public ICommand NewTacRadioPropertiesCommand
+        {
+            get
+            {
+                if (_newTacRadioPropertiesCommand == null)
+                {
+                    _newTacRadioPropertiesCommand = new RelayCommand((p) => OpenTacRadioProperties(p), (p) => true);
+                }
+
+                return _newTacRadioPropertiesCommand;
+            }
+        }
+
 
 
         public List<Tuple<string, Theme>> Themes { get; set; }

@@ -1,0 +1,30 @@
+
+
+
+ModuleRadio
+
+
+
+
+Transmit
+    radioId
+    channel
+    transmitting (bool)
+SetStereo
+    radioId
+    isMain bool
+    mode (0 center, 1 left, 2 right)
+SetSpeaker
+    radioId
+    speakerOn (bool)
+SetFrequency
+    radioId
+    channel
+    freq (string)
+SetVolume
+    radioId
+    volume (int 0-100)
+SetChannel (sets main/alt channel to specified channel)
+    radioId
+    isMain bool
+    channel

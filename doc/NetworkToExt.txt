@@ -1,5 +1,7 @@
 
-statr/stop radio transmission
+
+Radio
+start/stop radio transmission
 
 {
 	'cmd': ['Radio', 'Transmit'],

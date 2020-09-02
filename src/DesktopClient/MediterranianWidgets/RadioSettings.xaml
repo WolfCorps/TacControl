@@ -1,0 +1,44 @@
+<UserControl x:Class="TacControl.BigWidgets.RadioSettings"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TacControl.BigWidgets"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Name="RadioSettingsCtrl">
+    <Grid>
+        <StackPanel Orientation="Vertical">
+            <ItemsControl ItemsSource="{Binding RadioRef.channels ,ElementName=RadioSettingsCtrl}" AlternationCount="100" >
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="system:String">
+                        <StackPanel Orientation="Horizontal">
+                            <Label Content="{Binding Path=(ItemsControl.AlternationIndex), RelativeSource={RelativeSource TemplatedParent}, StringFormat={}Index is {0}}"/>
+                            <TextBox Text="{Binding ., Mode=OneWay}"
+                                TextChanged="Frequency_OnTextChanged"
+                                Tag="{Binding Path=(ItemsControl.AlternationIndex), RelativeSource={RelativeSource TemplatedParent}}"
+                            />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Label Content ="Volume:"/>
+            <Slider Name="Volume" Minimum="0" Maximum="10" ValueChanged="Volume_OnValueChanged" Value="{Binding RadioRef.volume,ElementName=RadioSettingsCtrl, Mode=OneWay}"/>
+
+            <Label Content ="StereoMain:"/>
+            <Slider Name="StereoMain" Minimum="0" Maximum="2" ValueChanged="StereoMain_OnValueChanged" Value="{Binding RadioRef.mainStereo,ElementName=RadioSettingsCtrl, Mode=OneWay}"/>
+            <Label Content ="StereoAlt:"/>
+            <Slider Name="StereoAlt" Minimum="0" Maximum="2" ValueChanged="StereoAlt_OnValueChanged" Value="{Binding RadioRef.altStereo,ElementName=RadioSettingsCtrl, Mode=OneWay}"/>
+
+            <Label Content ="MainChannel:"/>
+            <Slider Name="MainChannel" Minimum="0" Maximum="7" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="MainChannel_OnValueChanged" Value="{Binding RadioRef.currentChannel,ElementName=RadioSettingsCtrl, Mode=OneWay}"/>
+            <Label Content ="AltChannel:"/>
+            <Slider Name="AltChannel" Minimum="-1" Maximum="7" TickFrequency="1" IsSnapToTickEnabled="True" ValueChanged="AltChannel_OnValueChanged" Value="{Binding RadioRef.currentAltChannel,ElementName=RadioSettingsCtrl, Mode=OneWay}"/>
+
+
+
+
+        </StackPanel>
+    </Grid>
+</UserControl>

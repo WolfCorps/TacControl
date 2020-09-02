@@ -21,6 +21,14 @@ namespace TacControl.Common.Modules
         public bool rx { get; set; }
         public int tx { get; set; }
 
+        //#TODO use enum for stereomode
+        public int mainStereo { get; set; } // 0 center, 1 left, 2 right
+        public int altStereo { get; set; } // 0 center, 1 left, 2 right
+        public int volume { get; set; } //0-10
+        public bool speaker { get; set; }
+
+
+
         [JsonIgnore]
         public bool HasAltChannel => currentAltChannel != -1;
 
@@ -42,6 +50,116 @@ namespace TacControl.Common.Modules
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public void SetChannelFrequency(int channel, string text)
+        {
+            Networking.Instance.SendMessage(
+                $@"{{
+                    ""cmd"": [""Radio"", ""SetFrequency""],
+                    ""args"": {{
+                        ""radioId"": ""{id}"",
+                        ""channel"": {channel},
+                        ""freq"": {JsonConvert.ToString(text)}
+                    }}
+                }}"
+            );
+        }
+
+        public void SetVolume(int eNewValue)
+        {
+            Networking.Instance.SendMessage(
+                $@"{{
+                    ""cmd"": [""Radio"", ""SetVolume""],
+                    ""args"": {{
+                        ""radioId"": ""{id}"",
+                        ""volume"": {eNewValue}
+                    }}
+                }}"
+            );
+        }
+
+        public void SetStereoMain(int eNewValue)
+        {
+            Networking.Instance.SendMessage(
+                $@"{{
+                    ""cmd"": [""Radio"", ""SetStereo""],
+                    ""args"": {{
+                        ""radioId"": ""{id}"",
+                        ""main"": true,
+                        ""mode"": {eNewValue}
+                    }}
+                }}"
+            );
+        }
+
+        public void SetSteroAlt(int eNewValue)
+        {
+            Networking.Instance.SendMessage(
+                $@"{{
+                    ""cmd"": [""Radio"", ""SetStereo""],
+                    ""args"": {{
+                        ""radioId"": ""{id}"",
+                        ""main"": false,
+                        ""mode"": {eNewValue}
+                    }}
+                }}"
+            );
+        }
+
+        public void SetSpeaker(bool enabled)
+        {
+            Networking.Instance.SendMessage(
+                $@"{{
+                    ""cmd"": [""Radio"", ""SetSpeaker""],
+                    ""args"": {{
+                        ""radioId"": ""{id}"",
+                        ""enabled"": {enabled}
+                    }}
+                }}"
+            );
+        }
+
+        public void SetMainChannel(int chan)
+        {
+            Networking.Instance.SendMessage(
+                $@"{{
+                    ""cmd"": [""Radio"", ""SetChannel""],
+                    ""args"": {{
+                        ""radioId"": ""{id}"",
+                        ""main"": true,
+                        ""channel"": {chan}
+                    }}
+                }}"
+            );
+        }
+
+        public void SetAltChannel(int chan)
+        {
+            Networking.Instance.SendMessage(
+                $@"{{
+                    ""cmd"": [""Radio"", ""SetChannel""],
+                    ""args"": {{
+                        ""radioId"": ""{id}"",
+                        ""main"": false,
+                        ""channel"": {chan}
+                    }}
+                }}"
+            );
+        }
+
+        public void SetDisplayName(string newName)
+        {
+            Networking.Instance.SendMessage(
+                $@"{{
+                    ""cmd"": [""Radio"", ""SetDisplayName""],
+                    ""args"": {{
+                        ""radioId"": ""{id}"",
+                        ""name"": {JsonConvert.ToString(newName)}
+                    }}
+                }}"
+            );
+        }
+
     }
 
     public class ModuleRadio : INotifyPropertyChanged

@@ -14,6 +14,10 @@ void TFARRadio::Serialize(JsonArchive& ar) {
     ar.Serialize("displayName", displayName);
     ar.Serialize("currentChannel", currentChannel);
     ar.Serialize("currentAltChannel", currentAltChannel);
+    ar.Serialize("mainStereo", mainStereo);
+    ar.Serialize("altStereo", altStereo);
+    ar.Serialize("volume", volume);
+    ar.Serialize("speaker", speaker);
     ar.Serialize("rx", rx);
     ar.Serialize("tx", tx);
     ar.Serialize("channels", channels, [](JsonArchive& element, const RadioChannel& channel) {
@@ -50,6 +54,12 @@ void ModuleRadio::OnRadioUpdate(const std::vector<std::string_view>& arguments) 
         });
 
     found->mainStereo = Util::parseArmaNumberToInt(arguments[4]);
+    found->altStereo = Util::parseArmaNumberToInt(arguments[5]);
+    found->volume = Util::parseArmaNumberToInt(arguments[6]);
+    found->speaker = Util::isTrue(arguments[7]);
+
+
+
     GNetworkController.SendStateUpdate("Radio");
 }
 
@@ -130,10 +140,50 @@ void ModuleRadio::OnNetMessage(std::span<std::string_view> function, const nlohm
 
     if (function[0] == "Transmit") {
         std::string_view radioId = arguments["radioId"];
+        if (!FindRadioById(radioId)) return;
         int8_t channel = arguments["channel"];
         bool tx = arguments["tx"];
 
         DoRadioTransmit(radioId, channel, tx);
+    } else if (function[0] == "SetStereo") {
+        std::string_view radioId = arguments["radioId"];
+        if (!FindRadioById(radioId)) return;
+        bool isMain = arguments["main"];
+        int mode = arguments["mode"];
+
+        GGameManager.SendMessage("Radio.Cmd.SetStereo", fmt::format("{}\n{}\n{}", radioId, isMain, mode));
+    } else if (function[0] == "SetSpeaker") {
+        std::string_view radioId = arguments["radioId"];
+        if (!FindRadioById(radioId)) return;
+        bool enabled = arguments["enabled"];
+
+        GGameManager.SendMessage("Radio.Cmd.SetSpeaker", fmt::format("{}\n{}", radioId, enabled));
+    } else if (function[0] == "SetFrequency") {
+        std::string_view radioId = arguments["radioId"];
+        if (!FindRadioById(radioId)) return;
+        int8_t channel = arguments["channel"];
+        std::string freq = arguments["freq"];
+
+        GGameManager.SendMessage("Radio.Cmd.SetFrequency", fmt::format("{}\n{}\n{}", radioId, channel, freq));
+    } else if (function[0] == "SetVolume") {
+        std::string_view radioId = arguments["radioId"];
+        if (!FindRadioById(radioId)) return;
+        int volume = arguments["volume"];
+
+        GGameManager.SendMessage("Radio.Cmd.SetVolume", fmt::format("{}\n{}", radioId, volume));
+    } else if (function[0] == "SetChannel") {
+        std::string_view radioId = arguments["radioId"];
+        if (!FindRadioById(radioId)) return;
+        bool isMain = arguments["main"];
+        int8_t channel = arguments["channel"];
+
+        GGameManager.SendMessage("Radio.Cmd.SetChannel", fmt::format("{}\n{}\n{}", radioId, isMain, channel));
+    } else if (function[0] == "SetDisplayName") {
+        std::string_view radioId = arguments["radioId"];
+        auto radioRef = FindRadioById(radioId);
+        if (!radioRef) return;
+        radioRef->get().displayName = arguments["name"];
+        GNetworkController.SendStateUpdate("Radio");
     }
 }
 
