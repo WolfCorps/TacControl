@@ -130,7 +130,7 @@
         </Grid.RowDefinitions>
         <Label Grid.Row="0" Content="Create Marker" Background="#B2279546" Foreground="White" FontWeight="Bold" FontFamily="Arial" FontStyle="Normal" FontSize="11" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" Padding="5,4,5,0" ScrollViewer.CanContentScroll="True" UseLayoutRounding="False"/>
         <Label Grid.Row="2" Content="Description:" Background="#CC313538" Foreground="White" FontWeight="Normal" FontFamily="Arial" FontStyle="Normal" FontSize="9" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" VerticalContentAlignment="Top" Padding="5,4,5,0" ScrollViewer.CanContentScroll="True" UseLayoutRounding="False"/>
-        <TextBox Grid.Row="3" Background="#CC313538" Text="{Binding MarkerRef.text, ElementName=MapCreateMarkerCtrl}"/>
+        <TextBox Grid.Row="3" Background="#CC313538" Text="{Binding MarkerRef.text, ElementName=MapCreateMarkerCtrl, UpdateSourceTrigger=PropertyChanged}"/>
 
 
         <ComboBox

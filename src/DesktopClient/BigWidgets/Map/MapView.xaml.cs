@@ -275,7 +275,7 @@ namespace TacControl
                     {
                         id = GameState.Instance.marker.GenerateMarkerName(MarkerChannel.Global),
                         channel = 0,
-                        color = "ColorBlack",
+                        color = "Default",
                         type = "hd_dot",
                         shape = "ICON",
                         text = "",

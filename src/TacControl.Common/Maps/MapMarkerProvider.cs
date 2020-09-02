@@ -133,7 +133,8 @@ namespace TacControl.Common.Maps
             {
                 this["Label"] = marker.text;
                 //#TODO update Label style
-                foreach (var label in Styles.Where(x => x is MarkerLabelStyle)) (label as MarkerLabelStyle).Text = marker.text;
+                foreach (var label in Styles.Where(x => x is MarkerIconStyle))
+                    (label as MarkerIconStyle).text = marker.text;
 
                 DataHasChanged();
             }
@@ -160,6 +161,7 @@ namespace TacControl.Common.Maps
 
                 iconStyle.color = markerColor.ToSKColor();
                 iconStyle.typeSize = markerType.size;
+                iconStyle.shadow = markerType.shadow;
 
                 MarkerCache.Instance.GetImage(markerType, null)
                     .ContinueWith((image) => { iconStyle.markerIcon = image.Result; });

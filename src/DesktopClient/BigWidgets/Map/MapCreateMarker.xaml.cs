@@ -53,7 +53,7 @@ namespace TacControl
                 if (type.iconImage == null) return null;
 
                 var image = type.iconImage;
-                if (type.Color != SKColors.White)
+                if (type.color != "Default" && type.Color != SKColors.White)
                 {
 
                     image = image.ApplyImageFilter(
@@ -140,12 +140,6 @@ namespace TacControl
 
     public partial class MapCreateMarker : UserControl, INotifyPropertyChanged
     {
-        public string DescriptionText
-        {
-            get;
-            set;
-        }
-
         public ActiveMarker MarkerRef { get; set; }
         
         public MapCreateMarker()
