@@ -41,29 +41,35 @@ void ModuleLogitechG15::Run() {
     while (shouldRun) {
         LogiLcdUpdate();
 
+        LogiLcdMonoSetText(0, L"TacControl - TFAR Radios");
+
         auto firstSR = GModuleRadio.GetFirstSRRadio();
         auto firstLR = GModuleRadio.GetFirstLRRadio();
 
         std::optional<std::string> radio1, radio2, radio3, radio4;
 
         if (firstSR) {
-            if (firstSR->currentChannel != -1)
-                radio1 = fmt::format("SC{} ({})", firstSR->currentChannel + 1, firstSR->channels[firstSR->currentChannel].frequency);
-            if (firstSR->currentAltChannel != -1)
-                radio3 = fmt::format("SA{} ({})", firstSR->currentAltChannel + 1, firstSR->channels[firstSR->currentAltChannel].frequency);
+            auto chMain = firstSR->GetCurrentChannel();
+            auto chAlt = firstSR->GetCurrentChannel();
+
+            if (chMain)
+                radio1 = fmt::format("SC{} ({})", firstSR->currentChannel + 1, chMain->frequency);
+            if (chAlt)
+                radio3 = fmt::format("SA{} ({})", firstSR->currentAltChannel + 1, chAlt->frequency);
 
         } else {
             //LogiLcdMonoSetText(0, L"No SR");
         }
 
         if (firstLR) {
-            if (firstLR->currentChannel != -1)
-                radio2 = fmt::format("LC{} ({})", firstLR->currentChannel + 1, firstLR->channels[firstLR->currentChannel].frequency);
-            if (firstLR->currentAltChannel != -1)
-                radio4 = fmt::format("LA{} ({})", firstLR->currentAltChannel + 1, firstLR->channels[firstLR->currentAltChannel].frequency);
+            auto chMain = firstLR->GetCurrentChannel();
+            auto chAlt = firstLR->GetCurrentChannel();
 
-        }
-        else {
+            if (chMain)
+                radio2 = fmt::format("LC{} ({})", firstLR->currentChannel + 1, chMain->frequency);
+            if (chAlt)
+                radio4 = fmt::format("LA{} ({})", firstLR->currentAltChannel + 1, chAlt->frequency);
+        } else {
             //LogiLcdMonoSetText(1, L"No LR");
         }
 

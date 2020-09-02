@@ -18,6 +18,10 @@ struct TFARRadio {
     std::string displayName;
     int8_t currentChannel = -1;
     int8_t currentAltChannel = -1;
+    uint8_t mainStereo = 0; // 0 center, 1 left, 2 right
+    uint8_t altStereo = 0; // 0 center, 1 left, 2 right
+    uint8_t volume = 70; //0-10
+    bool speaker = false;
     //#TODO can receive on multiple channels..
     bool rx = false; //receiving right now
     //-1 == not sending
@@ -25,6 +29,20 @@ struct TFARRadio {
     std::vector<RadioChannel> channels;
 
     void Serialize(JsonArchive& ar);
+
+    std::optional<RadioChannel> GetChannel(int8_t index) {
+        if (index < 0 || index > channels.size() - 1) return {};
+        return channels[index];
+    }
+
+    std::optional<RadioChannel> GetCurrentChannel() {
+        return GetChannel(currentChannel);
+    }
+
+    std::optional<RadioChannel> GetCurrentAltChannel() {
+        return GetChannel(currentAltChannel);
+    }
+
 };
 
 
