@@ -10,7 +10,7 @@
 #include "Networking/Serialize.hpp"
 #include "Util/Logger.hpp"
 #include "Util/Util.hpp"
-#include "Modules/RadioModule.hpp"
+#include "Modules/ModuleRadio.hpp"
 #include "Modules/ModuleLogitechG15.hpp"
 #include "Modules/ModuleGPS.hpp"
 #include "Modules/ModuleMarker.hpp"

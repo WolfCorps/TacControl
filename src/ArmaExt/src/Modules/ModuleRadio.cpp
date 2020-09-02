@@ -1,4 +1,4 @@
-#include "RadioModule.hpp"
+#include "ModuleRadio.hpp"
 #include <ranges>
 
 
@@ -21,17 +21,17 @@ void TFARRadio::Serialize(JsonArchive& ar) {
     });
 }
 
-void RadioModule::DoNetworkUpdateRadio(TFARRadio& radio) {
+void ModuleRadio::DoNetworkUpdateRadio(TFARRadio& radio) {
     JsonArchive ar;
     radio.Serialize(ar);
 
    Logger::log(LoggerTypes::General, ar.to_string());
 }
 
-void RadioModule::OnRadioUpdate(const std::vector<std::string_view>& arguments) {
+void ModuleRadio::OnRadioUpdate(const std::vector<std::string_view>& arguments) {
     auto radioId = arguments[0];
 
-    auto found = FindOrCreateRadioByClassname(radioId);
+    auto found = FindOrCreateRadioById(radioId);
 
     if (found->displayName.empty())
         found->displayName = radioId;
@@ -49,33 +49,34 @@ void RadioModule::OnRadioUpdate(const std::vector<std::string_view>& arguments) 
             return res;
         });
 
-    GNetworkController.SendStateUpdate();
+    found->mainStereo = Util::parseArmaNumberToInt(arguments[4]);
+    GNetworkController.SendStateUpdate("Radio");
 }
 
-void RadioModule::OnRadioTransmit(const std::vector<std::string_view>& arguments) {
+void ModuleRadio::OnRadioTransmit(const std::vector<std::string_view>& arguments) {
     auto radioClass = arguments[0];
     auto radioChannel = arguments[1];
     auto radioStart = arguments[2];
-    auto found = FindOrCreateRadioByClassname(radioClass);
+    auto found = FindOrCreateRadioById(radioClass);
     if (!Util::isTrue(radioStart)) {
         found->tx = -1;
     } else {
         found->tx = Util::parseArmaNumberToInt(radioChannel);
     }
 
-    GNetworkController.SendStateUpdate();
+    GNetworkController.SendStateUpdate("Radio");
 }
 
-void RadioModule::OnRadioDelete(const std::vector<std::string_view>& arguments) {
+void ModuleRadio::OnRadioDelete(const std::vector<std::string_view>& arguments) {
     auto radioClass = arguments[0];
 
-    auto found = FindOrCreateRadioByClassname(radioClass);
+    auto found = FindOrCreateRadioById(radioClass);
     radios.erase(found);
  
     GNetworkController.SendStateUpdate();
 }
 
-std::vector<TFARRadio>::iterator RadioModule::FindOrCreateRadioByClassname(std::string_view classname) {
+std::vector<TFARRadio>::iterator ModuleRadio::FindOrCreateRadioById(std::string_view classname) {
     auto found = std::ranges::find_if(radios, [classname](const TFARRadio& rad) {
         return rad.id == classname;
         });
@@ -89,7 +90,20 @@ std::vector<TFARRadio>::iterator RadioModule::FindOrCreateRadioByClassname(std::
     }
 }
 
-void RadioModule::OnGameMessage(const std::vector<std::string_view>& function, const std::vector<std::string_view>& arguments) {
+std::optional<std::reference_wrapper<TFARRadio>> ModuleRadio::FindRadioById(std::string_view classname) {
+    auto found = std::ranges::find_if(radios, [classname](const TFARRadio& rad) {
+        return rad.id == classname;
+        });
+
+    if (found != radios.end()) {
+        return *found;
+    }
+    else {
+        return std::nullopt;
+    }
+}
+
+void ModuleRadio::OnGameMessage(const std::vector<std::string_view>& function, const std::vector<std::string_view>& arguments) {
 
 
     //#TODO https://github.com/michail-nikolaev/task-force-arma-3-radio/blob/master/ts/src/CommandProcessor.cpp#L121
@@ -112,7 +126,7 @@ void RadioModule::OnGameMessage(const std::vector<std::string_view>& function, c
     }
 }
 
-void RadioModule::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {
+void ModuleRadio::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {
 
     if (function[0] == "Transmit") {
         std::string_view radioId = arguments["radioId"];
@@ -123,7 +137,7 @@ void RadioModule::OnNetMessage(std::span<std::string_view> function, const nlohm
     }
 }
 
-void RadioModule::SerializeState(JsonArchive& ar) {
+void ModuleRadio::SerializeState(JsonArchive& ar) {
 
     auto fut = AddTask([this, &ar]() {
         ar.Serialize("radios", radios, [](JsonArchive& element, TFARRadio& radio) {
@@ -133,16 +147,16 @@ void RadioModule::SerializeState(JsonArchive& ar) {
     fut.wait();
 }
 
-void RadioModule::OnGamePreInit() {
+void ModuleRadio::OnGamePreInit() {
     radios.clear();
 }
 
 
-void RadioModule::DoRadioTransmit(std::string_view radioId, int8_t channel, bool transmitting) {
+void ModuleRadio::DoRadioTransmit(std::string_view radioId, int8_t channel, bool transmitting) {
     GGameManager.SendMessage("Radio.Cmd.Transmit", fmt::format("{}\n{}\n{}", radioId, channel, transmitting));
 }
 
-std::optional<TFARRadio> RadioModule::GetFirstSRRadio() {
+std::optional<TFARRadio> ModuleRadio::GetFirstSRRadio() {
     auto firstRadio = std::ranges::find_if(radios, [](const TFARRadio& rad)
         {
             return rad.id.find(' ') == std::string::npos;
@@ -151,7 +165,7 @@ std::optional<TFARRadio> RadioModule::GetFirstSRRadio() {
     return *firstRadio;
 }
 
-std::optional<TFARRadio> RadioModule::GetFirstLRRadio() {
+std::optional<TFARRadio> ModuleRadio::GetFirstLRRadio() {
     auto firstRadio = std::ranges::find_if(radios, [](const TFARRadio& rad)
         {
             return rad.id.find(' ') != std::string::npos;

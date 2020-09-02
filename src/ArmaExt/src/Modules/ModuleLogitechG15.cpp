@@ -4,7 +4,7 @@
 #include <codecvt>
 
 #include "Game/GameManager.hpp"
-#include "RadioModule.hpp"
+#include "ModuleRadio.hpp"
 
 #include <fmt/format.h>
 
@@ -41,8 +41,8 @@ void ModuleLogitechG15::Run() {
     while (shouldRun) {
         LogiLcdUpdate();
 
-        auto firstSR = GRadioModule.GetFirstSRRadio();
-        auto firstLR = GRadioModule.GetFirstLRRadio();
+        auto firstSR = GModuleRadio.GetFirstSRRadio();
+        auto firstLR = GModuleRadio.GetFirstLRRadio();
 
         std::optional<std::string> radio1, radio2, radio3, radio4;
 
@@ -91,19 +91,19 @@ void ModuleLogitechG15::Run() {
 
         if (firstSR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0) != isTransmitting[0]) {
             isTransmitting[0] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_0);
-            GRadioModule.DoRadioTransmit(firstSR->id, firstSR->currentChannel, isTransmitting[0]);
+            GModuleRadio.DoRadioTransmit(firstSR->id, firstSR->currentChannel, isTransmitting[0]);
         }
         if (firstLR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_2) != isTransmitting[2]) {
             isTransmitting[2] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_2);
-            GRadioModule.DoRadioTransmit(firstSR->id, firstSR->currentAltChannel, isTransmitting[2]);
+            GModuleRadio.DoRadioTransmit(firstSR->id, firstSR->currentAltChannel, isTransmitting[2]);
         }
         if (firstSR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1) != isTransmitting[1]) {
             isTransmitting[1] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_1);
-            GRadioModule.DoRadioTransmit(firstLR->id, firstLR->currentChannel, isTransmitting[1]);
+            GModuleRadio.DoRadioTransmit(firstLR->id, firstLR->currentChannel, isTransmitting[1]);
         }
         if (firstLR && LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_3) != isTransmitting[3]) {
             isTransmitting[3] = LogiLcdIsButtonPressed(LOGI_LCD_MONO_BUTTON_3);
-            GRadioModule.DoRadioTransmit(firstLR->id, firstLR->currentAltChannel, isTransmitting[3]);
+            GModuleRadio.DoRadioTransmit(firstLR->id, firstLR->currentAltChannel, isTransmitting[3]);
         }
 
 

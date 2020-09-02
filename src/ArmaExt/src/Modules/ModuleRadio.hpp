@@ -28,7 +28,7 @@ struct TFARRadio {
 };
 
 
-class RadioModule : public ThreadQueue, public IMessageReceiver, public IStateHolder, IPreInitReceiver {
+class ModuleRadio : public ThreadQueue, public IMessageReceiver, public IStateHolder, IPreInitReceiver {
 
     std::vector<TFARRadio> radios;
 
@@ -37,7 +37,8 @@ class RadioModule : public ThreadQueue, public IMessageReceiver, public IStateHo
     void OnRadioTransmit(const std::vector<std::string_view>& arguments);
     void OnRadioDelete(const std::vector<std::string_view>& arguments);
 
-    std::vector<TFARRadio>::iterator FindOrCreateRadioByClassname(std::string_view classname);
+    std::vector<TFARRadio>::iterator FindOrCreateRadioById(std::string_view classname);
+    std::optional<std::reference_wrapper<TFARRadio>> FindRadioById(std::string_view classname);
 public:
     //ThreadQueue
     void ModulePostInit() override { SetThreadName("TacControl_Radio"); }
@@ -65,4 +66,4 @@ public:
 
 };
 
-inline RadioModule GRadioModule;
+inline ModuleRadio GModuleRadio;
