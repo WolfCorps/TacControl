@@ -43,7 +43,6 @@ namespace TacControl.Common.Maps
             canvas.Scale(0.7f, 0.7f);
 
             canvas.RotateDegrees((float)viewport.Rotation, 0.0f, 0.0f);
-            if (style.SymbolRotation != 0) canvas.RotateDegrees(style.SymbolRotation, 0.0f, 0.0f);
 
             SKPoint textOffset = new SKPoint(style.finalSize.Width, style.finalSize.Height / 2);
             if (!string.IsNullOrEmpty(style.text))
@@ -76,7 +75,10 @@ namespace TacControl.Common.Maps
                 targetRect.Offset(shadowOffset);
                 renderPaint.Color = new SKColor(0, 0, 0, (byte) (style.Opacity * 0.8f * 255));
                 renderPaint.ColorFilter = SkiaSharp.SKColorFilter.CreateLighting(renderPaint.Color, new SKColor(0, 0, 0));
+
+                if (style.SymbolRotation != 0) canvas.RotateDegrees(style.SymbolRotation, 0.0f, 0.0f);
                 canvas.DrawImage(style.markerIcon, targetRect, renderPaint);
+                if (style.SymbolRotation != 0) canvas.RotateDegrees(-style.SymbolRotation, 0.0f, 0.0f); //No rotation for text
                 //canvas.DrawRect(targetRect, renderPaint);
 
                 if (!string.IsNullOrEmpty(style.text) && zoom > 1)
@@ -89,9 +91,11 @@ namespace TacControl.Common.Maps
 
             renderPaint.Color = SKColor.Empty.WithAlpha((byte)(style.Opacity * 255));
             renderPaint.ColorFilter = style.colorFilter;
+            if (style.SymbolRotation != 0) canvas.RotateDegrees(style.SymbolRotation, 0.0f, 0.0f);
             canvas.DrawImage(style.markerIcon, style.finalRect, renderPaint);
             if (!string.IsNullOrEmpty(style.text))
             {
+                if (style.SymbolRotation != 0) canvas.RotateDegrees(-style.SymbolRotation, 0.0f, 0.0f); //No rotation for text
                 renderPaint.Color = style.color.WithAlpha((byte)(style.Opacity * 255));
                 renderPaint.ColorFilter = null;
                 canvas.DrawText(style.text, textOffset, renderPaint);
