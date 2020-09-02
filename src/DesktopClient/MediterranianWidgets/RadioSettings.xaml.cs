@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -94,6 +95,20 @@ namespace TacControl.BigWidgets
             int newChannel = (int) e.NewValue;
             if (newChannel != RadioRef.currentAltChannel)
                 RadioRef.SetAltChannel((int)e.NewValue);
+        }
+
+        private void DisplayName_OnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if ((sender as TextBox).Text != RadioRef.displayName)
+                RadioRef.SetDisplayName((sender as TextBox).Text);
+        }
+
+        private void Frequency_OnPreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            var text = (sender as TextBox).Text;
+            e.Handled = !Regex.Match(text, @"\d{1,3}(\.\d)?").Success;
+
+
         }
     }
 }

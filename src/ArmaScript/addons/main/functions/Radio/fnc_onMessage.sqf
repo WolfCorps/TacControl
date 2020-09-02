@@ -31,7 +31,7 @@ if (_function#0 == "Cmd") then {
             CONVNUM(_channel);
             CONVBOOL(_startTransmit);
 
-            [_radio, _radioChannel, _startTransmit] call TC_main_fnc_Radio_TFARTransmit;
+            [_radio, _channel, _startTransmit] call TC_main_fnc_Radio_TFARTransmit;
         };
         case "SetStereo":{
             _arguments params ["_radioClass", "_isMain", "_mode"];

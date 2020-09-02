@@ -14,14 +14,25 @@
 
 
     <Grid>
-        <ListView HorizontalAlignment="Left" Margin="10,10,0,10" Width="772" Name="RadiosBox"
-                  ItemsSource="{Binding gsRef.radio.radios, ElementName=RadioWindowCtrl}" 
+        <ItemsControl Name="RadiosBox"
+                      ItemsSource="{Binding gsRef.radio.radios, ElementName=RadioWindowCtrl}" 
         >
-            <ListView.ItemTemplate>
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="modules:TFARRadio">
-                    <StackPanel Orientation="Vertical" Height="100">
-                        <Label Content="{Binding displayName, StringFormat='Radio {0}'}" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                        <StackPanel Orientation="Horizontal">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Content="{Binding displayName, StringFormat='Radio {0}'}" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <WrapPanel Grid.Row="1"  Orientation="Horizontal">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*" />
@@ -58,12 +69,12 @@
                                     RadioRef="{Binding .}"
                                     Channel="{Binding currentAltChannel}"/>
                             </Grid>
-                        </StackPanel>
-                    </StackPanel>
+                        </WrapPanel>
+                    </Grid>
 
                 </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </Grid>
 
 

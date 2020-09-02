@@ -31,7 +31,7 @@ struct TFARRadio {
     void Serialize(JsonArchive& ar);
 
     std::optional<RadioChannel> GetChannel(int8_t index) {
-        if (index < 0 || index > channels.size() - 1) return {};
+        if (index < 0 || index >= channels.size()) return {};
         return channels[index];
     }
 

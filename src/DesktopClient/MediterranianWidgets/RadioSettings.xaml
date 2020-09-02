@@ -6,18 +6,27 @@
              xmlns:local="clr-namespace:TacControl.BigWidgets"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Name="RadioSettingsCtrl">
+             d:DesignHeight="450" d:DesignWidth="800" Name="RadioSettingsCtrl" >
     <Grid>
         <StackPanel Orientation="Vertical">
+
+            <TextBox Text="{Binding RadioRef.DisplayName ,ElementName=RadioSettingsCtrl, Delay=500, UpdateSourceTrigger=PropertyChanged}"/>
+
             <ItemsControl ItemsSource="{Binding RadioRef.channels ,ElementName=RadioSettingsCtrl}" AlternationCount="100" >
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="system:String">
                         <StackPanel Orientation="Horizontal">
                             <Label Content="{Binding Path=(ItemsControl.AlternationIndex), RelativeSource={RelativeSource TemplatedParent}, StringFormat={}Index is {0}}"/>
                             <TextBox Text="{Binding ., Mode=OneWay}"
-                                TextChanged="Frequency_OnTextChanged"
-                                Tag="{Binding Path=(ItemsControl.AlternationIndex), RelativeSource={RelativeSource TemplatedParent}}"
-                            />
+                                    TextChanged="Frequency_OnTextChanged"
+                                    Tag="{Binding Path=(ItemsControl.AlternationIndex), RelativeSource={RelativeSource TemplatedParent}}"
+                                    PreviewTextInput="Frequency_OnPreviewTextInput"
+                                />
                         </StackPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

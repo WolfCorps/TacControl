@@ -7,15 +7,17 @@
              xmlns:modules="clr-namespace:TacControl.Common.Modules;assembly=TacControl.Common"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Name="RadioSettingsListCtrl">
-
+    <!-- Width="{Binding ActualWidth, ElementName=RadioSettingsListCtrl}" -->
     <Grid>
-        <ListView HorizontalAlignment="Left" Margin="10,10,0,10" Width="772" Name="RadiosBox"
-                  ItemsSource="{Binding gsRef.radio.radios, ElementName=RadioSettingsListCtrl}" 
+        <ListView
+            Name="RadiosBox"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+            ScrollViewer.CanContentScroll="False"
+            ItemsSource="{Binding gsRef.radio.radios, ElementName=RadioSettingsListCtrl}" 
         >
             <ListView.ItemTemplate>
                 <DataTemplate DataType="modules:TFARRadio">
                     <local:RadioSettings RadioRef="{Binding .}"/>
-
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

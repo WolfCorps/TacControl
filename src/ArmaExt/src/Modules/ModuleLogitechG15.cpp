@@ -115,7 +115,7 @@ void ModuleLogitechG15::Run() {
 
 
 
-        std::this_thread::sleep_for(16ms);
+        std::this_thread::sleep_for(50ms);
     }
 }
 
