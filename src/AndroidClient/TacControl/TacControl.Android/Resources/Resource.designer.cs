@@ -30,6 +30,27 @@ namespace TacControl.Droid
 			global::Mapsui.UI.Android.Resource.String.Hello = global::TacControl.Droid.Resource.String.Hello;
 			global::Mapsui.UI.Android.Resource.Styleable.start_with_openstreetmap_style = global::TacControl.Droid.Resource.Styleable.start_with_openstreetmap_style;
 			global::Mapsui.UI.Android.Resource.Styleable.start_with_openstreetmap_style_start_with_openstreetmap = global::TacControl.Droid.Resource.Styleable.start_with_openstreetmap_style_start_with_openstreetmap;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_dialog_actioned_on_disabled_toast = global::TacControl.Droid.Resource.String.appcenter_distribute_dialog_actioned_on_disabled_toast;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_download_progress_number_format = global::TacControl.Droid.Resource.String.appcenter_distribute_download_progress_number_format;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_downloading_error = global::TacControl.Droid.Resource.String.appcenter_distribute_downloading_error;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_downloading_mandatory_update = global::TacControl.Droid.Resource.String.appcenter_distribute_downloading_mandatory_update;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_downloading_update = global::TacControl.Droid.Resource.String.appcenter_distribute_downloading_update;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_install = global::TacControl.Droid.Resource.String.appcenter_distribute_install;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_install_ready_message = global::TacControl.Droid.Resource.String.appcenter_distribute_install_ready_message;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_install_ready_title = global::TacControl.Droid.Resource.String.appcenter_distribute_install_ready_title;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_notification_category = global::TacControl.Droid.Resource.String.appcenter_distribute_notification_category;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_unknown_sources_dialog_message = global::TacControl.Droid.Resource.String.appcenter_distribute_unknown_sources_dialog_message;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_unknown_sources_dialog_settings = global::TacControl.Droid.Resource.String.appcenter_distribute_unknown_sources_dialog_settings;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_update_dialog_download = global::TacControl.Droid.Resource.String.appcenter_distribute_update_dialog_download;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_update_dialog_message_mandatory = global::TacControl.Droid.Resource.String.appcenter_distribute_update_dialog_message_mandatory;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_update_dialog_message_optional = global::TacControl.Droid.Resource.String.appcenter_distribute_update_dialog_message_optional;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_update_dialog_postpone = global::TacControl.Droid.Resource.String.appcenter_distribute_update_dialog_postpone;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_update_dialog_title = global::TacControl.Droid.Resource.String.appcenter_distribute_update_dialog_title;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_update_dialog_view_release_notes = global::TacControl.Droid.Resource.String.appcenter_distribute_update_dialog_view_release_notes;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_update_failed_dialog_ignore = global::TacControl.Droid.Resource.String.appcenter_distribute_update_failed_dialog_ignore;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_update_failed_dialog_message = global::TacControl.Droid.Resource.String.appcenter_distribute_update_failed_dialog_message;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_update_failed_dialog_reinstall = global::TacControl.Droid.Resource.String.appcenter_distribute_update_failed_dialog_reinstall;
+			global::Microsoft.AppCenter.Distribute.Resource.String.appcenter_distribute_update_failed_dialog_title = global::TacControl.Droid.Resource.String.appcenter_distribute_update_failed_dialog_title;
 			global::SkiaSharp.Views.Forms.Resource.Animation.abc_fade_in = global::TacControl.Droid.Resource.Animation.abc_fade_in;
 			global::SkiaSharp.Views.Forms.Resource.Animation.abc_fade_out = global::TacControl.Droid.Resource.Animation.abc_fade_out;
 			global::SkiaSharp.Views.Forms.Resource.Animation.abc_grow_fade_in_from_bottom = global::TacControl.Droid.Resource.Animation.abc_grow_fade_in_from_bottom;
@@ -12060,53 +12081,116 @@ namespace TacControl.Droid
 			// aapt resource value: 0x7F0D0029
 			public const int appbar_scrolling_view_behavior = 2131558441;
 			
+			// aapt resource value: 0x7F0D002A
+			public const int appcenter_distribute_dialog_actioned_on_disabled_toast = 2131558442;
+			
+			// aapt resource value: 0x7F0D002C
+			public const int appcenter_distribute_downloading_error = 2131558444;
+			
+			// aapt resource value: 0x7F0D002D
+			public const int appcenter_distribute_downloading_mandatory_update = 2131558445;
+			
+			// aapt resource value: 0x7F0D002E
+			public const int appcenter_distribute_downloading_update = 2131558446;
+			
+			// aapt resource value: 0x7F0D002B
+			public const int appcenter_distribute_download_progress_number_format = 2131558443;
+			
+			// aapt resource value: 0x7F0D002F
+			public const int appcenter_distribute_install = 2131558447;
+			
+			// aapt resource value: 0x7F0D0030
+			public const int appcenter_distribute_install_ready_message = 2131558448;
+			
+			// aapt resource value: 0x7F0D0031
+			public const int appcenter_distribute_install_ready_title = 2131558449;
+			
+			// aapt resource value: 0x7F0D0032
+			public const int appcenter_distribute_notification_category = 2131558450;
+			
+			// aapt resource value: 0x7F0D0033
+			public const int appcenter_distribute_unknown_sources_dialog_message = 2131558451;
+			
+			// aapt resource value: 0x7F0D0034
+			public const int appcenter_distribute_unknown_sources_dialog_settings = 2131558452;
+			
+			// aapt resource value: 0x7F0D0035
+			public const int appcenter_distribute_update_dialog_download = 2131558453;
+			
+			// aapt resource value: 0x7F0D0036
+			public const int appcenter_distribute_update_dialog_message_mandatory = 2131558454;
+			
+			// aapt resource value: 0x7F0D0037
+			public const int appcenter_distribute_update_dialog_message_optional = 2131558455;
+			
+			// aapt resource value: 0x7F0D0038
+			public const int appcenter_distribute_update_dialog_postpone = 2131558456;
+			
+			// aapt resource value: 0x7F0D0039
+			public const int appcenter_distribute_update_dialog_title = 2131558457;
+			
+			// aapt resource value: 0x7F0D003A
+			public const int appcenter_distribute_update_dialog_view_release_notes = 2131558458;
+			
+			// aapt resource value: 0x7F0D003B
+			public const int appcenter_distribute_update_failed_dialog_ignore = 2131558459;
+			
+			// aapt resource value: 0x7F0D003C
+			public const int appcenter_distribute_update_failed_dialog_message = 2131558460;
+			
+			// aapt resource value: 0x7F0D003D
+			public const int appcenter_distribute_update_failed_dialog_reinstall = 2131558461;
+			
+			// aapt resource value: 0x7F0D003E
+			public const int appcenter_distribute_update_failed_dialog_title = 2131558462;
+			
 			// aapt resource value: 0x7F0D0000
 			public const int ApplicationName = 2131558400;
 			
-			// aapt resource value: 0x7F0D002A
-			public const int bottom_sheet_behavior = 2131558442;
+			// aapt resource value: 0x7F0D003F
+			public const int bottom_sheet_behavior = 2131558463;
 			
-			// aapt resource value: 0x7F0D002B
-			public const int character_counter_content_description = 2131558443;
+			// aapt resource value: 0x7F0D0040
+			public const int character_counter_content_description = 2131558464;
 			
-			// aapt resource value: 0x7F0D002C
-			public const int character_counter_pattern = 2131558444;
+			// aapt resource value: 0x7F0D0041
+			public const int character_counter_pattern = 2131558465;
 			
-			// aapt resource value: 0x7F0D002D
-			public const int fab_transformation_scrim_behavior = 2131558445;
+			// aapt resource value: 0x7F0D0042
+			public const int fab_transformation_scrim_behavior = 2131558466;
 			
-			// aapt resource value: 0x7F0D002E
-			public const int fab_transformation_sheet_behavior = 2131558446;
+			// aapt resource value: 0x7F0D0043
+			public const int fab_transformation_sheet_behavior = 2131558467;
 			
 			// aapt resource value: 0x7F0D0001
 			public const int Hello = 2131558401;
 			
-			// aapt resource value: 0x7F0D002F
-			public const int hide_bottom_view_on_scroll_behavior = 2131558447;
+			// aapt resource value: 0x7F0D0044
+			public const int hide_bottom_view_on_scroll_behavior = 2131558468;
 			
-			// aapt resource value: 0x7F0D0030
-			public const int mtrl_chip_close_icon_content_description = 2131558448;
+			// aapt resource value: 0x7F0D0045
+			public const int mtrl_chip_close_icon_content_description = 2131558469;
 			
-			// aapt resource value: 0x7F0D0031
-			public const int password_toggle_content_description = 2131558449;
+			// aapt resource value: 0x7F0D0046
+			public const int password_toggle_content_description = 2131558470;
 			
-			// aapt resource value: 0x7F0D0032
-			public const int path_password_eye = 2131558450;
+			// aapt resource value: 0x7F0D0047
+			public const int path_password_eye = 2131558471;
 			
-			// aapt resource value: 0x7F0D0033
-			public const int path_password_eye_mask_strike_through = 2131558451;
+			// aapt resource value: 0x7F0D0048
+			public const int path_password_eye_mask_strike_through = 2131558472;
 			
-			// aapt resource value: 0x7F0D0034
-			public const int path_password_eye_mask_visible = 2131558452;
+			// aapt resource value: 0x7F0D0049
+			public const int path_password_eye_mask_visible = 2131558473;
 			
-			// aapt resource value: 0x7F0D0035
-			public const int path_password_strike_through = 2131558453;
+			// aapt resource value: 0x7F0D004A
+			public const int path_password_strike_through = 2131558474;
 			
-			// aapt resource value: 0x7F0D0036
-			public const int search_menu_title = 2131558454;
+			// aapt resource value: 0x7F0D004B
+			public const int search_menu_title = 2131558475;
 			
-			// aapt resource value: 0x7F0D0037
-			public const int status_bar_notification_info_overflow = 2131558455;
+			// aapt resource value: 0x7F0D004C
+			public const int status_bar_notification_info_overflow = 2131558476;
 			
 			static String()
 			{
