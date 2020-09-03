@@ -35,6 +35,10 @@ namespace TacControl
             : this(new Dictionary<TKey, TValue>())
         {
         }
+        public ObservableDictionary(IEqualityComparer<TKey> comparer)
+            : this(new Dictionary<TKey, TValue>(comparer))
+        {
+        }
 
         /// <summary>
         /// Initializes an instance of the class using another dictionary as 

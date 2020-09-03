@@ -143,10 +143,10 @@ namespace TacControl.Common.Modules
     public class ModuleMarker : INotifyPropertyChanged
     {
         
-        public ObservableDictionary<string, MarkerType> markerTypes { get; set; } = new ObservableDictionary<string, MarkerType>();
-        public ObservableDictionary<string, MarkerColor> markerColors { get; set; } = new ObservableDictionary<string, MarkerColor>();
-        public ObservableDictionary<string, MarkerBrush> markerBrushes { get; set; } = new ObservableDictionary<string, MarkerBrush>();
-        public ObservableDictionary<string, ActiveMarker> markers { get; set; } = new ObservableDictionary<string, ActiveMarker>();
+        public ObservableDictionary<string, MarkerType> markerTypes { get; set; } = new ObservableDictionary<string, MarkerType>(StringComparer.OrdinalIgnoreCase);
+        public ObservableDictionary<string, MarkerColor> markerColors { get; set; } = new ObservableDictionary<string, MarkerColor>(StringComparer.OrdinalIgnoreCase);
+        public ObservableDictionary<string, MarkerBrush> markerBrushes { get; set; } = new ObservableDictionary<string, MarkerBrush>(StringComparer.OrdinalIgnoreCase);
+        public ObservableDictionary<string, ActiveMarker> markers { get; set; } = new ObservableDictionary<string, ActiveMarker>(StringComparer.OrdinalIgnoreCase);
 
         public string playerDirectPlayID { get; set; }
 
