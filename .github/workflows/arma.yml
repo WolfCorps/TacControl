@@ -8,26 +8,131 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    name: Lint
+    runs-on: ubuntu-18.04
     steps:
     - name: Checkout the source code
-      uses: actions/checkout@master
+      uses: actions/checkout@v2
     - name: Lint (sqflint)
       uses: arma-actions/sqflint@master
+      with:
+        args: --directory src/ArmaScript
       continue-on-error: true # No failure due to many false-positives
 
-  build:
-    runs-on: ubuntu-latest
+  build-addon:
+    name: Addon
+    runs-on: ubuntu-18.04
     steps:
     - name: Checkout the source code
-      uses: actions/checkout@master
+      uses: actions/checkout@v2
+    - name: Install HEMTT
+      run: |
+        sudo curl --location --output /usr/local/bin/hemtt https://github.com/synixebrett/HEMTT/releases/download/v0.7.5/hemtt
+        sudo chmod +x /usr/local/bin/hemtt
     - name: Build using HEMTT
-      uses: arma-actions/hemtt@master
+      run: |
+        cd src/ArmaScript
+        ln -s ../../.git .git
+        hemtt build --ci
+    - name: Upload
+      uses: actions/upload-artifact@v2
       with:
-        command: build --ci  # no --release due to https://github.com/synixebrett/HEMTT/issues/227
-    # https://github.com/actions/upload-artifact/issues/3#issuecomment-524442814
-    # - name: Upload Artifact
-    #   uses: actions/upload-artifact@master
-    #   with:
-    #     name: ace3-${{ github.sha }}-nobin
-    #     path: '@ace'
+        name: addons
+        path: src/ArmaScript/addons/*.pbo
+
+  build-extension-windows-x64:
+    name: Extension (Windows 64 bit)
+    runs-on: windows-2019
+    steps:
+    - name: Checkout the source code
+      uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Build
+      run: |
+        cd src/ArmaExt
+        cmake -A x64 .
+        cmake --build .
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: TacControl_x64.dll
+        path: src/ArmaExt/release/@TacControl/Debug/TacControl_x64.dll
+
+  build-desktop:
+    name: Desktop
+    runs-on: windows-2019
+    steps:
+    - name: Checkout the source code
+      uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.1
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+    - name: Build
+      run: |
+        cd src/DesktopClient
+        nuget restore
+        msbuild TacControl.sln
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: Desktop
+        path: src/DesktopClient/bin/Debug
+
+  build-android:
+    name: Android
+    runs-on: macos-10.15
+    steps:
+    - name: Checkout the source code
+      uses: actions/checkout@v2
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v1
+    - name: Build
+      run: |
+        cd src/AndroidClient/TacControl
+        nuget restore
+        msbuild TacControl.sln
+        msbuild /t:PackageForAndroid TacControl.Android/TacControl.Android.csproj
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: Android
+        path: src/AndroidClient/TacControl/TacControl.Android/bin/Debug/com.dedmen.taccontrol.apk
+
+  package-mod:
+    name: Package
+    runs-on: ubuntu-18.04
+    needs:
+      - build-addon
+      - build-extension-windows-x64
+      - build-desktop
+      - build-android
+    steps:
+    - name: Download addon
+      uses: actions/download-artifact@v1
+      with:
+        name: addons
+        path: '@tc/addons'
+    - name: Download extension Windows 64 bit
+      uses: actions/download-artifact@v1
+      with:
+        name: TacControl_x64.dll
+        path: '@tc'
+    - name: Download desktop
+      uses: actions/download-artifact@v1
+      with:
+        name: Desktop
+        path: '@tc/desktop'
+    - name: Download Android
+      uses: actions/download-artifact@v1
+      with:
+        name: Android
+        path: '@tc/android'
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: '@tc'
+        path: '@tc'
