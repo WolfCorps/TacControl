@@ -7,9 +7,6 @@
 [submodule "src/ArmaExt/lib/fmt"]
 	path = src/ArmaExt/lib/fmt
 	url = https://github.com/fmtlib/fmt.git
-[submodule "src/DesktopClient/lib/SkiaSharp_Extended"]
-	path = src/DesktopClient/lib/SkiaSharp_Extended
-	url = https://github.com/dedmen/SkiaSharp.Extended.git
 [submodule "src/ArmaExt/lib/ArmaPboLib"]
 	path = src/ArmaExt/lib/ArmaPboLib
 	url = https://github.com/arma3/ArmaPboLib.git

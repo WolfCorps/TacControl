@@ -285,10 +285,6 @@
       <Project>{e30fb38c-4069-4ccf-984c-6fbeb592082c}</Project>
       <Name>TacControl.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="lib\SkiaSharp_Extended\SkiaSharp.Extended.Svg\source\SkiaSharp.Extended.Svg.csproj">
-      <Project>{144bd06e-2193-47c7-9867-633c6878239e}</Project>
-      <Name>SkiaSharp.Extended.Svg</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TinyWidgets\" />
