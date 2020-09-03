@@ -65,6 +65,11 @@ namespace TacControl.Common.Maps
                         });
 
                 Styles.Add(symStyle);
+
+
+
+
+                marker.PropertyChanged += OnMarkerOnPropertyChangedIcon;
             }
             else if (marker.shape == "RECTANGLE" || marker.shape == "ELLIPSE")
             {
@@ -101,7 +106,7 @@ namespace TacControl.Common.Maps
                         tiledBitmap.image = image.Result;
                     });
 
-
+                marker.PropertyChanged += OnMarkerOnPropertyChangedTiled;
             }
             else if (marker.shape == "POLYLINE")
             {
@@ -112,22 +117,23 @@ namespace TacControl.Common.Maps
                     color = markerColor.ToSKColor()
                 };
                 Styles.Add(polyMarker);
+
+                //Polylines have no propertychanged as (in ACE) they cannot be edited
             }
 
 
             
 
-            marker.PropertyChanged += OnMarkerOnPropertyChanged;
-
         }
 
         protected override void Dispose(bool disposing)
         {
-            marker.PropertyChanged -= OnMarkerOnPropertyChanged;
+            marker.PropertyChanged -= OnMarkerOnPropertyChangedIcon;
+            marker.PropertyChanged -= OnMarkerOnPropertyChangedTiled;
             base.Dispose(disposing);
         }
 
-        void OnMarkerOnPropertyChanged(object a, PropertyChangedEventArgs e)
+        void OnMarkerOnPropertyChangedIcon(object a, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(ActiveMarker.text))
             {
@@ -190,6 +196,79 @@ namespace TacControl.Common.Maps
                 DataHasChanged();
             }
         }
+
+
+        private void OnMarkerOnPropertyChangedTiled(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ActiveMarker.text))
+            {
+                this["Label"] = marker.text;
+            }
+            else if (e.PropertyName == nameof(ActiveMarker.pos))
+            {
+
+                TiledBitmapStyle iconStyle = (TiledBitmapStyle)Styles.First(x => x is TiledBitmapStyle); //#TODO make interface for both styles with setters for pos/dir/color/stuff
+                if (iconStyle == null) return;
+
+
+                CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+                ci.NumberFormat.NumberDecimalSeparator = ".";
+
+                var markerSize = marker.size.Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToArray();
+                var center = new Point(marker.pos[0], marker.pos[1]);
+                Geometry = new BoundBox(center.Offset(-markerSize[0], -markerSize[1]), center.Offset(markerSize[0], markerSize[1]));
+                iconStyle.rect = new SkiaSharp.SKRect(-markerSize[0], -markerSize[1], markerSize[0], markerSize[1]);
+                DataHasChanged();
+            }
+            else if (e.PropertyName == nameof(ActiveMarker.dir))
+            {
+                foreach (var sym in Styles.Where(x => x is TiledBitmapStyle)) //#TODO just store the style in a variable
+                    (sym as TiledBitmapStyle).rotation = marker.dir;
+                DataHasChanged();
+            }
+            else if (e.PropertyName == nameof(ActiveMarker.brush))
+            {
+                TiledBitmapStyle iconStyle = (TiledBitmapStyle)Styles.First(x => x is TiledBitmapStyle);
+                if (iconStyle == null) return;
+
+                if (!GameState.Instance.marker.markerBrushes.ContainsKey(marker.brush)) return;
+                var markerBrush = GameState.Instance.marker.markerBrushes[marker.brush];
+
+                if (marker.color == "Default") markerColor = new MarkerColor { color = marker.color, name = markerBrush.name };
+
+                iconStyle.color = markerColor.ToSKColor();
+
+                //set rect
+                MarkerCache.Instance.GetImage(markerBrush, null).ContinueWith(
+                    (image) =>
+                    {
+                        iconStyle.image = image.Result;
+                    });
+                DataHasChanged();
+            }
+            else if (e.PropertyName == nameof(ActiveMarker.color))
+            {
+                TiledBitmapStyle iconStyle = (TiledBitmapStyle)Styles.First(x => x is TiledBitmapStyle);
+                if (iconStyle == null) return;
+
+
+                if (!GameState.Instance.marker.markerColors.ContainsKey(marker.color)) return;
+                markerColor = GameState.Instance.marker.markerColors[marker.color];
+
+                if (marker.color == "Default")
+                {
+                    if (!GameState.Instance.marker.markerTypes.ContainsKey(marker.type)) return;
+                    var markerType = GameState.Instance.marker.markerTypes[marker.type];
+
+                    markerColor = new MarkerColor { color = markerType.color, name = markerType.name };
+                }
+
+                iconStyle.color = markerColor.ToSKColor();
+                DataHasChanged();
+            }
+        }
+
+
 
         private void DataHasChanged()
         {
