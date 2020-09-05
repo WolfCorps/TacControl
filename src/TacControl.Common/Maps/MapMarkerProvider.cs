@@ -47,31 +47,35 @@ namespace TacControl.Common.Maps
                     markerColor = new MarkerColor
                     { color = markerType.color, name = markerType.name };
 
-
-                var symStyle = new MarkerIconStyle
+                try
                 {
-                    SymbolRotation = marker.dir,
-                    Opacity = marker.alpha,
-                    size = marker.size.Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToArray(),
-                    typeSize = markerType.size,
-                    color = markerColor.ToSKColor(),
-                    shadow = markerType.shadow,
-                    text = marker.text
-                };
+                    var symStyle = new MarkerIconStyle
+                    {
+                        SymbolRotation = marker.dir,
+                        Opacity = marker.alpha,
+                        size = marker.size == "" ? (new float[]{ 1, 1 }) : marker.size.Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToArray(),
+                        typeSize = markerType.size,
+                        color = markerColor.ToSKColor(),
+                        shadow = markerType.shadow,
+                        text = marker.text
+                    };
 
-                MarkerCache.Instance.GetImage(markerType, null)
-                    .ContinueWith(
-                        (image) =>
-                        {
-                            symStyle.markerIcon = image.Result;
-                        });
+                    MarkerCache.Instance.GetImage(markerType, null)
+                        .ContinueWith(
+                            (image) =>
+                            {
+                                symStyle.markerIcon = image.Result;
+                            });
 
-                Styles.Add(symStyle);
+                    Styles.Add(symStyle);
+                    marker.PropertyChanged += OnMarkerOnPropertyChangedIcon;
+                }
+                catch (System.FormatException ex)
+                {
 
+                }
 
-
-
-                marker.PropertyChanged += OnMarkerOnPropertyChangedIcon;
+               
             }
             else if (marker.shape == "RECTANGLE" || marker.shape == "ELLIPSE")
             {
