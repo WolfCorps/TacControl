@@ -197,7 +197,7 @@ void ModuleImageDirectory::OnGameMessage(const std::vector<std::string_view>& fu
 
     if (function.front() == "DoExport") {
 
-        auto exportPtr = Util::GetArmaHostProcAddress("?ExportSVG@@YAXPEBD_N1111@Z");
+        auto exportPtr = Util::GetArmaHostProcAddress("?ExportSVG@@YAXPEBD_N11111@Z");
 
         auto exportFunc = static_cast<void(*)(
             const char* name,
@@ -205,12 +205,13 @@ void ModuleImageDirectory::OnGameMessage(const std::vector<std::string_view>& fu
             bool drawGrid,
             bool drawCountlines,
             bool drawTreeObjects,
-            bool drawMountainHeightpoints
+            bool drawMountainHeightpoints,
+            bool simpleRoads
             )>(exportPtr);
 
         auto myDirectory = Util::GetCurrentDLLPath().parent_path();
         auto svgPath = myDirectory / "Maps" / std::filesystem::path(GModuleGameInfo.worldName + ".svg").replace_extension(".svg");
-        exportFunc(svgPath.string().data(), true, true, true, false, false);
+        exportFunc(svgPath.string().data(), true, true, true, false, false, true);
 
         auto msg = generateMapfileMessage(GModuleGameInfo.worldName+".svg").dump();
         for (auto& it : waitingForMapExport)
