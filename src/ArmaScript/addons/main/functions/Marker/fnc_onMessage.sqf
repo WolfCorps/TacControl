@@ -52,7 +52,7 @@ if (_function#0 == "Cmd") then {
                 _markerTypes joinString toString [9],
                 _markerColors joinString toString [9],
                 _markerBrushes joinString toString [9],
-                getplayerid
+                getplayerid player
             ]] call TC_main_fnc_sendMessage;
         };
         case "CreateMarker": {
