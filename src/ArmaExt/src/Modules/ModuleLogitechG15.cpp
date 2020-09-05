@@ -50,7 +50,7 @@ void ModuleLogitechG15::Run() {
 
         if (firstSR) {
             auto chMain = firstSR->GetCurrentChannel();
-            auto chAlt = firstSR->GetCurrentChannel();
+            auto chAlt = firstSR->GetCurrentAltChannel();
 
             if (chMain)
                 radio1 = fmt::format("SC{} ({})", firstSR->currentChannel + 1, chMain->frequency);
@@ -63,7 +63,7 @@ void ModuleLogitechG15::Run() {
 
         if (firstLR) {
             auto chMain = firstLR->GetCurrentChannel();
-            auto chAlt = firstLR->GetCurrentChannel();
+            auto chAlt = firstLR->GetCurrentAltChannel();
 
             if (chMain)
                 radio2 = fmt::format("LC{} ({})", firstLR->currentChannel + 1, chMain->frequency);
