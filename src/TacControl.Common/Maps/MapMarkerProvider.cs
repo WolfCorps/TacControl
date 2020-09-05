@@ -116,6 +116,7 @@ namespace TacControl.Common.Maps
             }
             else if (marker.shape == "POLYLINE")
             {
+                if (marker.polyline.Count == 0) return;
                 Geometry = new BoundBox(marker.polyline);
 
                 var polyMarker = new PolylineMarkerStyle(marker.polyline)
