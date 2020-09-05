@@ -5,6 +5,7 @@ using System.Text;
 using Mapsui.Geometries;
 using Mapsui.Providers;
 using Mapsui.Styles;
+using SkiaSharp;
 using TacControl.Common.Modules;
 
 namespace TacControl.Common.Maps
@@ -12,7 +13,7 @@ namespace TacControl.Common.Maps
     public class GPSTrackerFeature : Feature
     {
         public GPSTracker Tracker { get; private set; }
-        private ImageStyle imgStyle;
+        private MarkerIconStyle imgStyle;
         private LabelStyle lblStyle;
         private LabelStyle heightStyle;
         private VelocityIndicatorStyle velStyle;
@@ -20,23 +21,31 @@ namespace TacControl.Common.Maps
         {
             Tracker = tracker;
             this["Label"] = tracker.displayName;
-            imgStyle = new ImageStyle
+            imgStyle = new MarkerIconStyle
             {
-                SymbolScale = 0.5,
-                SymbolOffset = new Offset(0.0, 0, true),
-                Fill = null,
-                Outline = null,
-                Line = null
+                SymbolRotation = 0,
+                Opacity = 1,
+                size = new float[]{32,32},
+                typeSize = 1,
+                color = SKColors.Black,
+                shadow = false,
+                text = tracker.displayName
+
             };
+
+
             Styles.Add(imgStyle);
 
             var markerType = GameState.Instance.marker.markerTypes["hd_join"];
             var markerColor = GameState.Instance.marker.markerColors["ColorBlack"];
 
-            MarkerCache.Instance.GetBitmapId(markerType, markerColor)
-                .ContinueWith((bitmapId) => {
-                    imgStyle.BitmapId = bitmapId.Result;
-                });
+            MarkerCache.Instance.GetImage(markerType, markerColor)
+                .ContinueWith(
+                    (image) =>
+                    {
+                        imgStyle.markerIcon = image.Result;
+                    });
+
 
 
             lblStyle = new MarkerLabelStyle(tracker.displayName, markerType, markerColor);
@@ -50,9 +59,6 @@ namespace TacControl.Common.Maps
             velStyle = new VelocityIndicatorStyle {velocity = new Vector3(tracker.vel[0], tracker.vel[1], 0f) };
             Styles.Add(velStyle);
 
-            
-
-
             Geometry = new Point(tracker.pos[0], tracker.pos[1]);
         }
 
@@ -60,6 +66,7 @@ namespace TacControl.Common.Maps
         {
             this["Label"] = newName;
             lblStyle.Text = newName;
+            imgStyle.text = newName;
         }
 
         public void SetPosition(Point newPos)
