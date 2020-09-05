@@ -37,6 +37,8 @@ namespace TacControl.Common.Maps
 
             if (marker.shape == "ICON")
             {
+                if (string.IsNullOrEmpty(marker.type)) return; //Can happen, somehow
+
 
                 if (!GameState.Instance.marker.markerTypes.ContainsKey(marker.type)) throw new InvalidOperationException();
                 var markerType = GameState.Instance.marker.markerTypes[marker.type];
