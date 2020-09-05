@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Mapsui.Layers;
+using Mapsui.Widgets;
 
 namespace TacControl
 {
@@ -38,6 +39,8 @@ namespace TacControl
             set { EnabledCheckBox.IsChecked = value; }
         }
 
+        public IWidget Widget { get; set; }
+
         public LayerListItem()
         {
             InitializeComponent();
@@ -59,6 +62,11 @@ namespace TacControl
             if (tempLayer != null)
             {
                 tempLayer.Enabled = ((CheckBox)e.Source).IsChecked != false;
+            }
+
+            if (Widget != null)
+            {
+                Widget.Enabled = ((CheckBox)e.Source).IsChecked != false;
             }
         }
     }

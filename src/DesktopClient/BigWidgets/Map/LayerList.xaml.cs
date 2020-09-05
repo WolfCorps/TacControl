@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Mapsui.Layers;
+using Mapsui.Widgets;
 
 namespace TacControl
 {
@@ -40,5 +41,15 @@ namespace TacControl
                 Items.Children.Add(item);
             }
         }
+
+        public void AddWidget(string name, IWidget widget)
+        {
+            var item = new LayerListItem { LayerName = name };
+            item.Enabled = widget.Enabled;
+            item.Widget = widget;
+            Items.Children.Add(item);
+            
+        }
+
     }
 }

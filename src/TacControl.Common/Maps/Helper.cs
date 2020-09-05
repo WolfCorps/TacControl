@@ -69,7 +69,7 @@ namespace TacControl.Common.Maps
                         });
             }
 
-            return Task.FromResult(ParseSvgLayers(filePath, filePath.EndsWith("z")));
+            return Task.Run(() => ParseSvgLayers(filePath, filePath.EndsWith("z")));
         }
 
         private static List<SvgLayer> ParseSvgLayers(string filePath, bool isCompressed)
@@ -127,6 +127,7 @@ namespace TacControl.Common.Maps
                     var test = bareDoc.ToString();
                     foreach (var xElement in layers)
                     {
+                        if (xElement.Attribute("id").Value == "grid") continue;
                         XDocument newDoc = new XDocument(bareDoc);
                         newDoc.Root.Add(xElement);
                         SvgLayer x;

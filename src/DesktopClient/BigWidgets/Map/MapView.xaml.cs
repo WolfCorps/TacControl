@@ -119,7 +119,14 @@ namespace TacControl
                 Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));;
 
         }
+        //#TODO performance, reimplement MapControl using SKGLControl (Hardware accelerated rendering)
+        //https://github.com/Mapsui/Mapsui/blob/master/Mapsui.UI.Wpf/MapControl.cs
+        //https://docs.microsoft.com/en-us/dotnet/api/skiasharp.views.desktop.skglcontrol?view=skiasharp-views-1.68.2
 
+        //Reimplement renderer to see why stuff doesn't work?
+        // https://github.com/Mapsui/Mapsui/blob/master/Mapsui.UI.Wpf/MapControl.cs#L117
+        // https://github.com/Mapsui/Mapsui/blob/7ac1e6eb1e04456ba92257cd5b350e4a9ed6bf16/Mapsui.Rendering.Skia/MapRenderer.cs#L110
+        // Check VisibleFeatureIterator?
 
         private double resolution = 6;
 
@@ -201,6 +208,12 @@ namespace TacControl
             MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
             MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
             MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
+            MapControl.Renderer.WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
+
+            var gridWidget = new GridWidget();
+            MapControl.Map.Widgets.Add(gridWidget);
+
+
             MapControl.Map.Limiter = new ViewportLimiter();
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
             MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 10);
@@ -220,6 +233,7 @@ namespace TacControl
             // ^ without this create/delete only updates when screen is moved
 
             LayerList.Initialize(MapControl.Map.Layers);
+            LayerList.AddWidget("Grid", gridWidget);
             //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
             //MapControl.Navigator.ZoomTo(1, new Point(512,512), 5);
             MapControl.Navigator.ZoomTo(6);
