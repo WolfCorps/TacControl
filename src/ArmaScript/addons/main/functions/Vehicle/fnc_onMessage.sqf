@@ -99,7 +99,7 @@ params ["_function", "_arguments"];
   XX(Light) \
   XX(WheelsBrake)
 
-systemChat str _this;
+//systemChat str _this;
 
 if (_function#0 == "Cmd") then {
 

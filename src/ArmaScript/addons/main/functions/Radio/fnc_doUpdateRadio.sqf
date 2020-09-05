@@ -39,10 +39,11 @@ _channels pushBack ([_radio, 8] call TFAR_fnc_getChannelFrequency);
 
 _channels = _channels joinString toString[10]; // "\n"
 
-private _stereo = [_radio] call _getStereo;
-private _addStereo = [_radio] call _getAdditionalStereo;
-private _volume = [_radio] call _getVolume;
-private _speaker = [_radio] call _getSpeaker;
+// LR takes them without outer array!!!
+private _stereo = _radio call _getStereo;
+private _addStereo = _radio call _getAdditionalStereo;
+private _volume = _radio call _getVolume;
+private _speaker = _radio call _getSpeaker;
 
 
 ["Radio.RadioUpdate", [TRANSFORM_LR_RADIO_TO_EXT(_radio), _currentChannel, _currentAltChannel, _channels, _stereo, _addStereo, _volume, _speaker]] call TC_main_fnc_sendMessage;

@@ -2,7 +2,7 @@
 
 params ["_unit", "_vehicle", "_oldVehicle"];
 
-systemChat str ["vecChan", _this];
+//systemChat str ["vecChan", _this];
 
 #define EVENTHANDLERS \
     XX(Engine,TC_main_fnc_Vehicle_onEngineChanged) \
