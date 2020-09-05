@@ -105,6 +105,9 @@ namespace TacControl
             MapControl.MouseWheel += MapControlMouseWheel;
             MapControl.MouseWheelAnimation.Duration = 0;
 
+            MapControl.Renderer = new Common.Maps.MapRenderer();
+
+
             EventSystem.CenterMap += (position) => MapControl.Navigator.NavigateTo(position, 1, 500);
             //MapControl.Map.Resolutions;
 
