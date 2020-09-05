@@ -33,6 +33,12 @@ Vector2D::Vector2D(std::string_view coordinateString) {
     }
 }
 
+
+Vector2D::Vector2D(std::string_view xCoord, std::string_view yCoord) {
+    m_x = Util::parseArmaNumber(xCoord);
+    m_y = Util::parseArmaNumber(yCoord);
+}
+
 std::tuple<float, float> Vector2D::get() const {
     return{ m_x, m_y };
 }

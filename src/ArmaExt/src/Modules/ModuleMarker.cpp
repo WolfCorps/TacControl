@@ -123,10 +123,11 @@ void ModuleMarker::OnMarkerCreated(const std::vector<std::basic_string_view<char
     newMarker.channel = Util::parseArmaNumberToInt(arguments[10]);
     auto polyLineStr = arguments[11];
     newMarker.polyline.clear();
-    for (auto& point : Util::split(polyLineStr, ';')) {
-        newMarker.polyline.push_back(Vector2D(point));
+    auto polySplit = Util::split(polyLineStr, ';');
+    if (polySplit.size() % 2 == 0)
+    for (auto i = 0u; i < polySplit.size(); i+=2) {
+        newMarker.polyline.push_back(Vector2D(polySplit[i], polySplit[i + 1]));
     }
-
 
     AddTask([this, newMarker = std::move(newMarker)]()
     {
@@ -202,7 +203,7 @@ void ModuleMarker::OnDoCreateMarker(const nlohmann::json& arguments) {
     int markerChannel = arguments["channel"];
     std::vector<Vector2D> polyLine;
     for (auto& it : arguments["polyline"]) {
-        polyLine.emplace_back(it[0], it[1]);
+        polyLine.emplace_back((float)it[0], (float)it[1]);
     }
 
     std::string polyLineString = "[";

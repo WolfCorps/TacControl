@@ -114,6 +114,7 @@ public:
     Vector2D() = default;
     Vector2D(float x, float y);
     Vector2D(std::string_view coordinateString);
+    Vector2D(std::string_view xCoord, std::string_view yCoord);
     //Vector2D(Vector2D&& vec) noexcept : m_x(vec.m_x), m_y(vec.m_y) {};
     //Vector2D(const Vector2D& vec) = default;
 

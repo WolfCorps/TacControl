@@ -74,7 +74,7 @@ void ModuleLogitechG15::Run() {
         }
 
 
-        constexpr auto maxSegmentLength = (28 / 2);
+        constexpr auto maxSegmentLength = (24 / 2); //really have 28 though, but want some space
         auto displayText1 = converter.from_bytes(
             fmt::format("{} {}",
                 fmt::format("{1:>{0}}", maxSegmentLength, radio2 ? std::string_view(*radio2).substr(0, maxSegmentLength) : ""sv),
