@@ -24,8 +24,8 @@ private _isLR = _radio isEqualType [];
 ] select _isLR) params ["_getChannel", "_getAdditionalChannel", "_getStereo", "_getAdditionalStereo", "_getVolume", "_getSpeaker"];
 
 
-private _currentChannel = [_radio] call _getChannel;
-private _currentAltChannel = [_radio] call _getAdditionalChannel;
+private _currentChannel = _radio call _getChannel;
+private _currentAltChannel = _radio call _getAdditionalChannel;
 
 private _channels = [];
 _channels pushBack ([_radio, 1] call TFAR_fnc_getChannelFrequency);
