@@ -55,7 +55,6 @@ descriptionUse = "<t color='#9cf953'>Use: </t>Attach";
 class CfgAmmo {
     class PipeBombBase;
     class TC_GPSTracker_Ammo: PipeBombBase {
-        defaultMagazine = "TC_GPSTracker_Mag"; //Mag that gets dropped after defuse
         ace_explosives_magazine = "TC_GPSTracker_Mag";
         ace_explosives_size = 0;
         ace_explosives_defuseObjectPosition[] = {0.07, 0, 0.055};
@@ -68,7 +67,14 @@ class CfgAmmo {
         ace_minedetector_detectable = 0;
 
         mineTrigger = "RemoteTrigger";
-        simulation = "shotPipeBomb"; //shotMine
+        simulation = "shotMine";
+        //mineTrigger = ""; //We have no trigger, can't do this, game will crash. Seems like it was supported once, but then forgotten
+        mineInconspicuousness = 0; // Chance of mine being not-detected just by looking at it. Higher number means you need to look more directly, closer at the mine to detect it
+        defaultMagazine = ""; //Mag that gets dropped after defuse, if empty the mine will stay in place, as deactivated
+// _mineMaxRndDetectedDistance detector
+//mineTrigger = ""; ?? _mineTrigger
+
+
     };
 };
 
