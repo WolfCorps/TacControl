@@ -66,6 +66,7 @@ namespace TacControl.Views
             MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
             MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
             MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
+            MapControl.Renderer.WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
 
             MapControl.IsNorthingButtonVisible = false;
             MapControl.IsMyLocationButtonVisible = false;
