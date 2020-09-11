@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TacControl"
              xmlns:MapsUI="clr-namespace:Mapsui.UI.Wpf;assembly=Mapsui.UI.Wpf"
+             xmlns:map="clr-namespace:TacControl.BigWidgets.Map"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="MapViewCtrl">
@@ -21,8 +22,9 @@
         <MapsUI:MapControl x:Name="MapControl" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Initialized="MapControl_OnInitialized" />
 <!--<Button Margin="0,0,727,433" Click="ButtonBase_OnClick" /> -->
 
-        <DockPanel>
+        <DockPanel HorizontalAlignment="Right">
             <local:LayerList x:Name="LayerList" />
+            <map:MarkerVisibilityList x:Name="MarkerVisibilityList" />
         </DockPanel>
 
         <Popup Name="GPSEditPopup">

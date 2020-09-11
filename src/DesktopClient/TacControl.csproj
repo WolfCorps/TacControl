@@ -96,6 +96,9 @@
     <Compile Include="BigWidgets\Map\LayerListItem.xaml.cs">
       <DependentUpon>LayerListItem.xaml</DependentUpon>
     </Compile>
+    <Compile Include="BigWidgets\Map\MarkerVisibilityList.xaml.cs">
+      <DependentUpon>MarkerVisibilityList.xaml</DependentUpon>
+    </Compile>
     <Compile Include="BigWidgets\RadioSettingsList.xaml.cs">
       <DependentUpon>RadioSettingsList.xaml</DependentUpon>
     </Compile>
@@ -139,6 +142,9 @@
     <Compile Include="DockViewModels\UserControlViewModel.cs" />
     <Compile Include="DockViewModels\ViewModelBase.cs" />
     <Compile Include="DockFramework\Workspace.cs" />
+    <Compile Include="TinyWidgets\MarkerVisibilityElement.xaml.cs">
+      <DependentUpon>MarkerVisibilityElement.xaml</DependentUpon>
+    </Compile>
     <Page Include="BigWidgets\HelicopterControlButtons.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -148,6 +154,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="BigWidgets\Map\LayerListItem.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="BigWidgets\Map\MarkerVisibilityList.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -204,6 +214,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="RadioWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TinyWidgets\MarkerVisibilityElement.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -286,8 +300,6 @@
       <Name>TacControl.Common</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TinyWidgets\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

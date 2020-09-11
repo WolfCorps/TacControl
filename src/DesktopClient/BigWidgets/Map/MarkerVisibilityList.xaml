@@ -1,13 +1,12 @@
-<UserControl x:Class="TacControl.LayerList"
+<UserControl x:Class="TacControl.BigWidgets.Map.MarkerVisibilityList"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:TacControl"
+             xmlns:local="clr-namespace:TacControl.BigWidgets.Map"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-
-    <Expander Header="Layers" FlowDirection="RightToLeft">
+    <Expander Header="Marker Channels" FlowDirection="RightToLeft">
         <StackPanel x:Name="Items" FlowDirection="LeftToRight">
 
         </StackPanel>

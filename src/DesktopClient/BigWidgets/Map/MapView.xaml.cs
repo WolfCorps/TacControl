@@ -91,6 +91,7 @@ namespace TacControl
         private MemoryLayer GPSTrackerLayer = new Mapsui.Layers.MemoryLayer("GPS Trackers");
         private MemoryLayer MapMarkersLayer = new Mapsui.Layers.MemoryLayer("Map Markers");
         public static BoundingBox currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, 0, 0);
+        public readonly MarkerVisibilityManager MarkerVisibilityManager = new MarkerVisibilityManager();
 
         public MapView()
         {
@@ -219,10 +220,10 @@ namespace TacControl
 
             MapControl.Map.Limiter = new ViewportLimiter();
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
-            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 10);
+            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 40);
 
             MapMarkersLayer.IsMapInfoLayer = true;
-            MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds);
+            MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds, MarkerVisibilityManager);
             MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
             MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
@@ -237,6 +238,7 @@ namespace TacControl
 
             LayerList.Initialize(MapControl.Map.Layers);
             LayerList.AddWidget("Grid", gridWidget);
+            MarkerVisibilityList.Initialize(MarkerVisibilityManager);
             //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
             //MapControl.Navigator.ZoomTo(1, new Point(512,512), 5);
             MapControl.Navigator.ZoomTo(6);

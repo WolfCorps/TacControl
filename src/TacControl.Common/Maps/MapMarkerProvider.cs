@@ -17,7 +17,7 @@ namespace TacControl.Common.Maps
 
     public class MarkerFeature : Feature, IDisposable
     {
-        private ActiveMarker marker;
+        public ActiveMarker marker { get; private set; }
         private MarkerColor markerColor;
 
         public event DataChangedEventHandler DataChanged;
@@ -286,16 +286,18 @@ namespace TacControl.Common.Maps
     {
         public ILayer MapMarkerLayer { get; private set; }
         private BoundingBox _boundingBox;
+        private readonly MarkerVisibilityManager _visibilityManager;
 
         public string CRS { get; set; } = "";
 
         private Dictionary<string, IFeature> features = new Dictionary<string, IFeature>();
 
 
-        public MapMarkerProvider(ILayer mapMarkerLayer, BoundingBox boundingBox)
+        public MapMarkerProvider(ILayer mapMarkerLayer, BoundingBox boundingBox, MarkerVisibilityManager visibilityManager)
         {
             MapMarkerLayer = mapMarkerLayer;
             _boundingBox = boundingBox;
+            _visibilityManager = visibilityManager;
             //this._boundingBox = MemoryProvider.GetExtents(this.Features);
             GameState.Instance.marker.markers.CollectionChanged += (a, e) => OnMarkersUpdated();
 
@@ -308,6 +310,13 @@ namespace TacControl.Common.Maps
                 }
 
             };
+
+            _visibilityManager.OnUpdated += () =>
+            {
+                MapMarkerLayer.DataHasChanged();
+            };
+
+
             MapMarkerLayer.DataHasChanged();
 
             OnMarkersUpdated();
@@ -361,7 +370,7 @@ namespace TacControl.Common.Maps
 
             BoundingBox grownBox = box.Grow(resolution);
 
-            return features.Values.Where(f => f.Geometry != null && f.Geometry.BoundingBox.Intersects(grownBox)).ToList();
+            return features.Values.Where(f => f.Geometry != null && f.Geometry.BoundingBox.Intersects(grownBox) && _visibilityManager.IsVisible(((MarkerFeature)f).marker)).ToList();
         }
 
         public BoundingBox GetExtents()
