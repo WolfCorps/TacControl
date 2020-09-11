@@ -49,6 +49,12 @@ public:
     nlohmann::json* getRaw() const { return pJson; }
     std::string to_string();
 
+    bool HasKey(std::string_view name) {
+        return pJson->contains(name);
+    }
+
+
+
     //typename std::enable_if<has_Serialize<Type>::value || has_Serialize<typename Type::baseType>::value>::type
 
     void Serialize(const char* key, JsonArchive& ar) {

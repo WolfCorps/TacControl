@@ -201,14 +201,15 @@ void ModuleMarker::OnDoCreateMarker(const nlohmann::json& arguments) {
     std::string markerBrush = arguments["brush"];
     std::string markerSize = arguments["size"]; // "[1,2]"
     int markerChannel = arguments["channel"];
-    std::vector<Vector2D> polyLine;
+    std::vector<float> polyLine;
     for (auto& it : arguments["polyline"]) {
-        polyLine.emplace_back((float)it[0], (float)it[1]);
+        polyLine.emplace_back((float)it[0]);
+        polyLine.emplace_back((float)it[1]);
     }
 
     std::string polyLineString = "[";
     for (auto& it : polyLine) {
-        polyLineString += it.toString();
+        polyLineString += std::to_string(it);
         polyLineString += ",";
     }
 
@@ -255,34 +256,37 @@ void ModuleMarker::SerializeState(JsonArchive& ar) {
 
     auto fut = AddTask([this, &ar]() {
 
-
-        JsonArchive markerTypesAr;
-        //Want to pass empty object, instead of null
-        *markerTypesAr.getRaw() = nlohmann::json::object();
-        for (auto& [key, value] : markerTypes) {
-            markerTypesAr.Serialize(key.data(), value);
+        if (!ar.HasKey("markerTypes")) { //if we just update existing state, don't repush stuff that's already present
+            JsonArchive markerTypesAr;
+            //Want to pass empty object, instead of null
+            *markerTypesAr.getRaw() = nlohmann::json::object();
+            for (auto& [key, value] : markerTypes) {
+                markerTypesAr.Serialize(key.data(), value);
+            }
+            ar.Serialize("markerTypes", markerTypesAr);
         }
 
-        ar.Serialize("markerTypes", markerTypesAr);
+        if (!ar.HasKey("markerColors")) {
+            JsonArchive markerColorsAr;
+            //Want to pass empty object, instead of null
+            *markerColorsAr.getRaw() = nlohmann::json::object();
+            for (auto& [key, value] : markerColors) {
+                markerColorsAr.Serialize(key.data(), value);
+            }
 
-        JsonArchive markerColorsAr;
-        //Want to pass empty object, instead of null
-        *markerColorsAr.getRaw() = nlohmann::json::object();
-        for (auto& [key, value] : markerColors) {
-            markerColorsAr.Serialize(key.data(), value);
+            ar.Serialize("markerColors", markerColorsAr);
         }
 
-        ar.Serialize("markerColors", markerColorsAr);
+        if (!ar.HasKey("markerBrushes")) {
+            JsonArchive markerBrushesAr;
+            //Want to pass empty object, instead of null
+            *markerBrushesAr.getRaw() = nlohmann::json::object();
+            for (auto& [key, value] : markerBrushes) {
+                markerBrushesAr.Serialize(key.data(), value);
+            }
 
-        JsonArchive markerBrushesAr;
-        //Want to pass empty object, instead of null
-        *markerBrushesAr.getRaw() = nlohmann::json::object();
-        for (auto& [key, value] : markerBrushes) {
-            markerBrushesAr.Serialize(key.data(), value);
+            ar.Serialize("markerBrushes", markerBrushesAr);
         }
-
-        ar.Serialize("markerBrushes", markerBrushesAr);
-
 
         JsonArchive markersAr;
         //Want to pass empty object, instead of null
