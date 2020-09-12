@@ -21,6 +21,7 @@ class IMessageReceiver {
 public:
     virtual ~IMessageReceiver() = default;
     virtual void OnGameMessage(const std::vector<std::string_view>& function, const std::vector<std::string_view>& arguments) {}
+    virtual bool IsReceiveGameMessageAsync() const { return true; }
     virtual void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {}
     virtual std::string_view GetMessageReceiverName() = 0;
 };

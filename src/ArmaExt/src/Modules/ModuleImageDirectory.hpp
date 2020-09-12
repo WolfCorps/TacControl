@@ -49,7 +49,7 @@ public:
         const std::vector<std::string_view>& arguments) override;
 
     void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) override;
-
+    bool IsReceiveGameMessageAsync() const override { return false; }
 
     
 };

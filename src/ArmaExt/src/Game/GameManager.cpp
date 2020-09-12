@@ -32,7 +32,8 @@ namespace detail
     >
     typename std::enable_if<std::is_base_of_v<IMessageReceiver, T>&& std::is_base_of_v<ThreadQueue, T>>::type
         RegisterReceiver(T* module, C& container) {
-        container.insert(std::pair<Key, Value>{ module->GetMessageReceiverName(), std::pair{ static_cast<IMessageReceiver*>(module), static_cast<ThreadQueue*>(module) } });
+        container.insert(std::pair<Key, Value>{ module->GetMessageReceiverName(), std::pair{ static_cast<IMessageReceiver*>(module),
+            static_cast<ThreadQueue*>(module->IsReceiveGameMessageAsync() ? module : nullptr) } });
     }
 
     template<
@@ -183,7 +184,7 @@ void GameManager::IncomingMessage(std::unique_ptr<GameMessage> message) {
     }
 
     auto [msgRecv, threadQueue] = found->second;
-    if (threadQueue) {
+    if (threadQueue && msgRecv->IsReceiveGameMessageAsync()) {
         threadQueue->AddTask([msgRecv, msg = std::move(message)]() {
             msgRecv->OnGameMessage(msg->function, msg->arguments);
         });
