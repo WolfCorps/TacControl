@@ -9,6 +9,11 @@ namespace TacControl.Common.Maps
     {
         public Svg.Skia.SKSvg image;
 
+        public virtual Svg.Skia.SKSvg GetImage()
+        {
+            return image;
+        }
+
         public double MinVisible { get; set; } = 0.0f;
         public double MaxVisible { get; set; } = double.MaxValue;
         public bool Enabled { get; set; } = true;

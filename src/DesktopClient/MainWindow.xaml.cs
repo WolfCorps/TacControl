@@ -107,7 +107,7 @@ namespace TacControl
             var directory = new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "maps"));
             if (!directory.Exists) directory.Create();
 
-            Compress(directory);
+            //Compress(directory);
         }
 
         private void LoadLayout(string path)

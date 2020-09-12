@@ -17,8 +17,8 @@ namespace TacControl.Common.Maps
             ISymbolCache symbolCache)
         {
 
-            var image = ((SvgStyle)style).image;
-
+            var image = ((SvgStyle)style).GetImage();
+            if (image == null) return true;
             var center = viewport.Center;
 
             //SvgRenderer.Draw(canvas, image, -(float)viewport.Center.X, (float)viewport.Center.Y, (float)viewport.Rotation, 0,0,default, default, default, (float)viewport.Resolution);

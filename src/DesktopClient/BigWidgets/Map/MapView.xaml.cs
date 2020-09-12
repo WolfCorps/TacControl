@@ -119,8 +119,58 @@ namespace TacControl
                         Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
             };
 
+
+            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(SvgStyleLazy)] = new SvgStyleRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
+            MapControl.Renderer.WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
+
+            var gridWidget = new GridWidget();
+            MapControl.Map.Widgets.Add(gridWidget);
+
+
+            MapControl.Map.Limiter = new ViewportLimiter();
+            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 40);
+
+            MapMarkersLayer.IsMapInfoLayer = true;
+            MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds, MarkerVisibilityManager);
+            MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
+            MapControl.Map.Layers.Add(MapMarkersLayer);
+            MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
+            // ^ without this create/delete only updates when screen is moved
+
+            GPSTrackerLayer.IsMapInfoLayer = true;
+            GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
+            GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
+            MapControl.Map.Layers.Add(GPSTrackerLayer);
+            GPSTrackerLayer.DataChanged += (a, b) => MapControl.RefreshData();
+            // ^ without this create/delete only updates when screen is moved
+
+            LayerList.AddWidget("Grid", gridWidget);
+            MarkerVisibilityList.Initialize(MarkerVisibilityManager);
+            //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
+            //MapControl.Navigator.ZoomTo(1, new Point(512,512), 5);
+            MapControl.Navigator.ZoomTo(6);
+
+            var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
+            MarkerCreate.OnChannelChanged += (oldID) =>
+            {
+                markerProvider?.RemoveMarker(oldID);
+                markerProvider?.AddMarker(MarkerCreate.MarkerRef);
+            };
+
+            MarkerCreatePopup.Closed += (x, y) =>
+            {
+                if (MarkerCreate.MarkerRef != null)
+                    markerProvider?.RemoveMarker(MarkerCreate.MarkerRef.id);
+                MarkerCreate.MarkerRef = null;
+            };
+
             if (GameState.Instance.gameInfo.worldName != null)
-                Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));;
+                Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
 
         }
         //#TODO performance, reimplement MapControl using SKGLControl (Hardware accelerated rendering)
@@ -158,10 +208,20 @@ namespace TacControl
 
         private void GenerateLayers(List<Helper.SvgLayer> layers)
         {
-            List<Task> layerLoadTasks = new List<Task>();
+            List<(MemoryLayer, Task)> layerLoadTasks = new List<(MemoryLayer, Task)>();
             int terrainWidth = 0;
             foreach (var svgLayer in layers)
             {
+                if (svgLayer.content.GetSize() > 5e7) //> 50MB
+                {
+                   
+                    //#TODO tell the user, this layer is too big and is skipped for safety. TacControl would use TONS of ram, very bad, usually an issue with Forest layer
+
+                    continue;
+                }
+
+
+
                 var layer = new MemoryLayer(svgLayer.name);
 
                 if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" ||
@@ -170,78 +230,80 @@ namespace TacControl
                     layer.Enabled = false;
                 }
 
-                var head = svgLayer.content.Substring(0, svgLayer.content.IndexOf('\n'));
-                var widthSub = head.Substring(head.IndexOf("width"));
-                var width = widthSub.Substring(7, widthSub.IndexOf('"', 7) - 7);
-                terrainWidth = int.Parse(width);
+                terrainWidth = svgLayer.width;
 
                 currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
 
                 var features = new Features();
                 var feature = new Feature {Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name};
 
-                var x = new SvgStyle {image = new Svg.Skia.SKSvg()};
-
-                layerLoadTasks.Add(
-                    Task.Run(() =>
-                    {
-                        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(svgLayer.content)))
+             
+                if (layer.Enabled)
+                {
+                    var x = new SvgStyle { image = new Svg.Skia.SKSvg() };
+                    layer.Enabled = false;
+                    layerLoadTasks.Add((layer,
+                        Task.Run(() =>
                         {
-                            x.image.Load(stream);
-                        }
-                    }));
+                            using (var stream = svgLayer.content.GetStream())
+                            {
+                                //var file = File.Create($"P:/{layer.Name}.svg");
+                                //stream.CopyTo(file);
+                                //file.Dispose();
 
-                feature.Styles.Add(x);
+                                x.image.Load(stream);
+                            }
+                        })));
+
+                    feature.Styles.Add(x);
+                }
+                else
+                {
+                    var x = new SvgStyleLazy { data = svgLayer.content };
+                    x.DoLoad = () =>
+                    {
+                        using (var stream = svgLayer.content.GetStream())
+                        {
+                            var image = new Svg.Skia.SKSvg();
+                            image.Load(stream);
+                            x.image = image;
+                        }
+
+                        layer.DataHasChanged();
+                    };
+
+                    feature.Styles.Add(x);
+                }
+
                 features.Add(feature);
 
-                //
+
                 layer.DataSource = new MemoryProvider(features);
                 layer.MinVisible = 0;
                 layer.MaxVisible = double.MaxValue;
                 MapControl.Map.Layers.Add(layer);
             }
 
-            Task.WaitAll(layerLoadTasks.ToArray());
-            //var layer = new Mapsui.Layers.ImageLayer("Base");
-            //layer.DataSource = CreateMemoryProviderWithDiverseSymbols();
-            //MapControl.Map.Layers.Add(layer);
-
-
-            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
-            MapControl.Renderer.WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
-
-            var gridWidget = new GridWidget();
-            MapControl.Map.Widgets.Add(gridWidget);
-
-
-            MapControl.Map.Limiter = new ViewportLimiter();
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
-            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 40);
 
-            MapMarkersLayer.IsMapInfoLayer = true;
-            MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds, MarkerVisibilityManager);
-            MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
-            MapControl.Map.Layers.Add(MapMarkersLayer);
-            MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
-            // ^ without this create/delete only updates when screen is moved
 
-            GPSTrackerLayer.IsMapInfoLayer = true;
-            GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
-            GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
-            MapControl.Map.Layers.Add(GPSTrackerLayer);
-            GPSTrackerLayer.DataChanged += (a, b) => MapControl.RefreshData();
-            // ^ without this create/delete only updates when screen is moved
+            Task.WhenAll(layerLoadTasks.Select(x => x.Item2).ToArray()).ContinueWith(x =>
+            {
+                Networking.Instance.MainThreadInvoke(() =>
+                {
+                    foreach (var (memoryLayer, item2) in layerLoadTasks)
+                    {
+                        memoryLayer.Enabled = true;
+                    }
 
-            LayerList.Initialize(MapControl.Map.Layers);
-            LayerList.AddWidget("Grid", gridWidget);
-            MarkerVisibilityList.Initialize(MarkerVisibilityManager);
-            //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
-            //MapControl.Navigator.ZoomTo(1, new Point(512,512), 5);
-            MapControl.Navigator.ZoomTo(6);
+                    LayerList.Initialize(MapControl.Map.Layers);
+                });
+            });
+
+
+
+            
+
 
             foreach (var markerMarkerType in GameState.Instance.marker.markerTypes)
             {
@@ -252,21 +314,6 @@ namespace TacControl
                     markNum--;
                 });
             }
-
-
-            var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
-            MarkerCreate.OnChannelChanged += (oldID) =>
-            {
-                markerProvider?.RemoveMarker(oldID);
-                markerProvider?.AddMarker(MarkerCreate.MarkerRef);
-            };
-
-            MarkerCreatePopup.Closed += (x, y) =>
-            {
-                if (MarkerCreate.MarkerRef != null)
-                    markerProvider?.RemoveMarker(MarkerCreate.MarkerRef.id);
-                MarkerCreate.MarkerRef = null;
-            };
         }
 
         private void MapControlOnMouseLeftButtonDown(object sender, MouseButtonEventArgs args)
