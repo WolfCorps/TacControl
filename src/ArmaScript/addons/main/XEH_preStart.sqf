@@ -2,5 +2,6 @@
 
 #include "XEH_PREP.hpp"
 
+if (isDedicated) exitWith {};
 
 "TacControl" callExtension "init";

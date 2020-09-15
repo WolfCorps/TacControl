@@ -45,7 +45,6 @@ void ModuleMarker::OnMarkerTypesRetrieved(const std::vector<std::basic_string_vi
     auto types = Util::split(arguments[0], '\t');
     auto colors = Util::split(arguments[1], '\t');
     auto brushes = Util::split(arguments[2], '\t');
-    playerDirectPlayID = arguments[3];
 
     for (auto& it : types) {
         auto split = Util::split(it, '\n');
@@ -171,6 +170,8 @@ void ModuleMarker::OnGameMessage(const std::vector<std::string_view>& function,
     auto func = function[0];
     if (func == "MarkerTypes") {
         OnMarkerTypesRetrieved(arguments);
+    } else if (func == "PlayerId") {
+        playerDirectPlayID = arguments[0];
     } else if (func == "Create") {
         OnMarkerCreated(arguments);
     } else if (func == "Update") {

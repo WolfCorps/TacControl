@@ -35,6 +35,9 @@ namespace TacControl.Common.Maps
             if (!GameState.Instance.marker.markerColors.ContainsKey(marker.color)) throw new InvalidOperationException();
             markerColor = GameState.Instance.marker.markerColors[marker.color];
 
+            if (string.IsNullOrEmpty(marker.size))
+                marker.size = "64,64";
+
             if (marker.shape == "ICON")
             {
                 if (string.IsNullOrEmpty(marker.type)) return; //Can happen, somehow
@@ -53,7 +56,7 @@ namespace TacControl.Common.Maps
                     {
                         SymbolRotation = marker.dir,
                         Opacity = marker.alpha,
-                        size = marker.size == "" ? (new float[]{ 1, 1 }) : marker.size.Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToArray(),
+                        size = marker.size.Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToArray(),
                         typeSize = markerType.size,
                         color = markerColor.ToSKColor(),
                         shadow = markerType.shadow,
@@ -82,9 +85,6 @@ namespace TacControl.Common.Maps
 
                 if (!GameState.Instance.marker.markerBrushes.ContainsKey(marker.brush)) throw new InvalidOperationException();
                 var markerBrush = GameState.Instance.marker.markerBrushes[marker.brush];
-
-                if (marker.size == null)
-                    marker.size = "64,44";
 
                 var markerSize = marker.size.Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToArray();
 
@@ -324,6 +324,7 @@ namespace TacControl.Common.Maps
 
         private void OnMarkersUpdated()
         {
+            //if (!GameState.Instance.marker.markerColors.Any() || !GameState.Instance.marker.markerTypes.Any()) return; //Don't create markers if we aren't ready
             foreach (var keyValuePair in GameState.Instance.marker.markers)
             {
                 if (!features.ContainsKey(keyValuePair.Key))
