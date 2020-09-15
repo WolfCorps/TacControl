@@ -16,4 +16,6 @@
 	<s:String x:Key="/Default/Environment/PerformanceGuide/SwitchBehaviour/=XAML_0020Designer/@EntryIndexedValue">LIVE_MONITOR</s:String>
 	<s:Boolean x:Key="/Default/Environment/SearchAndNavigation/FileAndDirsToSkip/=DB94C55F_002D6B9A_002D4AAE_002D80D7_002D29FD8153E6B5_002Fd_003Asrc_002Fd_003AArmaExt_002Fd_003Aout/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/SearchAndNavigation/FileMasksToSkip/=boost_005C_002A_002A/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/SearchAndNavigation/FileMasksToSkip/=_002A_002A_005C_005Fdeps_005C_002A_002A/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/SearchAndNavigation/FileMasksToSkip/=_005Fdeps_005C_002A_002A/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/UpdatesManger/IsParticipateInEap/@EntryValue">True</s:Boolean></wpf:ResourceDictionary>

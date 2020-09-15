@@ -102,7 +102,7 @@ void ModuleMarker::OnMarkerDeleted(const std::vector<std::basic_string_view<char
         auto found = markers.find(markerName);
         if (found != markers.end()) markers.erase(found);
 
-        GNetworkController.SendStateUpdate();
+        GNetworkController.SendStateUpdate("Marker");
     });
 }
 
@@ -125,21 +125,21 @@ void ModuleMarker::OnMarkerCreated(const std::vector<std::basic_string_view<char
     newMarker.polyline.clear();
     auto polySplit = Util::split(polyLineStr, ';');
     if (polySplit.size() % 2 == 0)
-    for (auto i = 0u; i < polySplit.size(); i+=2) {
-        newMarker.polyline.push_back(Vector2D(polySplit[i], polySplit[i + 1]));
-    }
+        for (auto i = 0u; i < polySplit.size(); i+=2) {
+            newMarker.polyline.push_back(Vector2D(polySplit[i], polySplit[i + 1]));
+        }
 
     AddTask([this, newMarker = std::move(newMarker)]()
     {
         markers[newMarker.id] = newMarker;
-        GNetworkController.SendStateUpdate();
+        GNetworkController.SendStateUpdate("Marker");
     });
 }
 
 void ModuleMarker::OnMarkerUpdated(const std::vector<std::basic_string_view<char>>& arguments) {
     //["Marker.Update", _marker call TC_main_fnc_Marker_assembleMarkerInfo] call TC_main_fnc_sendMessage;
 
-    ActiveMarker newMarker;
+    ActiveMarker newMarker; //#TODO use one func that parses markerInfo, don't duplicate code with OnMarkerCreated
     newMarker.id = arguments[0];
     newMarker.type = arguments[1];
     newMarker.color = arguments[2];
@@ -149,19 +149,25 @@ void ModuleMarker::OnMarkerUpdated(const std::vector<std::basic_string_view<char
     newMarker.shape = arguments[6];
     newMarker.alpha = Util::parseArmaNumber(arguments[7]);
     newMarker.brush = arguments[8];
+    newMarker.size = arguments[9];
+    newMarker.channel = Util::parseArmaNumberToInt(arguments[10]);
+    auto polyLineStr = arguments[11];
+    newMarker.polyline.clear();
+    auto polySplit = Util::split(polyLineStr, ';');
+    if (polySplit.size() % 2 == 0)
+        for (auto i = 0u; i < polySplit.size(); i += 2) {
+            newMarker.polyline.push_back(Vector2D(polySplit[i], polySplit[i + 1]));
+        }
 
     AddTask([this, newMarker = std::move(newMarker)]()
     {
         markers[newMarker.id] = newMarker;
-        GNetworkController.SendStateUpdate();
+        GNetworkController.SendStateUpdate("Marker");
     });
 }
 
 void ModuleMarker::OnGameMessage(const std::vector<std::string_view>& function,
                                  const std::vector<std::string_view>& arguments) {
-
-    //#TODO dispatch to thread
-
     auto func = function[0];
     if (func == "MarkerTypes") {
         OnMarkerTypesRetrieved(arguments);
@@ -172,16 +178,7 @@ void ModuleMarker::OnGameMessage(const std::vector<std::string_view>& function,
     } else if (func == "Delete") {
         OnMarkerDeleted(arguments);
     }
-
-
-
-
-
-
-
-
 }
-
 
 void ModuleMarker::OnDoCreateMarker(const nlohmann::json& arguments) {
 
@@ -240,8 +237,6 @@ void ModuleMarker::OnDoDeleteMarker(const nlohmann::json& arguments) {
 
     GGameManager.SendMessage("Marker.Cmd.DeleteMarker", arguments["name"]);
 }
-
-
 
 void ModuleMarker::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {
     if (function[0] == "CreateMarker") {
