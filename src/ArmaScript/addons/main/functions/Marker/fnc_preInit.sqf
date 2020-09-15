@@ -25,4 +25,5 @@
 
 
 addMissionEventHandler ["MarkerCreated", TC_main_fnc_Marker_onMarkerCreated];
+addMissionEventHandler ["MarkerUpdated", TC_main_fnc_Marker_onMarkerPosChanged];
 addMissionEventHandler ["MarkerDeleted", TC_main_fnc_Marker_onMarkerDeleted];
