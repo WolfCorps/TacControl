@@ -210,6 +210,7 @@ namespace TacControl
         {
             List<(MemoryLayer, Task)> layerLoadTasks = new List<(MemoryLayer, Task)>();
             int terrainWidth = 0;
+            int index = 0;
             foreach (var svgLayer in layers)
             {
                 if (svgLayer.content.GetSize() > 5e7) //> 50MB
@@ -281,7 +282,7 @@ namespace TacControl
                 layer.DataSource = new MemoryProvider(features);
                 layer.MinVisible = 0;
                 layer.MaxVisible = double.MaxValue;
-                MapControl.Map.Layers.Add(layer);
+                MapControl.Map.Layers.Insert(index++, layer);
             }
 
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
