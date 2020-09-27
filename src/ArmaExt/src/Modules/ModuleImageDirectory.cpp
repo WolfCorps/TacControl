@@ -41,16 +41,18 @@ void ModuleImageDirectory::LoadPboPrefixes() {
     {
             return l.prefix > r.prefix;
     });
-
+    pboPrefixesReady = true;
 }
 
 void ModuleImageDirectory::ModulePostInit() {
     SetThreadName("TacControl_ImgDir");
-    LoadPboPrefixes();
+    AddTask([this] { LoadPboPrefixes(); });
 }
 
 decltype(ModuleImageDirectory::pboWithPrefixes)::iterator ModuleImageDirectory::FindPboByFilepath(std::string_view path) {
     path = Util::trim(path, "\\");
+
+    if (!pboPrefixesReady) pboPrefixesReady.wait(true);
 
     auto found = std::ranges::find_if(pboWithPrefixes, [path](const PrefixPboFile& pbo)
         {

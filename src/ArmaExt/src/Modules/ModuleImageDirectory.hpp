@@ -19,6 +19,7 @@ class ModuleImageDirectory : public ThreadQueue, public IMessageReceiver {
     };
 
     std::vector<PrefixPboFile> pboWithPrefixes;
+    std::atomic_bool pboPrefixesReady;
 
     void LoadPboPrefixes();
 
