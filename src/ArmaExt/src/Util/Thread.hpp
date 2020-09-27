@@ -15,9 +15,10 @@ protected:
     bool shouldRun = true;//don't need atomic here. believe me.
 
 public:
+    ~Thread();
     void ModuleInit() override;
     virtual void Run() = 0;
-    virtual void StopThread() { shouldRun = false; };
+    virtual void StopThread() { shouldRun = false; }
     void SetThreadName(std::string name);
 };
 
@@ -119,10 +120,9 @@ protected:
     std::condition_variable threadWorkCondition;
     std::mutex taskQueueMutex;
 
-
+    ~ThreadQueue();
     void Run() override;
     void StopThread() override;
-
 public:
     std::future<void> AddTask(task<void()> task);
 

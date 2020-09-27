@@ -85,7 +85,7 @@ std::vector<char> ModuleImageDirectory::LoadFileToBuffer(std::string_view path) 
         });
     if (foundFile == files.end()) return {}; //File not found
   
-    auto& fs = preader.getFileBuffer(*foundFile);
+    auto fs = preader.getFileBuffer(*foundFile);
     std::istream source(&fs);
 
     std::vector<char> result;
@@ -97,31 +97,31 @@ std::vector<char> ModuleImageDirectory::LoadFileToBuffer(std::string_view path) 
 
 template<typename CharT, typename TraitsT = std::char_traits<CharT> >
 class vectorwrapbuf : public std::basic_streambuf<CharT, TraitsT> {
+    using base = std::basic_streambuf<CharT, TraitsT>;
 public:
     vectorwrapbuf(std::vector<CharT>& vec) {
-        setg(vec.data(), vec.data(), vec.data() + vec.size());
+        base::setg(vec.data(), vec.data(), vec.data() + vec.size());
     }
 
-    std::basic_streambuf<CharT, TraitsT>::pos_type seekoff(
-        std::basic_streambuf<CharT, TraitsT>::off_type off, std::ios_base::seekdir dir, std::ios_base::openmode) override {
+    typename base::pos_type seekoff(
+        typename base::off_type off, std::ios_base::seekdir dir, std::ios_base::openmode) override {
 
-        auto first = eback();
-
+        auto first = base::eback();
 
         if (dir == 0)
-            setg(first, first + off, egptr());
+            base::setg(first, first + off, base::egptr());
         else if (dir == 1)
-            setg(first, gptr() + off, egptr());
+            base::setg(first, base::gptr() + off, base::egptr());
 
-        return std::streampos(std::distance(first, gptr()));
+        return std::streampos(std::distance(first, base::gptr()));
     }
 
 
 };
 
 std::tuple<std::vector<char>, int, int> ModuleImageDirectory::LoadRGBATexture(std::string_view path) {
-
     std::unique_lock lock(cacheLock);
+
     auto found = imageCache.find(path);
     if (found != imageCache.end()) {
         return found->second;
@@ -263,7 +263,7 @@ void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, co
     if (function[0] == "RequestTexture") {
         std::string_view path = arguments["path"];
 
-        auto& [data, width, height] = LoadRGBATexture(path);
+        auto [data, width, height] = LoadRGBATexture(path);
 
         nlohmann::json msg;
         msg["cmd"] = {"ImgDir", "TextureFile"};

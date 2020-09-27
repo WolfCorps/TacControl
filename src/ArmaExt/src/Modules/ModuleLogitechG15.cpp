@@ -19,7 +19,7 @@ const int LOGI_LCD_MONO_WIDTH = 160;
 const int LOGI_LCD_MONO_HEIGHT = 43;
 
 
-static bool (*LogiLcdInit)(wchar_t* friendlyName, int lcdType);
+static bool (*LogiLcdInit)(const wchar_t* friendlyName, int lcdType);
 static bool (*LogiLcdIsConnected)(int lcdType);
 static bool (*LogiLcdIsButtonPressed)(int button);
 static void (*LogiLcdUpdate)();
@@ -27,7 +27,7 @@ static void (*LogiLcdShutdown)();
 
 // Monochrome LCD functions
 static bool (*LogiLcdMonoSetBackground)(BYTE monoBitmap[]);
-static bool (*LogiLcdMonoSetText)(int lineNumber, wchar_t* text);
+static bool (*LogiLcdMonoSetText)(int lineNumber, const wchar_t* text);
 
 
 

@@ -1,5 +1,16 @@
 #include "Thread.hpp"
 
+Thread::~Thread() {
+    if (!myThread)
+        return;
+
+    shouldRun = false;
+    if (myThread->joinable())
+        myThread->join();
+    myThread = nullptr;
+}
+
+
 void Thread::ModuleInit() {
     myThread = std::make_unique<std::thread>(&Thread::Run, this);
 }
@@ -43,6 +54,10 @@ void SetThreadName(DWORD dwThreadID, const char* threadName)
 void Thread::SetThreadName(std::string name) {
     DWORD threadId = ::GetThreadId(static_cast<HANDLE>(myThread->native_handle()));
     ::SetThreadName(threadId, name.data());
+}
+
+ThreadQueue::~ThreadQueue() {
+    StopThread();
 }
 
 void ThreadQueue::Run() {
