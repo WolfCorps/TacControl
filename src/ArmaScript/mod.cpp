@@ -1,7 +1,7 @@
 name = "Tac Control";
 //picture = "logo_proj_templ_ca.paa";
 actionName = "GitHub";
-action = "https://github.com/wolfcorps/TacControl";
+action = "https://github.com/WolfCorps/TacControl";
 description = "Tac Control";
 //logo = "logo_proj_templ_ca.paa";
 //logoOver = "logo_proj_templ_ca.paa";
