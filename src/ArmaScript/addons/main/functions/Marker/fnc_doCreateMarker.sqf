@@ -1,3 +1,4 @@
+#include "script_component.hpp"
 
 params ["_arguments"];
 
@@ -25,6 +26,9 @@ _markerPolyline = parseSimpleArray _markerPolyline; // "[[1,2],[1,2]]" -> [[1,2]
 
 
 //Create local first to save some network traffic
+
+isNil { //Critical section, to prevent markerUpdated EH from spamming updates
+GVAR(ignoreMarkerUpdate) = true;
 _marker = createMarkerLocal [_markerName, _markerPos, _markerChannel, player];
 
 if (_markerType != "") then { _marker setMarkerTypeLocal _markerType; };
@@ -37,3 +41,7 @@ if !(_markerSize isEqualTo []) then { _marker setMarkerSizeLocal _markerSize; };
 if !(_markerPolyline isEqualTo []) then { _marker setMarkerPolylineLocal _markerPolyline; };
 
 _marker setMarkerText _markerText; //This last call will make it public and transfer over network
+GVAR(ignoreMarkerUpdate) = false;
+
+_marker call TC_main_fnc_Marker_onMarkerCreated;
+};
