@@ -46,7 +46,7 @@ namespace TacControl.Views
         private MemoryLayer GPSTrackerLayer = new Mapsui.Layers.MemoryLayer("GPS Trackers");
         private MemoryLayer MapMarkersLayer = new Mapsui.Layers.MemoryLayer("Map Markers");
         public static BoundingBox currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, 0, 0);
-
+        public readonly MarkerVisibilityManager MarkerVisibilityManager = new MarkerVisibilityManager();
 
 
         public MapPage()
@@ -121,10 +121,7 @@ namespace TacControl.Views
                         continue;
                 }
 
-                var head = svgLayer.content.Substring(0, svgLayer.content.IndexOf('\n'));
-                var widthSub = head.Substring(head.IndexOf("width"));
-                var width = widthSub.Substring(7, widthSub.IndexOf('"', 7) - 7);
-                terrainWidth = int.Parse(width);
+                terrainWidth = svgLayer.width;
 
                 currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
 
@@ -136,7 +133,7 @@ namespace TacControl.Views
                 layerLoadTasks.Add(
                     Task.Run(() =>
                     {
-                        using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(svgLayer.content)))
+                        using (var stream = svgLayer.content.GetStream())
                         {
                             x.image.Load(stream);
                         }
@@ -167,7 +164,7 @@ namespace TacControl.Views
             // ^ without this create/delete only updates when screen is moved
 
             MapMarkersLayer.IsMapInfoLayer = true;
-            MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds);
+            MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds, MarkerVisibilityManager);
             MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
             MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
