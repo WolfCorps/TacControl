@@ -50,6 +50,7 @@ namespace TacControl.Common.Maps
         }
         private void OnTrackersUpdated()
         {
+            if (!GameState.Instance.marker.markerTypes.Any()) return; // not ready yet
             foreach (var keyValuePair in GameState.Instance.gps.trackers)
             {
                 if (!features.ContainsKey(keyValuePair.Key))

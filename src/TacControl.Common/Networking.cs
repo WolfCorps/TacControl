@@ -361,6 +361,10 @@ namespace TacControl.Common
                     await MainThreadInvoke((Action)delegate
                     {
                         jsonSerializer.Populate(reader, GameState.Instance);
+
+                        // need to init later
+                        GameState.Instance.gps.OnPropertyChanged(nameof(ModuleGPS.trackers));
+
                     }).ConfigureAwait(false);
                     
                 }
