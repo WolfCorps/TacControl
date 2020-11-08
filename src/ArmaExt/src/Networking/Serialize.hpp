@@ -8,19 +8,7 @@
 //#TODO concepts
 
 
-// SFINAE test
-template <typename T>
-class has_Serialize2 {
-    typedef char one;
-    typedef long two;
-
-    template <typename C> static one test(char[sizeof(&C::Serialize)]);
-    template <typename C> static two test(...);
-
-public:
-    enum { value = sizeof(test<T>(0)) == sizeof(char) };
-};
-
+class JsonArchive;
 
 template<typename Class>
 class has_Serialize {
@@ -38,6 +26,16 @@ public:
 };
 
 
+template<typename T>
+concept HasSerializeMember = requires(T a, JsonArchive& ar) {
+    { a.Serialize(ar) };
+};
+
+template<typename T>
+concept HasNoSerializeMember = !requires(T a, JsonArchive & ar) {
+    { a.Serialize(ar) };
+};
+
 
 
 class JsonArchive {
@@ -53,18 +51,13 @@ public:
         return pJson->contains(name);
     }
 
-
-
-    //typename std::enable_if<has_Serialize<Type>::value || has_Serialize<typename Type::baseType>::value>::type
-
     void Serialize(const char* key, JsonArchive& ar) {
         if (isReading) __debugbreak(); //not implemented
         (*pJson)[key] = *ar.pJson;
     }
 
-    template <class Type>
-    typename std::enable_if<has_Serialize<Type>::value>::type
-        Serialize(const char* key, const std::vector<Type>& value) {
+    template <HasSerializeMember Type>
+    void Serialize(const char* key, const std::vector<Type>& value) {
         auto& _array = (*pJson)[key];
         _array.array({});
         if (isReading) {
@@ -72,104 +65,32 @@ public:
             for (auto& it : _array) {
                 __debugbreak(); //#TODO AutoArray pushback
             }
-        }
-        else {
+        } else {
             value.for_each([&_array](const Type& value) {
                 JsonArchive element;
                 value.Serialize(element);
                 _array.push_back(*element.pJson);
-                });
+            });
         }
     }
 
-    template <class Type>
-    typename std::enable_if<!has_Serialize<Type>::value>::type
-        Serialize(const char* key, const std::vector<Type>& value) {
+    template <HasNoSerializeMember Type>
+    void Serialize(const char* key, const std::vector<Type>& value) {
         auto& _array = (*pJson)[key];
         _array.array({});
         if (isReading) {
-            if (!_array.is_array()) __debugbreak();
-            for (auto& it : _array) {
-                __debugbreak(); //#TODO AutoArray pushback
-            }
-        }
-        else {
+            __debugbreak(); //can't deserialize into const
+        } else {
             value.for_each([&_array](const Type& value) {
                 JsonArchive element;
                 ::Serialize(value, element);
                 _array.push_back(*element.pJson);
-                });
+            });
         }
     }
 
-
-
-    template <class Type>
-    typename std::enable_if<has_Serialize<Type>::value || has_Serialize<typename Type::baseType>::value>::type
-        Serialize(const char* key, std::vector<Type>& value) {
-        auto& _array = (*pJson)[key];
-        if (isReading) {
-            if (!_array.is_array()) __debugbreak();
-            for (auto& it : _array) {
-                __debugbreak(); //#TODO AutoArray pushback
-            }
-        }
-        else {
-            if (value.empty()) _array = nlohmann::json::array();
-            value.for_each([&_array](Type& value) {
-                JsonArchive element;
-                value.Serialize(element);
-                _array.push_back(*element.pJson);
-                });
-        }
-    }
-
-
-
-    template <class Type>
-    typename std::enable_if<!has_Serialize<Type>::value && !has_Serialize<typename Type::baseType>::value>::type
-        Serialize(const char* key, std::vector<Type>& value) {
-        auto& _array = (*pJson)[key];
-        if (isReading) {
-            if (!_array.is_array()) __debugbreak();
-            for (auto& it : _array) {
-                __debugbreak(); //#TODO AutoArray pushback
-            }
-        }
-        else {
-            if (value.empty()) _array = nlohmann::json::array();
-            for (auto&& it : value) {
-                JsonArchive element;
-                ::Serialize(*it, element);
-                _array.push_back(*element.pJson);
-            }
-        }
-    }
-
-    template <class Type>
-    typename std::enable_if<!has_Serialize<Type>::value>::type
-        Serialize(const char* key, std::vector<Type>& value) {
-        auto& _array = (*pJson)[key];
-        if (isReading) {
-            if (_array.is_array()) {
-                for (auto& it : _array) {
-                        value.push_back(it);
-                }
-            }
-        }
-        else {
-			if (value.empty()) _array = nlohmann::json::array();
-            if (value.empty()) _array = nlohmann::json::array();
-            for (Type& it : value) {
-                    _array.push_back(it);
-            }
-
-        }
-    }
-
-    template <class Type>
-    typename std::enable_if<has_Serialize<Type>::value>::type
-        Serialize(const char* key, std::vector<Type>& value) {
+    template <HasSerializeMember Type>
+    void Serialize(const char* key, std::vector<Type>& value) {
         auto& _array = (*pJson)[key];
         if (isReading) {
             if (_array.is_array()) {
@@ -179,9 +100,8 @@ public:
                     iterator->Serialize(tmpAr);
                 }
             }
-        }
-        else {
-			if (value.empty()) _array = nlohmann::json::array();
+        } else {
+            if (value.empty()) _array = nlohmann::json::array();
             for (Type& it : value) {
                 JsonArchive element;
                 it.Serialize(element);
@@ -190,28 +110,41 @@ public:
         }
     }
 
-    //Generic serialization. Calls Type::Serialize
-    template <class Type>
-    typename std::enable_if<has_Serialize<Type>::value>::type
-        Serialize(const char* key, Type& value) {
+    template <HasNoSerializeMember Type>
+    void Serialize(const char* key, std::vector<Type>& value) {
+        auto& _array = (*pJson)[key];
         if (isReading) {
-            __debugbreak(); //not implemented
+            if (_array.is_array()) {
+                for (auto& it : _array) {
+                        value.push_back(it);
+                }
+            }
+        } else {
+			if (value.empty()) _array = nlohmann::json::array();
+            for (Type& it : value) {
+                    _array.push_back(it);
+            }
         }
-        else {
+    }
+
+    //Generic serialization. Calls Type::Serialize
+    template <HasSerializeMember Type>
+    void Serialize(const char* key, Type& value) {
+        if (isReading) {
+            JsonArchive element((*pJson)[key]);
+            value.Serialize(element);
+        } else {
             JsonArchive element;
             value.Serialize(element);
             (*pJson)[key] = *element.pJson;
         }
     }
 
-
-    template <class Type>
-    typename std::enable_if<!has_Serialize<Type>::value>::type
-        Serialize(const char* key, Type& value) {
+    template <HasNoSerializeMember Type>
+    void Serialize(const char* key, Type& value) {
         if (isReading) {
             value = (*pJson)[key].get<Type>();
-        }
-        else {
+        } else {
             (*pJson)[key] = value;
         }
     }
@@ -226,10 +159,8 @@ public:
         }
     }
 
-
-    template <class Type>
-    typename std::enable_if<has_Serialize<Type>::value>::type
-        Serialize(const char* key, const Type& value) {
+    template <HasSerializeMember Type>
+    void Serialize(const char* key, const Type& value) {
         if (isReading) {
             __debugbreak(); //not possible
         }
