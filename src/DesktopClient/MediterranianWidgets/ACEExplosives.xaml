@@ -1,24 +1,24 @@
-<UserControl x:Class="TacControl.BigWidgets.RadioSettingsList"
+<UserControl x:Class="TacControl.MediterranianWidgets.ACEExplosives"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TacControl.BigWidgets"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:tinyWidgets="clr-namespace:TacControl.TinyWidgets"
              xmlns:modules="clr-namespace:TacControl.Common.Modules;assembly=TacControl.Common"
-             xmlns:mediterranianWidgets="clr-namespace:TacControl.MediterranianWidgets"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Name="RadioSettingsListCtrl">
-    <!-- Width="{Binding ActualWidth, ElementName=RadioSettingsListCtrl}" -->
+             d:DesignHeight="450" d:DesignWidth="800" Name="ACEExplosivesCtrl" >
     <Grid>
         <ListView
             Name="RadiosBox"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
             ScrollViewer.CanContentScroll="False"
-            ItemsSource="{Binding gsRef.radio.radios, ElementName=RadioSettingsListCtrl}" 
+            ItemsSource="{Binding aceRef.exp, ElementName=ACEExplosivesCtrl}" 
         >
             <ListView.ItemTemplate>
-                <DataTemplate DataType="modules:TFARRadio">
-                    <mediterranianWidgets:RadioSettings RadioRef="{Binding .}"/>
+                <DataTemplate DataType="modules:Explosive">
+                    <tinyWidgets:ACEExplosive ExpRef="{Binding .}"/>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

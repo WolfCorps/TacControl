@@ -26,6 +26,7 @@
                     <MenuItem Command="{Binding NewTacVecCommand}" Header="TacVec" />
                     <MenuItem Command="{Binding NewTacNoteCommand}" Header="TacNote" />
                     <MenuItem Command="{Binding NewTacRadioPropertiesCommand}" Header="TacRadioSettings" />
+                    <MenuItem Command="{Binding NewTacExplosivesCommand}" Header="TacExplosives" />
                 </MenuItem>
                 <MenuItem Header="Layout">
                     <MenuItem Command="{Binding LoadLayoutCommand, ElementName=MainWindowCtrl}" Header="Load" />

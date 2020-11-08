@@ -32,7 +32,7 @@ namespace TacControl
             var username = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
 
             using (SentrySdk.Init((o) => {
-                o.Dsn = new Dsn("https://78e23a3aba34433a89f5a78e172dfcf8@o251526.ingest.sentry.io/5390642");
+                o.Dsn = "https://78e23a3aba34433a89f5a78e172dfcf8@o251526.ingest.sentry.io/5390642";
                 o.Release = $"TacControl@{linkTimeLocal:yy-MM-dd_HH-mm}";
                 o.Environment = username == "Dedmen-PC\\dedmen" ? "Dev" : "Alpha";
             }))

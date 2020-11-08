@@ -18,6 +18,7 @@
 #include "Modules/ModuleGameInfo.hpp"
 #include "Modules/ModuleNote.hpp"
 #include "Modules/ModuleVehicle.hpp"
+#include "Modules/ModuleACE.hpp"
 
 int(*GameManager::extensionCallback)(char const* name, char const* function, char const* data);
 

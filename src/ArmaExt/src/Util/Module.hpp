@@ -53,3 +53,4 @@ public:
     X(ModuleGameInfo) \
     X(ModuleNote) \
     X(ModuleVehicle) \
+    X(ModuleACE) \

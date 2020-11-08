@@ -1,22 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using TacControl.Common.Modules;
 
-namespace TacControl.BigWidgets
+namespace TacControl.MediterranianWidgets
 {
     /// <summary>
     /// Interaction logic for RadioSettings.xaml
@@ -39,13 +28,13 @@ namespace TacControl.BigWidgets
             
         }
 
-        public static readonly DependencyProperty RadioRefProperty = DependencyProperty.Register(nameof(RadioRef), typeof(TFARRadio), typeof(RadioSettings),
+        public static readonly DependencyProperty RadioRefProperty = DependencyProperty.Register(nameof(RadioRef), typeof(TFARRadio), typeof(MediterranianWidgets.RadioSettings),
             new FrameworkPropertyMetadata(null, OnRadioPropertyChanged)
         );
 
         private static void OnRadioPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (d is RadioSettings self)
+            if (d is MediterranianWidgets.RadioSettings self)
             {
                 if (((TFARRadio)e.OldValue) != null) ((TFARRadio)e.OldValue).PropertyChanged -= self.RadioPropChanged;
 

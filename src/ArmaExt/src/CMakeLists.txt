@@ -89,6 +89,7 @@ else()
 		"/MP" "/bigobj"
         "$<$<CONFIG:Release>:/Zi>"
         "$<$<CONFIG:Debug>:/ZI>" #Edit and Continue
+        "$<$<CONFIG:Debug>:/EDITANDCONTINUE>" #Edit and Continue
 		"$<$<CONFIG:Release>:/MT>"
 		"$<$<CONFIG:Release>:/Ox>"
 		"$<$<CONFIG:Release>:/Ob2>"
@@ -96,7 +97,7 @@ else()
 		"$<$<CONFIG:Release>:/Ot>"
         "/Zc:__cplusplus"
 	)
-	target_link_options(${PLUGIN_NAME} PRIVATE "/OPT:REF" "/OPT:ICF" "/DEBUG:FULL") 
+	target_link_options(${PLUGIN_NAME} PRIVATE "/OPT:REF" "/OPT:ICF" "/DEBUG:FULL" "$<$<CONFIG:Debug>:/INCREMENTAL>") 
 endif()
 
 

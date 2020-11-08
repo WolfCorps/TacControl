@@ -48,3 +48,9 @@ PREP_SUB(Vehicle,doVehicleGear); //TC_main_fnc_Vehicle_doVehicleGear
 PREP_SUB(Vehicle,doVehicleHook); //TC_main_fnc_Vehicle_doVehicleHook
 PREP_SUB(Vehicle,doVehicleLight); //TC_main_fnc_Vehicle_doVehicleLight
 PREP_SUB(Vehicle,doVehicleWheelsBrake); //TC_main_fnc_Vehicle_doVehicleWheelsBrake
+
+
+
+PREP_SUB(ACE,preInit); //TC_main_fnc_ACE_preInit
+PREP_SUB(ACE,onMessage); //TC_main_fnc_ACE_onMessage
+PREP_SUB(ACE,updateAvailableExplosives); //TC_main_fnc_ACE_updateAvailableExplosives
