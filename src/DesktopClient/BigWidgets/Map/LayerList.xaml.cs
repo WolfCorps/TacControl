@@ -30,7 +30,7 @@ namespace TacControl
 
         public void Initialize(LayerCollection layers)
         {
-            Items.Children.Clear();
+            //Items.Children.Clear();
 
             foreach (var layer in layers)
             {
