@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Input;
 using TacControl.BigWidgets;
 using TacControl.Common;
+using TacControl.MediterranianWidgets;
 
 namespace TacControl
 {
@@ -141,6 +142,29 @@ namespace TacControl
                 return _newTacRadioPropertiesCommand;
             }
         }
+
+
+        private RelayCommand _newTacExplosivesCommand = null;
+
+        private void OpenTacExplosivesProperties(object parameter)
+        {
+            Tools.Add(new UserControlViewModel(typeof(ACEExplosives)));
+        }
+
+        public ICommand NewTacExplosivesCommand
+        {
+            get
+            {
+                if (_newTacExplosivesCommand == null)
+                {
+                    _newTacExplosivesCommand = new RelayCommand((p) => OpenTacExplosivesProperties(p), (p) => true);
+                }
+
+                return _newTacExplosivesCommand;
+            }
+        }
+
+
 
 
 
