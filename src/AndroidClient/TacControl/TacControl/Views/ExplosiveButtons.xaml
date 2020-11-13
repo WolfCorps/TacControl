@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TacControl.Views.ExplosiveButtons" x:Name="ExplosiveButtonsCtrl">
+  <ContentView.Content>
+          <Button
+              Text="Boom"
+              x:Name="Explode"
+              Pressed="Explode_OnPressed"
+              Released="Explode_OnReleased"
+              BindingContext="{x:Reference Name=ExplosiveButtonsCtrl}"
+          />
+  </ContentView.Content>
+</ContentView>

@@ -80,8 +80,9 @@
         https://docs.microsoft.com/dotnet/api/xamarin.forms.shellgroupitem.flyoutdisplayoptions?view=xamarin-forms
     -->
     <FlyoutItem FlyoutDisplayOptions="AsMultipleItems">
-        <ShellContent Title="About" Icon="tab_about.png" Route="AboutPage" ContentTemplate="{DataTemplate local:AboutPage}" />
-        <ShellContent Title="Browse" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:MapPage}" />
+        <ShellContent Title="Radios" Icon="tab_about.png" Route="AboutPage" ContentTemplate="{DataTemplate local:AboutPage}" />
+        <ShellContent Title="Map" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:MapPage}" />
+        <ShellContent Title="Explosives" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:ExplosivesList}" />
     </FlyoutItem>
 
     <!-- When the Flyout is visible this will be a menu item you can tie a click behavior to  -->

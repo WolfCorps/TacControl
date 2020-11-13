@@ -26,13 +26,6 @@ using TacControl.Common;
 using TacControl.Common.Modules;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
-
-using TacControl.Models;
-using TacControl.Views;
-using TacControl.ViewModels;
-using Bitmap = Mapsui.Styles.Bitmap;
-using Color = Svg.Picture.Color;
-using Image = Xamarin.Forms.Image;
 using Point = Xamarin.Forms.Point;
 using TacControl.Common.Maps;
 

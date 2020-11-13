@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:modules="clr-namespace:TacControl.Common.Modules;assembly=TacControl.Common"
+             xmlns:views="clr-namespace:TacControl.Views;assembly=TacControl"
+             x:Class="TacControl.Views.ExplosivesList" x:Name="ExplosivesListCtrl">
+    <ContentPage.Content>
+
+        <Grid>
+            <CollectionView Margin="10,10,0,10" x:Name="RadiosBox"
+                        ItemsSource="{Binding aceRef.exp}"
+                        
+                        BindingContext="{x:Reference Name=ExplosivesListCtrl}"
+                        SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="modules:Explosive">
+                        <StackLayout Orientation="Vertical">
+                            <Label Text="{Binding Code, StringFormat='Explosive {0}'}" TextColor="Black"/>
+                            <views:ExplosiveButtons ExpRef="{Binding .}"/>
+                        </StackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>
