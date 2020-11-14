@@ -25,6 +25,11 @@
                 BindingContext="{x:Reference Name=RadioTransmitButtonsCtrl}"
                 BackgroundColor="{Binding StopColor}"
             />
+            <!--
+custom button, quad form. 3 quads are TX, and top right quad is latch
+
+            https://stackoverflow.com/questions/45820885/triangle-button-android-click-hovered
+            -->
             <Button
                 Grid.Row="0"
                 Grid.Column="0"
