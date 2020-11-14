@@ -44,6 +44,10 @@ namespace TacControl.Droid
             Xamarin.Essentials.Platform.Init(this, savedInstanceState);
             global::Xamarin.Forms.Forms.Init(this, savedInstanceState);
 
+            Android.Views.Window window = Window;
+            window.AddFlags(WindowManagerFlags.KeepScreenOn);
+            window.AddFlags(WindowManagerFlags.Fullscreen);
+
             LoadApplication(new App((action) =>
             {
                 TaskCompletionSource<object> tcs = new TaskCompletionSource<object>();
