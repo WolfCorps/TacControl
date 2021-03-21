@@ -203,6 +203,14 @@ namespace TacControl.Common.Maps
                 iconStyle.color = markerColor.ToSKColor();
                 DataHasChanged();
             }
+            else if (e.PropertyName == nameof(ActiveMarker.alpha))
+            {
+                MarkerIconStyle iconStyle = (MarkerIconStyle)Styles.First(x => x is MarkerIconStyle);
+                if (iconStyle == null) return;
+
+                iconStyle.Opacity = marker.alpha;
+                DataHasChanged();
+            }
         }
 
 
@@ -272,6 +280,14 @@ namespace TacControl.Common.Maps
                 }
 
                 iconStyle.color = markerColor.ToSKColor();
+                DataHasChanged();
+            }
+            else if (e.PropertyName == nameof(ActiveMarker.alpha))
+            {
+                TiledBitmapStyle iconStyle = (TiledBitmapStyle)Styles.First(x => x is TiledBitmapStyle);
+                if (iconStyle == null) return;
+
+                iconStyle.Opacity = marker.alpha;
                 DataHasChanged();
             }
         }
