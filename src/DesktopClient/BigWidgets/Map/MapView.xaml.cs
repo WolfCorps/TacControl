@@ -98,8 +98,7 @@ namespace TacControl
             InitializeComponent();
             //MouseWheel += MapControlMouseWheel;
             MapControl.MouseLeftButtonDown += MapControlOnMouseLeftButtonDown;
-            MapControl.MouseRightButtonDown += MapControlOnMouseRightButtonDown;
-            MapControl.MouseRightButtonUp += MapControlOnMouseRightButtonUp;
+            MapControl.MouseLeftButtonUp += MapControlOnMouseLeftButtonUp;
             MapControl.MouseMove += MapControlOnMouseMove;
             //MapControl.Map = new MyMap();
 
@@ -369,48 +368,44 @@ namespace TacControl
 
                 args.Handled = true;
             }
-            else
+            else if (Keyboard.IsKeyDown(Key.LeftCtrl))
             {
-                
+                var mapsPos = args.GetPosition(MapControl).ToMapsui();
+                var info = MapControl.GetMapInfo(mapsPos, 12);
+
+
+                polyDraw = new ActiveMarker
+                {
+                    id = GameState.Instance.marker.GenerateMarkerName(MarkerChannel.Global),
+                    channel = 0,
+                    color = "ColorBlack",
+                    type = "hd_dot",
+                    shape = "POLYLINE",
+                    text = "",
+                    size = "1,1",
+                    alpha = 1,
+                    dir = 0,
+                    brush = "Solid"
+                };
+
+
+                polyDraw.pos.Clear();
+                polyDraw.pos.Add((float)info.WorldPosition.X);
+                polyDraw.pos.Add((float)info.WorldPosition.Y);
+
+                polyDraw.polyline.Add(new float[] { (float)info.WorldPosition.X, (float)info.WorldPosition.Y });
+
+                var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
+                markerProvider?.AddMarker(polyDraw, false);
+                MapMarkersLayer.DataHasChanged();
+                //MapControl.Refresh(ChangeType.Discrete);
+                args.Handled = true;
             }
         }
 
         private ActiveMarker polyDraw = null;
-        private void MapControlOnMouseRightButtonDown(object sender, MouseButtonEventArgs args)
-        {
-            var mapsPos = args.GetPosition(MapControl).ToMapsui();
-            var info = MapControl.GetMapInfo(mapsPos, 12);
 
-
-            polyDraw = new ActiveMarker
-            {
-                id = GameState.Instance.marker.GenerateMarkerName(MarkerChannel.Global),
-                channel = 0,
-                color = "ColorBlack",
-                type = "hd_dot",
-                shape = "POLYLINE",
-                text = "",
-                size = "1,1",
-                alpha = 1,
-                dir = 0,
-                brush = "Solid"
-            };
-
-
-            polyDraw.pos.Clear();
-            polyDraw.pos.Add((float)info.WorldPosition.X);
-            polyDraw.pos.Add((float)info.WorldPosition.Y);
-
-            polyDraw.polyline.Add(new float[]{ (float)info.WorldPosition.X, (float)info.WorldPosition.Y });
-
-            var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
-            markerProvider?.AddMarker(polyDraw, false);
-            MapMarkersLayer.DataHasChanged();
-            //MapControl.Refresh(ChangeType.Discrete);
-            args.Handled = true;
-        }
-
-        private void MapControlOnMouseRightButtonUp(object sender, MouseButtonEventArgs args)
+        private void MapControlOnMouseLeftButtonUp(object sender, MouseButtonEventArgs args)
         {
             if (polyDraw == null) return;
             //MapMarkersLayer.Delayer.MillisecondsToWait = 500;

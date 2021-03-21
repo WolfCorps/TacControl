@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:TacControl"
              xmlns:MapsUI="clr-namespace:Mapsui.UI.Wpf;assembly=Mapsui.UI.Wpf"
              xmlns:map="clr-namespace:TacControl.BigWidgets.Map"
+             xmlns:misc="clr-namespace:TacControl.Misc"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="MapViewCtrl">
@@ -19,7 +20,7 @@
             <ContentControl ContentTemplate="{Binding ImageSmiley}"></ContentControl>
         </Canvas>
 -->
-        <MapsUI:MapControl x:Name="MapControl" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Initialized="MapControl_OnInitialized" />
+        <misc:MapControl x:Name="MapControl" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Initialized="MapControl_OnInitialized" />
 <!--<Button Margin="0,0,727,433" Click="ButtonBase_OnClick" /> -->
 
         <DockPanel HorizontalAlignment="Right">
