@@ -101,7 +101,8 @@ namespace TacControl.Common.Maps
                     rotation = marker.dir,
                     ellipse = marker.shape == "ELLIPSE",
                     border = markerBrush.drawBorder,
-                    color = markerColor.ToSKColor()
+                    color = markerColor.ToSKColor(),
+                    Opacity = marker.alpha
                 };
                 Styles.Add(tiledBitmap);
 

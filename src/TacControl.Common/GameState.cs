@@ -15,16 +15,16 @@ namespace TacControl.Common
     {
         public static GameState Instance = new GameState();
 
-        public ModuleRadio radio { get; set; } = new ModuleRadio();
-        public ModuleGPS gps { get; set; } = new ModuleGPS();
+        public ModuleRadio radio { get; } = new ModuleRadio();
+        public ModuleGPS gps { get;  } = new ModuleGPS();
 
-        public ModuleMarker marker { get; set; } = new ModuleMarker();
+        public ModuleMarker marker { get; } = new ModuleMarker();
 
-        public ModuleGameInfo gameInfo { get; set; } = new ModuleGameInfo();
+        public ModuleGameInfo gameInfo { get; } = new ModuleGameInfo();
 
-        public ModuleNote note { get; set; } = new ModuleNote();
-        public ModuleVehicle vehicle { get; set; } = new ModuleVehicle();
-        public ModuleACE ace { get; set; } = new ModuleACE();
+        public ModuleNote note { get; } = new ModuleNote();
+        public ModuleVehicle vehicle { get; } = new ModuleVehicle();
+        public ModuleACE ace { get; } = new ModuleACE();
 
         public void test()
         {

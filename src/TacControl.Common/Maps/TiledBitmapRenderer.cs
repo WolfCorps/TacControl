@@ -20,7 +20,7 @@ namespace TacControl.Common.Maps
         {
             var style = ((TiledBitmapStyle) istyle);
 
-            if (style.image == null) return false;
+            if (style.image == null || style.Opacity == 0) return false;
 
             var position = feature.Geometry.BoundingBox.Centroid;
             var dest = viewport.WorldToScreen(position);
@@ -46,7 +46,7 @@ namespace TacControl.Common.Maps
                     shaderTransform = SKMatrix.Concat(shaderTransform, SKMatrix.CreateRotationDegrees(-style.rotation));
 
 
-
+                paint.Color = SKColors.White.WithAlpha((byte)(style.Opacity * 255));
                 paint.Shader = SKShader.CreateImage(style.image, SKShaderTileMode.Repeat, SKShaderTileMode.Repeat, shaderTransform);
                 paint.ColorFilter = style.colorFilter;
 
