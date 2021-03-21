@@ -63,3 +63,11 @@ src/AndroidClient/TacControl/TacControl.Android/bin/
 src/AndroidClient/TacControl/TacControl/bin/
 
 src/AndroidClient/TacControl/TacControl/obj/
+
+src/AndroidClient/TacControl/TacControl.Android/Resources/Resource.designer.cs
+
+src/ArmaExt/CMakeSettings.json
+
+src/DesktopClient/FodyWeavers.xsd
+
+src/TacControl.Common/FodyWeavers.xsd
