@@ -8,6 +8,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -165,6 +166,14 @@ namespace TacControl.Common.Modules
 
         public void CreateMarker(ActiveMarker markerRef)
         {
+
+            if (markerRef.polyline.Count != 0 && markerRef.polyline.Count < 2)
+            {
+                // github #8 and #6
+                if (Debugger.IsAttached) Debugger.Break();
+                return;
+            }
+
             //#TODO https://www.wpf-tutorial.com/wpf-application/application-culture-uiculture/
             //keep android in mind? If we set it in common in GameState init that should be fine
             CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();

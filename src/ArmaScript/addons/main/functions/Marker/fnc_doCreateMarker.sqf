@@ -38,7 +38,7 @@ if (_markerShape != "") then { _marker setMarkerShapeLocal _markerShape; };
 if (_markerAlpha != 1) then { _marker setMarkerAlphaLocal _markerAlpha; };
 if (_markerBrush != "") then { _marker setMarkerBrushLocal _markerBrush; };
 if !(_markerSize isEqualTo []) then { _marker setMarkerSizeLocal _markerSize; };
-if !(_markerPolyline isEqualTo []) then { _marker setMarkerPolylineLocal _markerPolyline; };
+if (_markerPolyline isNotEqualTo [] && {count _markerPolyline > 3}) then { _marker setMarkerPolylineLocal _markerPolyline; };
 
 _marker setMarkerText _markerText; //This last call will make it public and transfer over network
 GVAR(ignoreMarkerUpdate) = false;
