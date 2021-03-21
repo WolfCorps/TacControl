@@ -127,6 +127,7 @@ void ModuleMarker::OnMarkerCreated(const std::vector<std::basic_string_view<char
         for (auto i = 0u; i < polySplit.size(); i+=2) {
             newMarker.polyline.push_back(Vector2D(polySplit[i], polySplit[i + 1]));
         }
+    newMarker.hasChanged = true;
 
     AddTask([this, newMarker = std::move(newMarker)]()
     {
@@ -157,6 +158,7 @@ void ModuleMarker::OnMarkerUpdated(const std::vector<std::basic_string_view<char
         for (auto i = 0u; i < polySplit.size(); i += 2) {
             newMarker.polyline.push_back(Vector2D(polySplit[i], polySplit[i + 1]));
         }
+    newMarker.hasChanged = true;
 
     AddTask([this, newMarker = std::move(newMarker)]()
     {
@@ -259,7 +261,7 @@ void ModuleMarker::SerializeState(JsonArchive& ar) {
             for (auto& [key, value] : markerTypes) {
                 markerTypesAr.Serialize(key.data(), value);
             }
-            ar.Serialize("markerTypes", markerTypesAr);
+            ar.Serialize("markerTypes", std::move(markerTypesAr));
         }
 
         if (!ar.HasKey("markerColors")) {
@@ -270,7 +272,7 @@ void ModuleMarker::SerializeState(JsonArchive& ar) {
                 markerColorsAr.Serialize(key.data(), value);
             }
 
-            ar.Serialize("markerColors", markerColorsAr);
+            ar.Serialize("markerColors", std::move(markerColorsAr));
         }
 
         if (!ar.HasKey("markerBrushes")) {
@@ -281,19 +283,41 @@ void ModuleMarker::SerializeState(JsonArchive& ar) {
                 markerBrushesAr.Serialize(key.data(), value);
             }
 
-            ar.Serialize("markerBrushes", markerBrushesAr);
+            ar.Serialize("markerBrushes", std::move(markerBrushesAr));
         }
 
-        JsonArchive markersAr;
-        //Want to pass empty object, instead of null
-        *markersAr.getRaw() = nlohmann::json::object();
-        for (auto& [key, value] : markers) {
-            markersAr.Serialize(key.data(), value);
+        // state update
+        if (ar.HasKey("markers")) {
+            auto& rawJson = *ar.getRaw();
+        
+            auto& markersRaw = rawJson["markers"];
+        
+            // remove deleted markers
+            for (auto& [key, value] : markersRaw.items()) {
+                if (!markers.contains(key))
+                    markersRaw.erase(key);
+            }
+        
+            JsonArchive markersAr(markersRaw, false);
+            for (auto& [key, value] : markers) {
+                if (value.hasChanged)
+                    markersAr.Serialize(key.data(), value);
+                value.hasChanged = false;
+            }
+        } else { // full state
+            JsonArchive markersAr;
+            //Want to pass empty object, instead of null
+            *markersAr.getRaw() = nlohmann::json::object();
+            for (auto& [key, value] : markers) {
+                markersAr.Serialize(key.data(), value);
+                value.hasChanged = false;
+            }
+
+            ar.Serialize("markers", std::move(markersAr));
         }
 
         ar.Serialize("playerDirectPlayID", playerDirectPlayID);
 
-        ar.Serialize("markers", markersAr);
 
         });
     fut.wait();

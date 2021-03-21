@@ -55,6 +55,12 @@ class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateH
         int channel;
         std::vector<Vector2D> polyline;
 
+        // data for serialization
+
+        // Marker was edited/added since last serialization
+        bool hasChanged = false;
+
+
         void Serialize(JsonArchive& ar);
     };
 

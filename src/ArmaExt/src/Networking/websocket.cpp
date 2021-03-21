@@ -19,12 +19,11 @@ join(websocket_session* session)
     std::lock_guard<std::mutex> lock(mutex_);
     sessions_.insert(session);
 
-
     session->lastState = currentState;
 
     nlohmann::json stateUpdate;
     stateUpdate["cmd"] = "StateFull";
-    stateUpdate["data"] = session->lastState;
+    stateUpdate["data"] = *session->lastState;
 
     auto const ss = boost::make_shared<std::string const>(std::move(stateUpdate.dump()));
 
@@ -65,7 +64,7 @@ send(std::string message)
             sp->send(ss);
 }
 
-void shared_state::updateState(const nlohmann::json& newState)
+void shared_state::updateState(const nlohmann::json&& newState)
 {
 
     // Make a local list of all the weak pointers representing
@@ -79,20 +78,20 @@ void shared_state::updateState(const nlohmann::json& newState)
             v.emplace_back(p->weak_from_this());
     }
 
-    currentState = newState;
+    currentState = std::make_shared<nlohmann::json>(std::move(newState));
 
     // For each session in our local list, try to acquire a strong
     // pointer. If successful, then send the message on that session.
     for (auto const& wp : v)
         if (auto sp = wp.lock()) {
 
-            auto diff = nlohmann::json::diff(sp->lastState, newState);
+            auto diff = nlohmann::json::diff(*sp->lastState, newState);
             if (diff.empty()) continue; //don't send empty diffs
-            sp->lastState = newState;
+            sp->lastState = currentState; 
 
             nlohmann::json stateUpdate;
             stateUpdate["cmd"] = "StateUpdate";
-            stateUpdate["data"] = diff;
+            stateUpdate["data"] = std::move(diff);
 
             auto const ss = boost::make_shared<std::string const>(std::move(stateUpdate.dump()));
 

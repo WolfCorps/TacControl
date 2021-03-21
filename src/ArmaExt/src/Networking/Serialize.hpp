@@ -56,6 +56,12 @@ public:
         (*pJson)[key] = *ar.pJson;
     }
 
+
+    void Serialize(const char* key, JsonArchive&& ar) {
+        if (isReading) __debugbreak(); //not implemented
+        (*pJson)[key] = std::move(*ar.pJson);
+    }
+
     template <HasSerializeMember Type>
     void Serialize(const char* key, const std::vector<Type>& value) {
         auto& _array = (*pJson)[key];
@@ -69,7 +75,7 @@ public:
             value.for_each([&_array](const Type& value) {
                 JsonArchive element;
                 value.Serialize(element);
-                _array.push_back(*element.pJson);
+                _array.push_back(std::move(*element.pJson));
             });
         }
     }
@@ -84,7 +90,7 @@ public:
             value.for_each([&_array](const Type& value) {
                 JsonArchive element;
                 ::Serialize(value, element);
-                _array.push_back(*element.pJson);
+                _array.push_back(std::move(*element.pJson));
             });
         }
     }
@@ -105,7 +111,7 @@ public:
             for (Type& it : value) {
                 JsonArchive element;
                 it.Serialize(element);
-                _array.push_back(*element.pJson);
+                _array.push_back(std::move(*element.pJson));
             }
         }
     }
@@ -136,7 +142,7 @@ public:
         } else {
             JsonArchive element;
             value.Serialize(element);
-            (*pJson)[key] = *element.pJson;
+            (*pJson)[key] = std::move(*element.pJson);
         }
     }
 
@@ -167,7 +173,7 @@ public:
         else {
             JsonArchive element;
             value.Serialize(element);
-            (*pJson)[key] = *element.pJson;
+            (*pJson)[key] = std::move(*element.pJson);
         }
     }
 
@@ -191,7 +197,7 @@ public:
             for (auto& it : value) {
                 JsonArchive element;
                 serializeFunction(element, it);
-                _array.push_back(*element.pJson);
+                _array.push_back(std::move(*element.pJson));
             };
         }
     }
@@ -210,7 +216,7 @@ public:
             for (auto& it : value){
                 JsonArchive element;
                 serializeFunction(element, it);
-                _array.push_back(*element.pJson);
+                _array.push_back(std::move(*element.pJson));
             };
         }
     }
@@ -229,7 +235,7 @@ public:
             for (auto& [key, value] : value) {
                 JsonArchive element;
                 serializeFunction(element, key, value);
-                _array.push_back(*element.pJson);
+                _array.push_back(std::move(*element.pJson));
             };
         }
     }

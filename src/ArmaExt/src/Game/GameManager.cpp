@@ -69,7 +69,7 @@ namespace detail
         JsonArchive state;
         stateHolder->SerializeState(state);
 
-        targetContainer.Serialize(stateName.data(), state);
+        targetContainer.Serialize(stateName.data(), std::move(state));
     }
 
     template<typename T>
@@ -89,7 +89,7 @@ namespace detail
         JsonArchive state;
         stateHolder->SerializeState(state);
 
-        targetContainer.Serialize(stateName.data(), state);
+        targetContainer.Serialize(stateName.data(), std::move(state));
     }
 
     template<typename T>

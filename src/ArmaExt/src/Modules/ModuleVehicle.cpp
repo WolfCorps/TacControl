@@ -111,7 +111,7 @@ void ModuleVehicle::SerializeState(JsonArchive& ar) {
     for (auto& it : vehicleProperties) {
         it->Serialize(properties);
     }
-    ar.Serialize("props", properties);
+    ar.Serialize("props", std::move(properties));
     ar.Serialize("isInVehicle", isInVehicle);
     ar.Serialize("crew", vehicleCrew);
 }

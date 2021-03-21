@@ -50,7 +50,7 @@ class shared_state
     // Keep a list of all the connected clients
     std::unordered_set<websocket_session*> sessions_;
 
-    nlohmann::json currentState;
+    std::shared_ptr<nlohmann::json> currentState;
 public:
     explicit
         shared_state(std::string doc_root);
@@ -64,7 +64,7 @@ public:
     void join(websocket_session* session);
     void leave(websocket_session* session);
     void send(std::string message);
-    void updateState(const nlohmann::json& newState);
+    void updateState(const nlohmann::json&& newState);
 
 
     Signal<void(std::string, boost::shared_ptr<websocket_session>)> OnMessage;
@@ -126,7 +126,7 @@ public:
     void
         send(boost::shared_ptr<std::string const> const& ss);
 
-    nlohmann::json lastState;
+    std::shared_ptr<nlohmann::json> lastState;
 
 
 

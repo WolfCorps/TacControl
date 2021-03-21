@@ -58,5 +58,5 @@ void ModuleNote::SerializeState(JsonArchive& ar) {
         notesAr.Serialize(std::to_string(key).data(), value);
     }
 
-    ar.Serialize("notes", notesAr);
+    ar.Serialize("notes", std::move(notesAr));
 }

@@ -97,7 +97,7 @@ void ModuleGPS::SerializeState(JsonArchive& ar) {
             trackersAr.Serialize(key.data(), value);
         }
 
-        ar.Serialize("trackers", trackersAr);
+        ar.Serialize("trackers", std::move(trackersAr));
     });
     fut.wait();
 }
