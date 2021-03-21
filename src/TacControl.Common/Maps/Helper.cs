@@ -39,6 +39,8 @@ namespace TacControl.Common.Maps
             }
         }
 
+   
+
         public class MapLayerDataZipFile : IMapLayerData, IDisposable
         {
             private byte[] _data;
@@ -147,6 +149,12 @@ namespace TacControl.Common.Maps
             using (var fileStream = File.OpenRead(filePath))
             {
                 var split = await Task.Run(() => SplitSVG(fileStream));
+
+                //#TODO SVG clipping and subdivision
+                // https://en.wikipedia.org/wiki/Weiler%E2%80%93Atherton_clipping_algorithm
+                // https://en.wikipedia.org/wiki/Vatti_clipping_algorithm
+
+
 
                 var targetFile = Path.ChangeExtension(filePath, "zip");
 

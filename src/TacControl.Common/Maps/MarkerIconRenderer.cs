@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Mapsui;
 using Mapsui.Geometries;
@@ -30,6 +31,9 @@ namespace TacControl.Common.Maps
             ISymbolCache symbolCache)
         {
             var style = ((MarkerIconStyle)istyle);
+
+            if (!viewport.Extent.Contains(feature.Geometry.BoundingBox))
+                return false;
 
             if (style.markerIcon == null) return false;
 
