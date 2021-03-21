@@ -289,14 +289,21 @@ void ModuleMarker::SerializeState(JsonArchive& ar) {
         // state update
         if (ar.HasKey("markers")) {
             auto& rawJson = *ar.getRaw();
-        
+
             auto& markersRaw = rawJson["markers"];
-        
+
+            std::vector<std::string> toDelete;
+
             // remove deleted markers
             for (auto& [key, value] : markersRaw.items()) {
                 if (!markers.contains(key))
-                    markersRaw.erase(key);
+                    toDelete.emplace_back(key);
             }
+
+            for (auto& key : toDelete) {
+                markersRaw.erase(key);
+            }
+
         
             JsonArchive markersAr(markersRaw, false);
             for (auto& [key, value] : markers) {
