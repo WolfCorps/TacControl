@@ -18,6 +18,7 @@ using Marvin.JsonPatch.Internal;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Sentry;
 using TacControl.Common.Modules;
 using WebSocket4Net;
 
@@ -389,6 +390,8 @@ namespace TacControl.Common
 
         public async void SendMessage(string message)
         {
+            SentrySdk.AddBreadcrumb(message);
+
             socket.Send(message);
         }
 
