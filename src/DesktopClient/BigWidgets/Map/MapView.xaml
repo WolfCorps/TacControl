@@ -36,5 +36,9 @@
             <local:MapCreateMarker x:Name="MarkerCreate"/>
         </Popup>
 
+
+        <Label Content="Waiting for Terrain data, you might need to confirm in-game..." Visibility="Hidden" x:Name="WaitingForTerrainDataLabel" FontSize="30" FontWeight="Bold" Foreground="Red"/>
+
+
     </Grid>
 </UserControl>

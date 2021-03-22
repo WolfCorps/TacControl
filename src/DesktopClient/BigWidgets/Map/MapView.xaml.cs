@@ -85,7 +85,7 @@ namespace TacControl
         }
     }
 
-    public partial class MapView : UserControl
+    public partial class MapView : UserControl, IDisposable
     {
 
         private MemoryLayer GPSTrackerLayer = new Mapsui.Layers.MemoryLayer("GPS Trackers");
@@ -106,6 +106,11 @@ namespace TacControl
             MapControl.MouseWheelAnimation.Duration = 0;
 
             MapControl.Renderer = new Common.Maps.MapRenderer();
+
+            Helper.WaitingForTerrain += OnWaitingForTerrainData;
+
+            
+
 
 
             EventSystem.CenterMap += (position) => MapControl.Navigator.NavigateTo(position, 1, 500);
@@ -171,6 +176,11 @@ namespace TacControl
             if (GameState.Instance.gameInfo.worldName != null)
                 Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
 
+        }
+
+        private void OnWaitingForTerrainData(object thisArgs, bool isWaiting)
+        {
+            WaitingForTerrainDataLabel.Visibility = isWaiting ? Visibility.Visible : Visibility.Hidden;
         }
         //#TODO performance, reimplement MapControl using SKGLControl (Hardware accelerated rendering)
         //https://github.com/Mapsui/Mapsui/blob/master/Mapsui.UI.Wpf/MapControl.cs
@@ -404,6 +414,7 @@ namespace TacControl
         }
 
         private ActiveMarker polyDraw = null;
+        private bool _disposed;
 
         private void MapControlOnMouseLeftButtonUp(object sender, MouseButtonEventArgs args)
         {
@@ -437,6 +448,22 @@ namespace TacControl
 
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
 
+            if (disposing)
+            {
+                Helper.WaitingForTerrain -= OnWaitingForTerrainData;
+            }
+            _disposed = true;
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

@@ -91,7 +91,7 @@ namespace TacControl.Common.Maps
         private static readonly XNamespace svg = "http://www.w3.org/2000/svg";
         private static readonly XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
 
-
+        public static event EventHandler<bool> WaitingForTerrain;
 
         private static XmlParserContext CreateSvgXmlContext()
         {
@@ -131,9 +131,12 @@ namespace TacControl.Common.Maps
 
             if (string.IsNullOrEmpty(filePath))
             {
-
+                WaitingForTerrain?.Invoke(null, true);
                 var mapFile = await ImageDirectory.Instance.RequestMapfile(GameState.Instance.gameInfo.worldName, wantedDirectory);
-                return await ParseSvgLayers(mapFile);
+                var result = await ParseSvgLayers(mapFile);
+                
+                WaitingForTerrain?.Invoke(null, false);
+                return result;
             }
 
             return await ParseSvgLayers(filePath);
