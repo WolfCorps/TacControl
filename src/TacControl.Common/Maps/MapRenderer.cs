@@ -165,7 +165,7 @@ namespace TacControl.Common.Maps
                     return;
             }
 
-            return; //Not using any standard renderers ;)
+            //return; //Not using any standard renderers ;)
 
             //// No special style renderer handled this up to now, than try standard renderers
             ////if (feature.Geometry is Point)
@@ -181,8 +181,9 @@ namespace TacControl.Common.Maps
             ////    PolygonRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity, _symbolCache);
             //else if (feature.Geometry is MultiPolygon)
             //    MultiPolygonRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity, _symbolCache);
-            //else if (feature.Geometry is IRaster)
-            //    RasterRenderer.Draw(canvas, viewport, style, feature, layerOpacity * style.Opacity, _tileCache, _currentIteration);
+            //else
+            if (feature.Geometry is IRaster)
+                RasterRenderer.Draw(canvas, viewport, style, feature, layerOpacity * style.Opacity, _tileCache, _currentIteration);
         }
 
         private void Render(object canvas, IReadOnlyViewport viewport, IEnumerable<IWidget> widgets, float layerOpacity)

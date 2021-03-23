@@ -55,6 +55,7 @@ using MultiPolygonRenderer = Mapsui.Rendering.Skia.MultiPolygonRenderer;
 using Path = System.IO.Path;
 using Point = Mapsui.Geometries.Point;
 using Polygon = Mapsui.Geometries.Polygon;
+using RasterizingLayer = TacControl.Common.Maps.RasterizingLayer;
 using SymbolCache = Mapsui.Rendering.Skia.SymbolCache;
 
 namespace TacControl
@@ -143,14 +144,14 @@ namespace TacControl
             MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds, MarkerVisibilityManager);
             MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
-            MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
+            //MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
             // ^ without this create/delete only updates when screen is moved
 
             GPSTrackerLayer.IsMapInfoLayer = true;
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
             GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(GPSTrackerLayer);
-            GPSTrackerLayer.DataChanged += (a, b) => MapControl.RefreshData();
+            //GPSTrackerLayer.DataChanged += (a, b) => MapControl.RefreshData();
             // ^ without this create/delete only updates when screen is moved
 
             LayerList.AddWidget("Grid", gridWidget);
@@ -217,7 +218,7 @@ namespace TacControl
 
         private void GenerateLayers(List<Helper.SvgLayer> layers)
         {
-            List<(MemoryLayer, Task)> layerLoadTasks = new List<(MemoryLayer, Task)>();
+            List<(BaseLayer, Task)> layerLoadTasks = new List<(BaseLayer, Task)>();
             int terrainWidth = 0;
             int index = 0;
             foreach (var svgLayer in layers)
@@ -233,11 +234,12 @@ namespace TacControl
 
 
                 var layer = new MemoryLayer(svgLayer.name);
+                var renderLayer = new RasterizingLayer(layer, 100, 1D, MapControl.Renderer);
 
                 if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" ||
                     svgLayer.name == "grid")
                 {
-                    layer.Enabled = false;
+                    renderLayer.Enabled = false;
                 }
 
                 terrainWidth = svgLayer.width;
@@ -248,11 +250,11 @@ namespace TacControl
                 var feature = new Feature {Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name};
 
              
-                if (layer.Enabled)
+                if (renderLayer.Enabled)
                 {
                     var x = new SvgStyle { image = new Svg.Skia.SKSvg() };
-                    layer.Enabled = false;
-                    layerLoadTasks.Add((layer,
+                    renderLayer.Enabled = false;
+                    layerLoadTasks.Add((renderLayer,
                         Task.Run(() =>
                         {
                             using (var stream = svgLayer.content.GetStream())
@@ -291,7 +293,7 @@ namespace TacControl
                 layer.DataSource = new MemoryProvider(features);
                 layer.MinVisible = 0;
                 layer.MaxVisible = double.MaxValue;
-                MapControl.Map.Layers.Insert(index++, layer);
+                MapControl.Map.Layers.Insert(index++, renderLayer);
             }
 
             MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
