@@ -75,7 +75,7 @@ namespace TacControl
         {
             InitializeComponent();
             this.DataContext = Workspace.This;
-            this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
+            //this.Loaded += new RoutedEventHandler(MainWindow_Loaded);
             this.Unloaded += new RoutedEventHandler(MainWindow_Unloaded);
 
             Networking.Instance.MainThreadInvoke = (action) =>
@@ -102,7 +102,13 @@ namespace TacControl
                     //}); return tcs.Task;
                 };
 
-            Networking.Instance.Connect();
+
+
+            Networking.Instance.Connect().ContinueWith((x) =>
+            {
+                WaitingForConnectionLabel.Visibility = Visibility.Hidden;
+                MainWindow_Loaded(this, null);
+            }, TaskScheduler.FromCurrentSynchronizationContext());
 
             var directory = new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "maps"));
             if (!directory.Exists) directory.Create();

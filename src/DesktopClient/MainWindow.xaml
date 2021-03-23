@@ -73,6 +73,10 @@
                 </LayoutPanel>
             </LayoutRoot>
         </DockingManager>
+        <Label x:Name="WaitingForConnectionLabel" Content="Waiting for connection to Arma..." HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Center" HorizontalContentAlignment="Center" Margin="10,10,0,10" Height="367" Width="772" FontSize="20" FontWeight="Bold" />
+
+
+
     </Grid>
 
 

@@ -283,10 +283,44 @@ namespace TacControl.Common
         {
 
 
+            var udpBroadcastResult = DoUDPBroadcast();
 
+            // try to connect to localhost first
+            TaskCompletionSource<bool> localhostConnectSuccessful = new TaskCompletionSource<bool>();
+
+
+            socket = new WebSocket($"ws://127.0.0.1:8082/");
+            socket.Open();
+            socket.MessageReceived += OnMessage;
+            socket.Error += (object sender, SuperSocket.ClientEngine.ErrorEventArgs e) =>
+            {
+                localhostConnectSuccessful.SetResult(false);
+            };
+
+            socket.Opened += (object sender, EventArgs e) =>
+            {
+                localhostConnectSuccessful.SetResult(true);
+            };
+
+            bool localHostSuccessful = await localhostConnectSuccessful.Task;
+
+            if (localHostSuccessful) return;
+
+            var serverResponseData = await udpBroadcastResult;
+
+            socket = new WebSocket($"ws://{serverResponseData.RemoteEndPoint}/");
+            //socket.Opened += new EventHandler(websocket_Opened);
+            //socket.Error += new EventHandler<ErrorEventArgs>(websocket_Error);
+            //socket.Closed += new EventHandler(websocket_Closed);
+            socket.MessageReceived += OnMessage;
+            socket.Open();
+        }
+
+
+        private async Task<UdpReceiveResult> DoUDPBroadcast()
+        {
             var Client = new UdpClient();//(8082, AddressFamily.InterNetworkV6
             Client.EnableBroadcast = true;
-
 
             //var m_GrpAddr = IPAddress.Parse("FF01::1");
 
@@ -295,13 +329,12 @@ namespace TacControl.Common
             // methods.
             //Client.JoinMulticastGroup(m_GrpAddr);
 
- 
-
             //Client.JoinMulticastGroup();
             var RequestData = Encoding.ASCII.GetBytes("R");
 
+
             Client.EnableBroadcast = true;
-            Client.Send(RequestData, RequestData.Length, new IPEndPoint(IPAddress.Broadcast, 8082)); //IPAddress.Broadcast
+            Client.Send(RequestData, RequestData.Length, new IPEndPoint(IPAddress.Broadcast, 8082)); //IPAddress.Broadcast IPAddress.Parse("10.0.0.10")
 
 
             //ConfigureAwait(false) is needed on android
@@ -312,15 +345,8 @@ namespace TacControl.Common
 
             Client.Close();
 
-
-            socket = new WebSocket($"ws://{ServerResponseData.RemoteEndPoint}/");
-            //socket.Opened += new EventHandler(websocket_Opened);
-            //socket.Error += new EventHandler<ErrorEventArgs>(websocket_Error);
-            //socket.Closed += new EventHandler(websocket_Closed);
-            socket.MessageReceived += OnMessage;
-            socket.Open();
+            return ServerResponseData;
         }
-
 
         public static T DeserializeObject<T>(JToken value)
         {
