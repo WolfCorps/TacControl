@@ -36,6 +36,23 @@ namespace TacControl.Misc
         Wpf
     }
 
+
+    public interface ISkiaCanvas
+    {
+
+        [Category("Appearance")]
+        event EventHandler<SKPaintSurfaceEventArgs> PaintSurface;
+
+        [Category("Appearance")]
+        event EventHandler<SKPaintGLSurfaceEventArgs> PaintSurfaceGL;
+
+        Visibility Visibility{ get; set; }
+
+        void InvalidateVisual();
+
+
+    }
+
     public partial class MapControl : Grid, IMapControl
     {
         //https://github.com/Mapsui/Mapsui/blob/af2bf64d3f45c0a3a7b91d2d58cc2a4fff3d13d3/Mapsui.UI.Shared/MapControl.cs
@@ -521,14 +538,32 @@ namespace TacControl.Misc
         /// </summary>
         public event EventHandler<SwipedEventArgs> Fling;
 
+        static private bool GLRunning = false;
+
         public MapControl()
         {
             Children.Add(WpfCanvas);
-            Children.Add(SkiaCanvas);
+
+            if (!GLRunning)
+            {
+                SkiaCanvas = CreateSkiaGLRenderElement(); CreateSkiaRenderElement();
+                GLRunning = true;
+
+                Children.Add(SkiaCanvas as SKGLWpfControl);
+            }
+            else
+            {
+                SkiaCanvas = CreateSkiaRenderElement();
+
+                Children.Add(SkiaCanvas as SKElement);
+            }
+
+            SkiaCanvas.PaintSurfaceGL += SKGLElementOnPaintSurface;
+            SkiaCanvas.PaintSurface += SKElementOnPaintSurface;
+
+
             Children.Add(_selectRectangle);
 
-            SkiaCanvas.PaintSurface += SKElementOnPaintSurface;
-            
             Map = new Map();
 
             Loaded += MapControlLoaded;
@@ -578,7 +613,7 @@ namespace TacControl.Misc
 
         public Canvas WpfCanvas { get; } = CreateWpfRenderCanvas();
 
-        private SKElement SkiaCanvas { get; } = CreateSkiaRenderElement();
+        private ISkiaCanvas SkiaCanvas { get; } 
 
         public RenderMode RenderMode
         {
@@ -613,6 +648,13 @@ namespace TacControl.Misc
             };
         }
 
+        private static SKGLWpfControl CreateSkiaGLRenderElement()
+        {
+
+            return new SKGLWpfControl();
+        }
+
+
         private static SKElement CreateSkiaRenderElement()
         {
             return new SKElement
@@ -621,6 +663,8 @@ namespace TacControl.Misc
                 HorizontalAlignment = HorizontalAlignment.Stretch
             };
         }
+
+
 
         public event EventHandler<FeatureInfoEventArgs> FeatureInfo; // todo: Remove and add sample for alternative
 
@@ -957,7 +1001,21 @@ namespace TacControl.Misc
             Refresh();
         }
 
-        private void SKElementOnPaintSurface(object sender, SKPaintSurfaceEventArgs args)
+        private void SKElementOnPaintSurface(object sender, SKPaintSurfaceEventArgs args) //  
+        {
+            if (Renderer == null) return;
+            if (_map == null) return;
+            if (PixelDensity <= 0) return;
+
+            args.Surface.Canvas.Scale(PixelDensity, PixelDensity);
+
+            Navigator.UpdateAnimations();
+            Renderer.Render(args.Surface.Canvas, new Viewport(Viewport), Map.Layers, Map.Widgets, Map.BackColor);
+        }
+
+
+
+        private void SKGLElementOnPaintSurface(object sender, SKPaintGLSurfaceEventArgs args) //  SKPaintSurfaceEventArgs
         {
             if (Renderer == null) return;
             if (_map == null) return;
