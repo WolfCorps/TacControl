@@ -40,6 +40,8 @@ namespace TacControl
 
         private void BtnJumpToGPS_OnClick(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrEmpty(NoteRef.gpsTracker)) return;
+
             var tracker = gpsRef.trackers[NoteRef.gpsTracker];
             EventSystem.CenterMapOn(new Mapsui.Geometries.Point(tracker.pos[0], tracker.pos[1]));
 
