@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Sentry;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using SkiaSharp.Views.WPF;
@@ -100,15 +101,27 @@ namespace TacControl
             return SKColor.Empty;
         }
     }
-
     public class MarkerTypeStringConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            if (value is string typeName)
-                return GameState.Instance.marker.markerTypes[typeName];
-            if (value is MarkerType type)
-                return GameState.Instance.marker.markerTypes.First(x => x.Value == type).Key; //#TODO store id in markerType
+            try
+            {
+                if (value is string typeName)
+                    return GameState.Instance.marker.markerTypes[typeName];
+                if (value is MarkerType type)
+                    return GameState.Instance.marker.markerTypes.First(x => x.Value == type).Key; //#TODO store id in markerType
+
+            } catch (Exception ex) {
+                if (value is string typeName)
+                    SentrySdk.AddBreadcrumb(typeName);
+                if (value is MarkerType type)
+                    SentrySdk.AddBreadcrumb(type.name);
+
+                SentrySdk.AddBreadcrumb(GameState.Instance.marker.markerTypes.Select(x => x.Key).Join());
+                SentrySdk.CaptureException(ex);
+            }
+          
 
             return null;
         }
