@@ -101,6 +101,7 @@ namespace TacControl.Views
             foreach (var svgLayer in layers)
             {
                 var layer = new Mapsui.Layers.MemoryLayer(svgLayer.name);
+                var renderLayer = new Common.Maps.RasterizingLayer(layer, 100, 1D, MapControl.Renderer);
 
                 if (
                     svgLayer.name == "forests" ||
@@ -130,6 +131,7 @@ namespace TacControl.Views
                         {
                             x.image.Load(stream);
                         }
+                        layer.DataHasChanged();
                     }));
 
                 feature.Styles.Add(x);
@@ -137,7 +139,7 @@ namespace TacControl.Views
 
                 //
                 layer.DataSource = new MemoryProvider(features);
-                MapControl.Map.Layers.Add(layer);
+                MapControl.Map.Layers.Add(renderLayer);
             }
 
             Task.WaitAll(layerLoadTasks.ToArray());
