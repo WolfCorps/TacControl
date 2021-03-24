@@ -59,12 +59,16 @@ namespace TacControl.Droid
 
             ConnectivityManager conMgr = (ConnectivityManager)ApplicationContext.GetSystemService(Context.ConnectivityService);
             var stuff = conMgr.GetAllNetworks();
-            var wifiNet = stuff.First(x => conMgr.GetNetworkInfo(x).Type == ConnectivityType.Wifi);
+            var wifiNet = stuff.FirstOrDefault(x => conMgr.GetNetworkInfo(x).Type == ConnectivityType.Wifi);
 
-            var res = conMgr.BindProcessToNetwork(wifiNet);
-            var info = conMgr.GetNetworkInfo(wifiNet);
+            if (wifiNet != null)
+            {
+                var res = conMgr.BindProcessToNetwork(wifiNet);
+                var info = conMgr.GetNetworkInfo(wifiNet);
 
-            var connInfo = wifiMgr.ConnectionInfo;
+                var connInfo = wifiMgr.ConnectionInfo;
+            }
+    
 
             //Networking.ConnectionInfo
 
