@@ -1,11 +1,15 @@
 using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Interop;
+using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Platform;
+using OpenTK.Platform.Windows;
 using OpenTK.Wpf;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
-
 namespace TacControl.Misc
 {
     // https://github.com/mono/SkiaSharp/issues/745 
@@ -68,16 +72,48 @@ namespace TacControl.Misc
 
         private SKSizeI lastSize;
 
-        public SKGLWpfControl()
+        //public int MinorVersion = 3;
+
+        public SKGLWpfControl(int mversion)
         {
+            //MinorVersion = mversion;
             Initialize();
         }
 
         private void Initialize()
         {
+
             designMode = DesignerProperties.GetIsInDesignMode(this);
 
-            var mainSettings = new GLWpfControlSettings { MajorVersion = 2, MinorVersion = 1 };
+            var mainSettings = new GLWpfControlSettings
+            {
+               //MajorVersion = 3,
+               //MinorVersion = this.MinorVersion,
+                RenderContinuously = false,
+
+            };
+
+            //var depObject = new DependencyObject();
+            //// retrieve window handle/info
+            //var windows = Application.Current.Windows;
+            //
+            //
+            //var window = (MinorVersion == 0) ? windows[0] : windows[2]; //Window.GetWindow(this);
+            //
+            //
+            //
+            //var baseHandle = window is null ? IntPtr.Zero : new WindowInteropHelper(window).Handle;
+            //var hwndSource = new HwndSource(0, 0, 0, 0, 0, "GLWpfControl", baseHandle);
+            //
+            //var windowInfo = Utilities.CreateWindowsWindowInfo(hwndSource.Handle);
+            //
+            //var mode = new GraphicsMode(ColorFormat.Empty, 0, 0, 0, 0, 0, false);
+            //
+            //var gfxCtx = new GraphicsContext(mode, windowInfo, mainSettings.MajorVersion, mainSettings.MinorVersion, mainSettings.GraphicsContextFlags);
+            //gfxCtx.LoadAll();
+            //gfxCtx.MakeCurrent(windowInfo);
+            //
+            //mainSettings.ContextToUse = gfxCtx;
 
             this.Render += TkRender;
 

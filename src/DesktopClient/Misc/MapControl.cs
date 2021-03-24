@@ -538,7 +538,7 @@ namespace TacControl.Misc
         /// </summary>
         public event EventHandler<SwipedEventArgs> Fling;
 
-        static private bool GLRunning = false;
+        static private bool GLRunning = false; // true == GL rendering completely disabled, false == one GL window allowed
 
         public MapControl()
         {
@@ -648,10 +648,11 @@ namespace TacControl.Misc
             };
         }
 
+        private static int mVersion = 0;
         private static SKGLWpfControl CreateSkiaGLRenderElement()
         {
 
-            return new SKGLWpfControl();
+            return new SKGLWpfControl(mVersion++);
         }
 
 
