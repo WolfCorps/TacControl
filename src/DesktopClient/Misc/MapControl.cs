@@ -546,7 +546,7 @@ namespace TacControl.Misc
 
             if (!GLRunning)
             {
-                SkiaCanvas = CreateSkiaGLRenderElement(); CreateSkiaRenderElement();
+                SkiaCanvas = CreateSkiaGLRenderElement();
                 GLRunning = true;
 
                 Children.Add(SkiaCanvas as SKGLWpfControl);
