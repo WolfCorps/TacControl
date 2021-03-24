@@ -79,6 +79,7 @@ public:
                        const std::vector<std::string_view>& arguments) override;
 
     void OnDoCreateMarker(const nlohmann::json& arguments);
+    void OnDoEditMarker(const nlohmann::json& arguments);
     void OnDoDeleteMarker(const nlohmann::json& arguments);
 
     void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) override;

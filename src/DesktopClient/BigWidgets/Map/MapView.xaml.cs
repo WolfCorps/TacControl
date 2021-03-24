@@ -169,7 +169,7 @@ namespace TacControl
 
             MarkerCreatePopup.Closed += (x, y) =>
             {
-                if (MarkerCreate.MarkerRef != null)
+                if (MarkerCreate.MarkerRef != null && !MarkerCreate.IsEdit)
                     markerProvider?.RemoveMarker(MarkerCreate.MarkerRef.id);
                 MarkerCreate.MarkerRef = null;
             };
@@ -306,9 +306,12 @@ namespace TacControl
                     foreach (var (memoryLayer, item2) in layerLoadTasks)
                     {
                         memoryLayer.Enabled = true;
+
+                        memoryLayer.DataHasChanged();
                     }
 
                     LayerList.Initialize(MapControl.Map.Layers);
+                    MapControl.RefreshGraphics();
                 });
             });
 
@@ -331,6 +334,7 @@ namespace TacControl
         private void MapControlOnMouseLeftButtonDown(object sender, MouseButtonEventArgs args)
         {
             GPSEditPopup.IsOpen = false;
+            MarkerCreatePopup.IsOpen = false;
             if (args.ClickCount > 1)
             {
 
@@ -342,9 +346,25 @@ namespace TacControl
 
                     GPSEdit.Tracker = gpsTrackerFeature.Tracker;
                     GPSEditPopup.Placement = PlacementMode.Mouse;
-                    GPSEditPopup.StaysOpen = false;
+                    GPSEditPopup.StaysOpen = true;
                     GPSEditPopup.AllowsTransparency = true;
                     GPSEditPopup.IsOpen = true;
+                }
+                else if(info.Feature is MarkerFeature editMarker && editMarker.marker.polyline.Count == 0) // cannot edit polyline marker
+                {
+
+                    MarkerCreate.Init(); // #TODO add this to init once
+                    MarkerCreate.MarkerRef = editMarker.marker;
+                    MarkerCreate.IsEdit = true;
+
+
+                    // #TODO add this to init once
+                    MarkerCreatePopup.Placement = PlacementMode.Mouse;
+                    MarkerCreatePopup.HorizontalOffset = 5;
+                    MarkerCreatePopup.StaysOpen = true;
+                    MarkerCreatePopup.AllowsTransparency = true;
+
+                    MarkerCreatePopup.IsOpen = true;
                 }
                 else
                 {
@@ -362,6 +382,7 @@ namespace TacControl
                         dir = 0,
                         brush= "Solid"
                     };
+                    MarkerCreate.IsEdit = false;
 
                     MarkerCreate.MarkerRef.pos.Clear();
                     MarkerCreate.MarkerRef.pos.Add((float)info.WorldPosition.X);
@@ -370,7 +391,7 @@ namespace TacControl
 
                     MarkerCreatePopup.Placement = PlacementMode.Mouse;
                     MarkerCreatePopup.HorizontalOffset = 5;
-                    MarkerCreatePopup.StaysOpen = false;
+                    MarkerCreatePopup.StaysOpen = true;
                     MarkerCreatePopup.AllowsTransparency = true;
 
                     var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;

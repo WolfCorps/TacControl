@@ -13,7 +13,10 @@ if (_function#0 == "Cmd") then {
             ]] call TC_main_fnc_sendMessage;
         };
         case "CreateMarker": {
-            [_arguments] call TC_main_fnc_Marker_doCreateMarker;
+            [_arguments, false] call TC_main_fnc_Marker_doCreateMarker;
+        };
+        case "EditMarker": {
+            [_arguments, true] call TC_main_fnc_Marker_doCreateMarker;
         };
         case "DeleteMarker": {
             deleteMarker (_arguments select 0);

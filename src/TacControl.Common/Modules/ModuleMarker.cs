@@ -198,6 +198,43 @@ namespace TacControl.Common.Modules
                     }}"
             );
         }
+
+        public void EditMarker(ActiveMarker markerRef)
+        {
+
+            if (markerRef.polyline.Count != 0 && markerRef.polyline.Count < 2)
+            {
+                // github #8 and #6
+                if (Debugger.IsAttached) Debugger.Break();
+                return;
+            }
+
+            //#TODO https://www.wpf-tutorial.com/wpf-application/application-culture-uiculture/
+            //keep android in mind? If we set it in common in GameState init that should be fine
+            CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+            ci.NumberFormat.NumberDecimalSeparator = ".";
+            Networking.Instance.SendMessage(
+                $@"{{
+                        ""cmd"": [""Marker"", ""EditMarker""],
+                        ""args"": {{
+                            ""name"": {JsonConvert.ToString(markerRef.id)},
+                            ""type"": {JsonConvert.ToString(markerRef.type)},
+                            ""color"": {JsonConvert.ToString(markerRef.color)},
+                            ""dir"": {markerRef.dir},
+                            ""pos"": [{markerRef.pos[0].ToString(ci)},{markerRef.pos[1].ToString(ci)}],
+                            ""text"": {JsonConvert.ToString(markerRef.text)},
+                            ""shape"": {JsonConvert.ToString(markerRef.shape)},
+                            ""alpha"": {markerRef.alpha},
+                            ""brush"": {JsonConvert.ToString(markerRef.brush)},
+                            ""size"": {JsonConvert.ToString($"[{markerRef.size}]")},
+                            ""channel"": {markerRef.channel},
+                            ""polyline"": [{(markerRef.polyline.Count == 0 ? "" : markerRef.polyline.Select(x => $"[{x[0].ToString(ci)},{x[1].ToString(ci)}]").Aggregate((i, j) => i + "," + j))}]
+                        }}
+                    }}"
+            );
+        }
+
+
         public void DeleteMarker(ActiveMarker markerRef)
         {
             Networking.Instance.SendMessage(

@@ -154,6 +154,9 @@ namespace TacControl
     public partial class MapCreateMarker : UserControl, INotifyPropertyChanged
     {
         public ActiveMarker MarkerRef { get; set; }
+
+        // Editing a existing marker
+        public bool IsEdit { get; set; }
         
         public MapCreateMarker()
         {
@@ -233,7 +236,10 @@ namespace TacControl
 
         private void ButtonOK_Click(object sender, RoutedEventArgs e)
         {
-            GameState.Instance.marker.CreateMarker(MarkerRef);
+            if (IsEdit)
+                GameState.Instance.marker.EditMarker(MarkerRef);
+            else
+                GameState.Instance.marker.CreateMarker(MarkerRef);
 
 
             var parent = this.Parent;

@@ -1,6 +1,6 @@
 #include "script_component.hpp"
 
-params ["_arguments"];
+params ["_arguments", ["_isUpdate", false]];
 
 
 _arguments params [
@@ -29,7 +29,14 @@ _markerPolyline = parseSimpleArray _markerPolyline; // "[[1,2],[1,2]]" -> [[1,2]
 
 isNil { //Critical section, to prevent markerUpdated EH from spamming updates
 GVAR(ignoreMarkerUpdate) = true;
-_marker = createMarkerLocal [_markerName, _markerPos, _markerChannel, player];
+
+_marker = _markerName;
+
+if (_isUpdate) then {
+    _marker setMarkerPosLocal _markerPos;
+} else {
+    _marker = createMarkerLocal [_markerName, _markerPos, _markerChannel, player];
+};
 
 if (_markerType != "") then { _marker setMarkerTypeLocal _markerType; };
 if (_markerColor != "") then { _marker setMarkerColorLocal _markerColor; };
@@ -43,5 +50,5 @@ if (_markerPolyline isNotEqualTo [] && {count _markerPolyline > 3}) then { _mark
 _marker setMarkerText _markerText; //This last call will make it public and transfer over network
 GVAR(ignoreMarkerUpdate) = false;
 
-_marker call TC_main_fnc_Marker_onMarkerCreated;
+_marker call ([TC_main_fnc_Marker_onMarkerCreated, TC_main_fnc_Marker_onMarkerPosChanged] select _isUpdate);
 };

@@ -235,6 +235,57 @@ void ModuleMarker::OnDoCreateMarker(const nlohmann::json& arguments) {
     GGameManager.SendMessage("Marker.Cmd.CreateMarker", args);
 }
 
+void ModuleMarker::OnDoEditMarker(const nlohmann::json& arguments) {
+    std::string markerName = arguments["name"];
+    std::string markerType = arguments["type"];
+    std::string markerColor = arguments["color"];
+    float markerDir = arguments["dir"];
+
+    const nlohmann::json& posRef = arguments["pos"];
+    JsonArchive PosAr(posRef);
+    Vector3D markerPos;
+    markerPos.Serialize(PosAr);
+    std::string markerText = arguments["text"];
+    std::string markerShape = arguments["shape"];
+    float markerAlpha = arguments["alpha"];
+    std::string markerBrush = arguments["brush"];
+    std::string markerSize = arguments["size"]; // "[1,2]"
+    int markerChannel = arguments["channel"];
+    std::vector<float> polyLine;
+    for (auto& it : arguments["polyline"]) {
+        polyLine.emplace_back((float)it[0]);
+        polyLine.emplace_back((float)it[1]);
+    }
+
+    std::string polyLineString = "[";
+    for (auto& it : polyLine) {
+        polyLineString += std::to_string(it);
+        polyLineString += ",";
+    }
+
+    if (!polyLine.empty()) //remove last comma
+        polyLineString.pop_back();
+    polyLineString += "]";
+
+
+    auto args = fmt::format("{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
+        markerName,
+        markerType,
+        markerColor,
+        markerDir,
+        markerPos.toString(),
+        markerText.empty() ? " " : markerText, //cannot be empty otherwise splitString parsing fails, whitespace works
+        markerShape,
+        markerAlpha,
+        markerBrush,
+        markerSize,
+        markerChannel,
+        polyLineString
+    );
+    GGameManager.SendMessage("Marker.Cmd.EditMarker", args);
+}
+
+
 void ModuleMarker::OnDoDeleteMarker(const nlohmann::json& arguments) {
 
 
@@ -244,6 +295,9 @@ void ModuleMarker::OnDoDeleteMarker(const nlohmann::json& arguments) {
 void ModuleMarker::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {
     if (function[0] == "CreateMarker") {
         OnDoCreateMarker(arguments);
+    }
+    if (function[0] == "EditMarker") {
+        OnDoEditMarker(arguments);
     }
     if (function[0] == "DeleteMarker") {
         OnDoDeleteMarker(arguments);
