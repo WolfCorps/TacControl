@@ -303,26 +303,58 @@ namespace TacControl.Common.Maps
     {
         public ILayer MapMarkerLayer { get; private set; }
         private BoundingBox _boundingBox;
-        private readonly MarkerVisibilityManager _visibilityManager;
+        private readonly IMarkerVisibilityManager _visibilityManager;
+        private readonly ModuleMarker _makerModule;
 
         public string CRS { get; set; } = "";
 
         private Dictionary<string, IFeature> features = new Dictionary<string, IFeature>();
 
 
-        public MapMarkerProvider(ILayer mapMarkerLayer, BoundingBox boundingBox, MarkerVisibilityManager visibilityManager)
+        public MapMarkerProvider(ILayer mapMarkerLayer, BoundingBox boundingBox, IMarkerVisibilityManager visibilityManager)
         {
             MapMarkerLayer = mapMarkerLayer;
             _boundingBox = boundingBox;
             _visibilityManager = visibilityManager;
+            _makerModule = GameState.Instance.marker;
             //this._boundingBox = MemoryProvider.GetExtents(this.Features);
-            GameState.Instance.marker.markers.CollectionChanged += (a, e) => OnMarkersUpdated();
+            _makerModule.markers.CollectionChanged += (a, e) => OnMarkersUpdated();
 
-            GameState.Instance.marker.PropertyChanged += (a, e) => //#TODO probably don't need this anymore, same on GPSTracker
+            _makerModule.PropertyChanged += (a, e) => //#TODO probably don't need this anymore, same on GPSTracker
             {
-                if (e.PropertyName == nameof(ModuleMarker.markers) && GameState.Instance.marker.markers != null)
+                if (e.PropertyName == nameof(ModuleMarker.markers) && _makerModule.markers != null)
                 {
-                    GameState.Instance.marker.markers.CollectionChanged += (b, c) => OnMarkersUpdated();
+                    _makerModule.markers.CollectionChanged += (b, c) => OnMarkersUpdated();
+                    OnMarkersUpdated();
+                }
+
+            };
+
+            _visibilityManager.OnUpdated += () =>
+            {
+                MapMarkerLayer.DataHasChanged();
+            };
+
+
+            MapMarkerLayer.DataHasChanged();
+
+            OnMarkersUpdated();
+        }
+
+        public MapMarkerProvider(ILayer mapMarkerLayer, BoundingBox boundingBox, IMarkerVisibilityManager visibilityManager, ModuleMarker makerModule)
+        {
+            MapMarkerLayer = mapMarkerLayer;
+            _boundingBox = boundingBox;
+            _visibilityManager = visibilityManager;
+            _makerModule = makerModule;
+            //this._boundingBox = MemoryProvider.GetExtents(this.Features);
+            _makerModule.markers.CollectionChanged += (a, e) => OnMarkersUpdated();
+
+            _makerModule.PropertyChanged += (a, e) => //#TODO probably don't need this anymore, same on GPSTracker
+            {
+                if (e.PropertyName == nameof(ModuleMarker.markers) && _makerModule.markers != null)
+                {
+                    _makerModule.markers.CollectionChanged += (b, c) => OnMarkersUpdated();
                     OnMarkersUpdated();
                 }
 
@@ -342,13 +374,13 @@ namespace TacControl.Common.Maps
         private void OnMarkersUpdated()
         {
             //if (!GameState.Instance.marker.markerColors.Any() || !GameState.Instance.marker.markerTypes.Any()) return; //Don't create markers if we aren't ready
-            foreach (var keyValuePair in GameState.Instance.marker.markers)
+            foreach (var keyValuePair in _makerModule.markers)
             {
                 if (!features.ContainsKey(keyValuePair.Key))
                     AddMarker(keyValuePair.Value, false);
             }
 
-            features.Where(x => !GameState.Instance.marker.markers.ContainsKey(x.Key)).Select(x => x.Key)
+            features.Where(x => !_makerModule.markers.ContainsKey(x.Key)).Select(x => x.Key)
                 .ToList()
                 .ForEach(x => RemoveMarker(x, false));
 

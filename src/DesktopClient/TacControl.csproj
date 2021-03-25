@@ -103,8 +103,14 @@
     <Compile Include="BigWidgets\RadioSettingsList.xaml.cs">
       <DependentUpon>RadioSettingsList.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\DialogExportMarkers.xaml.cs">
+      <DependentUpon>DialogExportMarkers.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MediterranianWidgets\ACEExplosives.xaml.cs">
       <DependentUpon>ACEExplosives.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="MediterranianWidgets\MapMarkerOverview.xaml.cs">
+      <DependentUpon>MapMarkerOverview.xaml</DependentUpon>
     </Compile>
     <Compile Include="MediterranianWidgets\RadioSettings.xaml.cs">
       <DependentUpon>RadioSettings.xaml</DependentUpon>
@@ -175,9 +181,17 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Dialogs\DialogExportMarkers.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MediterranianWidgets\ACEExplosives.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="MediterranianWidgets\MapMarkerOverview.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="MediterranianWidgets\RadioSettings.xaml">
       <SubType>Designer</SubType>

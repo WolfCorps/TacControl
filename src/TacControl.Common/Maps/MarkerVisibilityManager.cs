@@ -6,7 +6,14 @@ using TacControl.Common.Modules;
 
 namespace TacControl.Common.Maps
 {
-    public class MarkerVisibilityManager
+    public interface IMarkerVisibilityManager
+    {
+        bool IsVisible(ActiveMarker marker);
+        Action OnUpdated { get; set; }
+    }
+
+
+    public class MarkerVisibilityManager : IMarkerVisibilityManager
     {
         private bool[] _channelSolos = new bool[16];
         private bool[] _channelIgnore = new bool[16];

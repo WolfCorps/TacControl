@@ -1,0 +1,45 @@
+<Window x:Class="TacControl.Dialogs.DialogExportMarkers"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TacControl.Dialogs"
+        xmlns:mediterranianWidgets="clr-namespace:TacControl.MediterranianWidgets"
+        mc:Ignorable="d"
+        Title="DialogExportMarkers" Height="450" Width="800"
+
+        x:Name="DialogExportMarkersCtrl">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <TreeView Grid.RowSpan="2" ItemsSource="{Binding MarkerList, ElementName=DialogExportMarkersCtrl}">
+            <TreeView.Resources>
+                <HierarchicalDataTemplate
+                    DataType="{x:Type local:CheckableMarkerListItem}" 
+                    ItemsSource="{Binding Children}">
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding IsChecked}"/>
+                        <TextBlock Text="{Binding Value}"/>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+            </TreeView.Resources>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="IsExpanded" Value="True"/>
+                </Style>
+            </TreeView.ItemContainerStyle>
+        </TreeView>
+
+
+        <mediterranianWidgets:MapMarkerOverview x:Name="PreviewMap" Grid.Row="0" Grid.Column="1" ModuleMarkerRef="{Binding MarkerModule, ElementName=DialogExportMarkersCtrl}"/>
+        <Button Content="Export" Grid.Column="1" HorizontalAlignment="Left" Margin="311,179,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Click="OnDoExport"/>
+
+    </Grid>
+</Window>

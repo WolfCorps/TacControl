@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Input;
 using TacControl.BigWidgets;
 using TacControl.Common;
+using TacControl.Dialogs;
 using TacControl.MediterranianWidgets;
 
 namespace TacControl
@@ -165,6 +166,33 @@ namespace TacControl
         }
 
 
+
+        private RelayCommand _ExportMarkersCommand = null;
+
+        private void OpenExportMarkers(object parameter)
+        {
+            var win2 = new DialogExportMarkers();
+            win2.Show();
+        }
+
+        public ICommand ExportMarkersCommand
+        {
+            get
+            {
+                if (_ExportMarkersCommand == null)
+                {
+                    _ExportMarkersCommand = new RelayCommand((p) => OpenExportMarkers(p), (p) => true);
+                }
+
+                return _ExportMarkersCommand;
+            }
+        }
+
+
+
+
+
+        
 
 
 

@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Mapsui.Styles;
@@ -234,7 +235,6 @@ namespace TacControl.Common.Modules
             );
         }
 
-
         public void DeleteMarker(ActiveMarker markerRef)
         {
             Networking.Instance.SendMessage(
@@ -246,5 +246,25 @@ namespace TacControl.Common.Modules
                     }}"
             );
         }
+
+
+        public void SerializeMarkers(JsonWriter output)
+        {
+            var jsonSerializer = new JsonSerializer();
+            jsonSerializer.Serialize(output, this.markers);
+        }
+
+        public void DeserializeMarkers(JsonReader input)
+        {
+            var jsonSerializer = new JsonSerializer();
+            var data = jsonSerializer.Deserialize<ObservableDictionary<string, ActiveMarker>>(input);
+            foreach (var keyValuePair in data)
+            {
+                markers[keyValuePair.Key] = keyValuePair.Value;
+            }
+        }
+
+
+
     }
 }
