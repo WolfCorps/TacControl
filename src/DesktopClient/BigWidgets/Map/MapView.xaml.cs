@@ -125,6 +125,7 @@ namespace TacControl
             };
 
 
+            //#TODO move into Common.Maps.MapRenderer
             MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
             MapControl.Renderer.StyleRenderers[typeof(SvgStyleLazy)] = new SvgStyleRenderer();
             MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
@@ -157,8 +158,7 @@ namespace TacControl
             LayerList.AddWidget("Grid", gridWidget);
             MarkerVisibilityList.Initialize(MarkerVisibilityManager);
             //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
-            //MapControl.Navigator.ZoomTo(1, new Point(512,512), 5);
-            MapControl.Navigator.ZoomTo(6);
+            //MapControl.Navigator.ZoomTo(6);
 
             var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
             MarkerCreate.OnChannelChanged += (oldID) =>
@@ -311,14 +311,11 @@ namespace TacControl
                     }
 
                     LayerList.Initialize(MapControl.Map.Layers);
+
+                    MapControl.Navigator.NavigateTo(new BoundingBox(new Point(0, 0), new Point(terrainWidth, terrainWidth)));
                     MapControl.RefreshGraphics();
                 });
             });
-
-
-
-            
-
 
             foreach (var markerMarkerType in GameState.Instance.marker.markerTypes)
             {
