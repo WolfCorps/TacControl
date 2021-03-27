@@ -101,6 +101,9 @@ namespace TacControl
             MapControl.MouseLeftButtonDown += MapControlOnMouseLeftButtonDown;
             MapControl.MouseLeftButtonUp += MapControlOnMouseLeftButtonUp;
             MapControl.MouseMove += MapControlOnMouseMove;
+            MapControl.MouseEnter += MapControlOnMouseEnter;
+            MapControl.MouseLeave += MapControlOnMouseLeave;
+
             //MapControl.Map = new MyMap();
 
             MapControl.MouseWheel += MapControlMouseWheel;
@@ -170,6 +173,43 @@ namespace TacControl
 
         }
 
+
+        private void MapView_OnLoaded(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void MapControl_OnInitialized(object sender, EventArgs e)
+        {
+            
+        }
+
+
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (disposing)
+            {
+                Helper.WaitingForTerrain -= OnWaitingForTerrainData;
+            }
+            _disposed = true;
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+
+
+
+
+
+
         private void OnWaitingForTerrainData(object thisArgs, bool isWaiting)
         {
             WaitingForTerrainDataLabel.Visibility = isWaiting ? Visibility.Visible : Visibility.Hidden;
@@ -200,10 +240,7 @@ namespace TacControl
 
 
 
-        private void MapControl_OnInitialized(object sender, EventArgs e)
-        {
-            
-        }
+
 
         private int markNum = 0;
 
@@ -440,10 +477,13 @@ namespace TacControl
 
         private void MapControlOnMouseMove(object sender, MouseEventArgs args)
         {
-            if (polyDraw == null) return;
-            var mapsPos = args.GetPosition(MapControl).ToMapsui();
-            var info = MapControl.GetMapInfo(mapsPos, 12);
+            var mapsPos = args.GetPosition(MapControl);
+            var info = MapControl.GetMapInfo(mapsPos.ToMapsui(), 12);
 
+            MapCursor.RenderTransform = new TranslateTransform(mapsPos.X - MapCursor.ActualWidth/2, mapsPos.Y - MapCursor.ActualHeight / 2);
+            MapCursor.UnderCursor = info;
+
+            if (polyDraw == null) return;
 
             var lastPos = polyDraw.polyline.Last();
             
@@ -459,22 +499,18 @@ namespace TacControl
 
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed) return;
 
-            if (disposing)
-            {
-                Helper.WaitingForTerrain -= OnWaitingForTerrainData;
-            }
-            _disposed = true;
+        private void MapControlOnMouseLeave(object sender, MouseEventArgs e)
+        {
+            MapCursor.Visibility = Visibility.Hidden;
+            Mouse.OverrideCursor = null;
         }
 
-        public void Dispose()
+        private void MapControlOnMouseEnter(object sender, MouseEventArgs e)
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            MapCursor.Visibility = Visibility.Visible;
+            Mouse.OverrideCursor = Cursors.None;
         }
+
     }
 }

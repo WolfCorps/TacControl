@@ -158,6 +158,9 @@
     <Compile Include="TinyWidgets\ACEExplosive.xaml.cs">
       <DependentUpon>ACEExplosive.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TinyWidgets\MapCursor.xaml.cs">
+      <DependentUpon>MapCursor.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TinyWidgets\MarkerVisibilityElement.xaml.cs">
       <DependentUpon>MarkerVisibilityElement.xaml</DependentUpon>
     </Compile>
@@ -246,6 +249,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="TinyWidgets\ACEExplosive.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TinyWidgets\MapCursor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

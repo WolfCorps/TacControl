@@ -7,9 +7,12 @@
              xmlns:MapsUI="clr-namespace:Mapsui.UI.Wpf;assembly=Mapsui.UI.Wpf"
              xmlns:map="clr-namespace:TacControl.BigWidgets.Map"
              xmlns:misc="clr-namespace:TacControl.Misc"
+             xmlns:tinyWidgets="clr-namespace:TacControl.TinyWidgets"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
-             x:Name="MapViewCtrl">
+             x:Name="MapViewCtrl"
+             Loaded="MapView_OnLoaded"
+             >
     <Grid>
 <!--
         <Canvas>
@@ -21,10 +24,12 @@
         </Canvas>
 -->
         <misc:MapControl x:Name="MapControl" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Initialized="MapControl_OnInitialized" />
-<!--<Button Margin="0,0,727,433" Click="ButtonBase_OnClick" /> -->
+        <tinyWidgets:MapCursor x:Name="MapCursor" Visibility="Hidden"/>
 
-        <DockPanel HorizontalAlignment="Right">
-            <local:LayerList x:Name="LayerList" />
+        <!--<Button Margin="0,0,727,433" Click="ButtonBase_OnClick" /> -->
+
+        <DockPanel HorizontalAlignment="Right" VerticalAlignment="Top" LastChildFill="False">
+            <local:LayerList x:Name="LayerList"/>
             <map:MarkerVisibilityList x:Name="MarkerVisibilityList" />
         </DockPanel>
 
