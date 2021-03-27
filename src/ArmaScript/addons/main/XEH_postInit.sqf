@@ -6,7 +6,7 @@
 ["GameInfo.PlayerId", [getPlayerId player]] call TC_main_fnc_sendMessage;
 
 {
-    ["GameInfo.PlayerJoined", [name player, getPlayerId player]] call TC_main_fnc_sendMessage;
+    ["GameInfo.PlayerJoined", [name _x, getPlayerId _x]] call TC_main_fnc_sendMessage;
 } forEach allPlayers;
 
 // Needs to run serverside :/
