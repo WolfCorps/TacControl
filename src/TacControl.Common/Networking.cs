@@ -21,6 +21,7 @@ using Newtonsoft.Json.Serialization;
 using Sentry;
 using TacControl.Common.Modules;
 using WebSocket4Net;
+using ErrorEventArgs = SuperSocket.ClientEngine.ErrorEventArgs;
 
 namespace TacControl.Common.Modules
 {
@@ -292,13 +293,18 @@ namespace TacControl.Common
             socket = new WebSocket($"ws://127.0.0.1:8082/");
             socket.Open();
             socket.MessageReceived += OnMessage;
-            socket.Error += (object sender, SuperSocket.ClientEngine.ErrorEventArgs e) =>
+
+            void OnSocketOnError(object sender, ErrorEventArgs e)
             {
                 localhostConnectSuccessful.SetResult(false);
-            };
+                socket = null;
+            }
+
+            socket.Error += OnSocketOnError;
 
             socket.Opened += (object sender, EventArgs e) =>
             {
+                socket.Error -= OnSocketOnError;
                 localhostConnectSuccessful.SetResult(true);
             };
 
