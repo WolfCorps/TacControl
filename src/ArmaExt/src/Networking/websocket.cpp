@@ -2,6 +2,7 @@
 
 
 #include <boost/asio/strand.hpp>
+#include <boost/system/error_code.hpp>
 #include <iostream>
 #include <mutex>
 #include <set>
@@ -659,10 +660,19 @@ Server::Server() {
             state_);
     httpServ->run();
 
-    udpBroadcast_ =
-        boost::make_shared<UDPBroadcastHost>(
-            ioc,
-            udp::endpoint(udp::v6(), 8082));
+
+
+    try {
+        udpBroadcast_ =
+            boost::make_shared<UDPBroadcastHost>(
+                ioc,
+                udp::endpoint(udp::v6(), 8082));
+    }
+    catch (boost::system::system_error& ec) {
+        auto msg = ec.code().message();
+        MessageBoxA(0, ("Error while trying to listen on TCP Port 8082:\n" + msg + "\n TacControl clients won't be able to connect to your Arma").c_str(), "TacControl", 0x30);
+    }
+   
 
 
 
