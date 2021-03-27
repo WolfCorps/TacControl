@@ -46,9 +46,24 @@ namespace TacControl.Common.Maps
 
         public MapRenderer()
         {
+
+            // These I don't use
             WidgetRenders[typeof(Hyperlink)] = new HyperlinkWidgetRenderer();
             WidgetRenders[typeof(ScaleBarWidget)] = new ScaleBarWidgetRenderer();
             WidgetRenders[typeof(ZoomInOutWidget)] = new ZoomInOutWidgetRenderer();
+
+
+
+
+
+
+            StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
+            StyleRenderers[typeof(SvgStyleLazy)] = new SvgStyleRenderer();
+            StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
+            StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
+            StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
+            StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
+            WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
         }
 
         public void Render(object target, IReadOnlyViewport viewport, IEnumerable<ILayer> layers,

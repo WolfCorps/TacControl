@@ -54,13 +54,6 @@ namespace TacControl.Views
             MapControl.MapClicked += MapControlOnClicked;
 
 
-            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
-            MapControl.Renderer.WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
-
             MapControl.IsNorthingButtonVisible = false;
             MapControl.IsMyLocationButtonVisible = false;
             MapControl_OnLoaded();

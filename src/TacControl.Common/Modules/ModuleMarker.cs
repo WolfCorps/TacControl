@@ -127,6 +127,19 @@ namespace TacControl.Common.Modules
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        // retrieve direct play ID of the player that placed this marker, if it was player placed.
+        public Int64 GetDPID()
+        {
+            // $"_USER_DEFINED #{playerDirectPlayID}/TC_{timeStamp}/{(int) channel}";
+
+            if (!id.StartsWith("_USER_DEFINED")) return -1;
+            var start = id.IndexOf("#") + 1;
+            var length = id.IndexOf("/") - id.IndexOf("#") - 1;
+            var dpIdString = id.Substring(start, length);
+
+            return Int64.Parse(dpIdString);
+        }
     }
 
     public enum MarkerChannel

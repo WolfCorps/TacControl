@@ -125,15 +125,6 @@ namespace TacControl
             };
 
 
-            //#TODO move into Common.Maps.MapRenderer
-            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(SvgStyleLazy)] = new SvgStyleRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
-            MapControl.Renderer.WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
-
             var gridWidget = new GridWidget();
             MapControl.Map.Widgets.Add(gridWidget);
 

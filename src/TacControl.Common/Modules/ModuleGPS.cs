@@ -7,6 +7,7 @@
 
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace TacControl.Common.Modules
@@ -45,6 +46,11 @@ namespace TacControl.Common.Modules
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public float GetSpeedInKMH()
+        {
+            return new Vector3(vel[0], vel[1], vel[2]).Length();
         }
     }
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <cmath>
 #include <filesystem>
+#include <charconv>
 
 #include <fmt/format.h>
 
@@ -82,6 +83,12 @@ namespace Util
     }
     static int parseArmaNumberToInt(std::string_view armaNumber) {
         return static_cast<int>(std::round(parseArmaNumber(armaNumber)));
+    }
+    static int64_t parseArmaNumberToInt64(std::string_view armaNumber) {
+        int64_t ret;
+        std::from_chars(armaNumber.data(), armaNumber.data() + armaNumber.length(), ret);
+        // #TODO error checking?
+        return ret;
     }
     static bool isTrue(std::string_view string) {
         if (string.length() != 4)//small speed optimization
