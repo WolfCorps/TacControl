@@ -252,7 +252,7 @@ namespace TacControl.Common.Modules
                 $@"{{
                         ""cmd"": [""Marker"", ""DeleteMarker""],
                         ""args"": {{
-                            ""mame"": ""{JsonConvert.ToString(markerRef.id)}""
+                            ""name"": {JsonConvert.ToString(markerRef.id)}
                         }}
                     }}"
             );

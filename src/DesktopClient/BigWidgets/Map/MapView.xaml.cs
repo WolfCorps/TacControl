@@ -176,7 +176,8 @@ namespace TacControl
 
         private void MapView_OnLoaded(object sender, RoutedEventArgs e)
         {
-
+            var window = Window.GetWindow(this);
+            window.KeyDown += MapControlOnKeyDown;
         }
 
         private void MapControl_OnInitialized(object sender, EventArgs e)
@@ -193,6 +194,8 @@ namespace TacControl
             if (disposing)
             {
                 Helper.WaitingForTerrain -= OnWaitingForTerrainData;
+                var window = Window.GetWindow(this);
+                window.KeyDown -= MapControlOnKeyDown;
             }
             _disposed = true;
         }
@@ -510,6 +513,17 @@ namespace TacControl
         {
             MapCursor.Visibility = Visibility.Visible;
             Mouse.OverrideCursor = Cursors.None;
+        }
+
+
+        private void MapControlOnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete && MapCursor.Visibility == Visibility.Visible && MapCursor.UnderCursor.Feature is MarkerFeature markerToDelete)
+            {
+                // request marker delete
+                GameState.Instance.marker.DeleteMarker(markerToDelete.marker);
+
+            }
         }
 
     }
