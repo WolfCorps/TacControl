@@ -39,7 +39,6 @@ class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateH
     };
 
     std::map<std::string, MarkerBrush, std::less<>> markerBrushes;
-    std::string playerDirectPlayID;
 
     struct ActiveMarker {
         std::string id;

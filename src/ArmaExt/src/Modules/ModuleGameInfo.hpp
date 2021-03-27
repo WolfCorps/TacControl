@@ -8,8 +8,10 @@ class JsonArchive;
 class ModuleGameInfo : public IModule, public IMessageReceiver, public IStateHolder {
 public: //#TODO private and getter
     std::string worldName;
-
-
+    // local player Direct Play ID
+    uint64_t playerDPId = 0;
+    // list of all players in MP with their Direct Play ID
+    std::map<uint64_t, std::string> playerList;
 public:
 
     //IModule

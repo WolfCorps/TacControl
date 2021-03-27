@@ -91,6 +91,8 @@ void ModuleMarker::OnMarkerTypesRetrieved(const std::vector<std::basic_string_vi
 
         markerBrushes.emplace(classname, brush);
     }
+
+    GNetworkController.SendStateUpdate(GetStateHolderName());
 }
 
 void ModuleMarker::OnMarkerDeleted(const std::vector<std::basic_string_view<char>>& arguments) {
@@ -101,7 +103,7 @@ void ModuleMarker::OnMarkerDeleted(const std::vector<std::basic_string_view<char
         auto found = markers.find(markerName);
         if (found != markers.end()) markers.erase(found);
 
-        GNetworkController.SendStateUpdate("Marker");
+        GNetworkController.SendStateUpdate(GetStateHolderName());
     });
 }
 
@@ -132,7 +134,7 @@ void ModuleMarker::OnMarkerCreated(const std::vector<std::basic_string_view<char
     AddTask([this, newMarker = std::move(newMarker)]()
     {
         markers[newMarker.id] = newMarker;
-        GNetworkController.SendStateUpdate("Marker");
+        GNetworkController.SendStateUpdate(GetStateHolderName());
     });
 }
 
@@ -163,7 +165,7 @@ void ModuleMarker::OnMarkerUpdated(const std::vector<std::basic_string_view<char
     AddTask([this, newMarker = std::move(newMarker)]()
     {
         markers[newMarker.id] = newMarker;
-        GNetworkController.SendStateUpdate("Marker");
+        GNetworkController.SendStateUpdate(GetStateHolderName());
     });
 }
 
@@ -172,8 +174,6 @@ void ModuleMarker::OnGameMessage(const std::vector<std::string_view>& function,
     auto func = function[0];
     if (func == "MarkerTypes") {
         OnMarkerTypesRetrieved(arguments);
-    } else if (func == "PlayerId") {
-        playerDirectPlayID = arguments[0];
     } else if (func == "Create") {
         OnMarkerCreated(arguments);
     } else if (func == "Update") {
@@ -376,11 +376,7 @@ void ModuleMarker::SerializeState(JsonArchive& ar) {
 
             ar.Serialize("markers", std::move(markersAr));
         }
-
-        ar.Serialize("playerDirectPlayID", playerDirectPlayID);
-
-
-        });
+    });
     fut.wait();
 
 

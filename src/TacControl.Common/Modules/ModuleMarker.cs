@@ -163,8 +163,6 @@ namespace TacControl.Common.Modules
         public ObservableDictionary<string, MarkerBrush> markerBrushes { get; set; } = new ObservableDictionary<string, MarkerBrush>(StringComparer.OrdinalIgnoreCase);
         public ObservableDictionary<string, ActiveMarker> markers { get; set; } = new ObservableDictionary<string, ActiveMarker>(StringComparer.OrdinalIgnoreCase);
 
-        public string playerDirectPlayID { get; set; }
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -175,7 +173,7 @@ namespace TacControl.Common.Modules
         public string GenerateMarkerName(MarkerChannel channel)
         {
             Int32 timeStamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(2020, 08, 01))).TotalSeconds;
-            return $"_USER_DEFINED #{playerDirectPlayID}/TC_{timeStamp}/{(int) channel}";
+            return $"_USER_DEFINED #{GameState.Instance.gameInfo.playerID}/TC_{timeStamp}/{(int) channel}";
         }
 
         public void CreateMarker(ActiveMarker markerRef)
