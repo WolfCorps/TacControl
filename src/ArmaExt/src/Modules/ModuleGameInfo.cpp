@@ -10,23 +10,23 @@ void ModuleGameInfo::OnGameMessage(const std::vector<std::string_view>& function
 
     if (function[0] == "WorldLoaded") {
         worldName = arguments[0];
-        GNetworkController.SendStateUpdate(GetStateHolderName());
+        SendStateUpdate();
     } else if (function[0] == "PlayerId") {
         playerDPId = Util::parseArmaNumberToInt64(arguments[0]);
-        GNetworkController.SendStateUpdate(GetStateHolderName());
+        SendStateUpdate();
     } else if (function[0] == "PlayerJoined") {
         auto playerName = std::string(arguments[0]);
 
         auto playerDPId = Util::parseArmaNumberToInt64(arguments[1]);
         playerList.insert({ playerDPId, std::move(playerName) });
 
-        GNetworkController.SendStateUpdate(GetStateHolderName());
+        SendStateUpdate();
     } else if (function[0] == "PlayerLeft") {
         auto playerDPId = Util::parseArmaNumberToInt64(arguments[0]);
 
         playerList.erase(playerDPId);
 
-        GNetworkController.SendStateUpdate(GetStateHolderName());
+        SendStateUpdate();
     }
 
 }

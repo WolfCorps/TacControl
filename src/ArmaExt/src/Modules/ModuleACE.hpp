@@ -32,7 +32,7 @@ public:
         const std::function<void(std::string_view)>& replyFunc) override;
 
     //IStateHolder
-    std::string_view GetStateHolderName() override { return "ACE"sv; };
+    std::string_view GetStateHolderName() const override { return "ACE"sv; };
     void SerializeState(JsonArchive& ar) override;
 
     

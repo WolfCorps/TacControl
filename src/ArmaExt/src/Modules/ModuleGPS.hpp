@@ -34,7 +34,7 @@ public:
     void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) override;
 
     //IStateHolder
-    std::string_view GetStateHolderName() override { return "GPS"sv; };
+    std::string_view GetStateHolderName() const override { return "GPS"sv; };
     void SerializeState(JsonArchive& ar) override;
 };
 

@@ -60,7 +60,7 @@ void ModuleRadio::OnRadioUpdate(const std::vector<std::string_view>& arguments) 
 
 
 
-    GNetworkController.SendStateUpdate("Radio");
+    SendStateUpdate();
 }
 
 void ModuleRadio::OnRadioTransmit(const std::vector<std::string_view>& arguments) {
@@ -74,7 +74,7 @@ void ModuleRadio::OnRadioTransmit(const std::vector<std::string_view>& arguments
         found->tx = Util::parseArmaNumberToInt(radioChannel);
     }
 
-    GNetworkController.SendStateUpdate("Radio");
+    SendStateUpdate();
 }
 
 void ModuleRadio::OnRadioDelete(const std::vector<std::string_view>& arguments) {
@@ -83,7 +83,7 @@ void ModuleRadio::OnRadioDelete(const std::vector<std::string_view>& arguments) 
     auto found = FindOrCreateRadioById(radioClass);
     radios.erase(found);
  
-    GNetworkController.SendStateUpdate();
+    SendStateUpdate();
 }
 
 std::vector<TFARRadio>::iterator ModuleRadio::FindOrCreateRadioById(std::string_view classname) {
@@ -183,7 +183,7 @@ void ModuleRadio::OnNetMessage(std::span<std::string_view> function, const nlohm
         auto radioRef = FindRadioById(radioId);
         if (!radioRef) return;
         radioRef->get().displayName = arguments["name"];
-        GNetworkController.SendStateUpdate("Radio");
+        SendStateUpdate();
     }
 }
 

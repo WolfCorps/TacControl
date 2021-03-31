@@ -37,7 +37,7 @@ void ModuleACE::OnGameMessage(const std::vector<std::string_view>& function, con
         explosives = newExplosives;
 
 
-        GNetworkController.SendStateUpdate("ACE");
+        SendStateUpdate();
     }
 }
 

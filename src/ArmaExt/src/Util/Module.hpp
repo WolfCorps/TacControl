@@ -28,8 +28,10 @@ public:
 
 class IStateHolder {
 public:
-    virtual std::string_view GetStateHolderName() = 0;
+    virtual std::string_view GetStateHolderName() const = 0;
     virtual void SerializeState(JsonArchive& ar) = 0;
+
+    void SendStateUpdate() const; // NetworkController.cpp
 };
 
 class IPreInitReceiver {

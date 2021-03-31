@@ -92,7 +92,7 @@ void ModuleMarker::OnMarkerTypesRetrieved(const std::vector<std::basic_string_vi
         markerBrushes.emplace(classname, brush);
     }
 
-    GNetworkController.SendStateUpdate(GetStateHolderName());
+    SendStateUpdate();
 }
 
 void ModuleMarker::OnMarkerDeleted(const std::vector<std::basic_string_view<char>>& arguments) {
@@ -103,7 +103,7 @@ void ModuleMarker::OnMarkerDeleted(const std::vector<std::basic_string_view<char
         auto found = markers.find(markerName);
         if (found != markers.end()) markers.erase(found);
 
-        GNetworkController.SendStateUpdate(GetStateHolderName());
+        SendStateUpdate();
     });
 }
 
@@ -134,7 +134,7 @@ void ModuleMarker::OnMarkerCreated(const std::vector<std::basic_string_view<char
     AddTask([this, newMarker = std::move(newMarker)]()
     {
         markers[newMarker.id] = newMarker;
-        GNetworkController.SendStateUpdate(GetStateHolderName());
+        SendStateUpdate();
     });
 }
 
@@ -165,7 +165,7 @@ void ModuleMarker::OnMarkerUpdated(const std::vector<std::basic_string_view<char
     AddTask([this, newMarker = std::move(newMarker)]()
     {
         markers[newMarker.id] = newMarker;
-        GNetworkController.SendStateUpdate(GetStateHolderName());
+        SendStateUpdate();
     });
 }
 
@@ -390,5 +390,5 @@ void ModuleMarker::OnGamePostInit() {
 
 void ModuleMarker::OnGamePreInit() {
     markers.clear();
-    GNetworkController.SendStateUpdate(GetStateHolderName());
+    SendStateUpdate();
 }

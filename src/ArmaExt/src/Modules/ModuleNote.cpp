@@ -22,7 +22,7 @@ void ModuleNote::OnNetMessage(std::span<std::string_view> function, const nlohma
         newNote.id = newNoteIdx++;
         notes.insert({ newNote.id, newNote });
 
-        GNetworkController.SendStateUpdate();
+        SendStateUpdate();
     } else if (function.front() == "SetText") {
         int id = arguments["id"];
 
@@ -30,7 +30,7 @@ void ModuleNote::OnNetMessage(std::span<std::string_view> function, const nlohma
 
         notes[id].text = arguments["text"];
 
-        GNetworkController.SendStateUpdate();
+       SendStateUpdate();
     } else if (function.front() == "SetGPS") {
         int id = arguments["id"];
 
@@ -38,7 +38,7 @@ void ModuleNote::OnNetMessage(std::span<std::string_view> function, const nlohma
 
         notes[id].gpsTracker = arguments["text"];
 
-        GNetworkController.SendStateUpdate();
+        SendStateUpdate();
     } else if (function.front() == "SetRadio") {
         int id = arguments["id"];
 
@@ -46,7 +46,7 @@ void ModuleNote::OnNetMessage(std::span<std::string_view> function, const nlohma
 
         notes[id].radioFrequency = arguments["text"];
 
-        GNetworkController.SendStateUpdate();
+        SendStateUpdate();
     }
 }
 

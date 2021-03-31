@@ -54,7 +54,7 @@ void ModuleGPS::OnTrackerUpdate(const std::vector<std::string_view>& arguments) 
         return !tracker.second._update;
     });
 
-    GNetworkController.SendStateUpdate();
+    SendStateUpdate();
 
     if (trackers.empty())
         RemovePeriodicTask("trackerUpdate");

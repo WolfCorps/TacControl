@@ -56,3 +56,8 @@ void NetworkController::SendStateUpdate(std::string_view subset) {
         wsServer->state_->updateState(std::move(*state.getRaw()));
     });
 }
+
+
+void IStateHolder::SendStateUpdate() const {
+    GNetworkController.SendStateUpdate(GetStateHolderName());
+}
