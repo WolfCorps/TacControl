@@ -390,4 +390,5 @@ void ModuleMarker::OnGamePostInit() {
 
 void ModuleMarker::OnGamePreInit() {
     markers.clear();
+    GNetworkController.SendStateUpdate(GetStateHolderName());
 }
