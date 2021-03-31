@@ -34,6 +34,10 @@ namespace TacControl
             var linkTimeLocal = new DateTime(Builtin.CompileTime, DateTimeKind.Utc);
             var username = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
 
+
+#if DEBUG
+            App.Main();
+#else
             using (SentrySdk.Init((o) => {
                 o.Dsn = "https://78e23a3aba34433a89f5a78e172dfcf8@o251526.ingest.sentry.io/5390642";
                 o.Release = $"TacControl@{linkTimeLocal:yy-MM-dd_HH-mm}";
@@ -49,6 +53,8 @@ namespace TacControl
 
                 App.Main();
             }
+
+#endif
 
         }
     }
