@@ -14,7 +14,7 @@ TC_GPSTrackers = TC_GPSTrackers - [objNull];
     _trackerInfo pushBack (_x call BIS_fnc_netId);
     _trackerInfo pushBack getPos _x; //AGLS above sea or ground level
     _trackerInfo pushBack velocity _x;
-
+    _trackerInfo pushBack (missionNamespace getVariable ["TC_gt_"+(_trackerInfo select 0), _trackerInfo select 0]); // name
 
     _trackerInfo = _trackerInfo joinString toString[10]; // "\n"
 

@@ -26,7 +26,7 @@ GPSTracker& ModuleGPS::FindOrCreateTrackerByID(const std::string_view& cs_) {
 
 
 void ModuleGPS::OnTrackerUpdate(const std::vector<std::string_view>& arguments) {
-    //[0] = "[\"\",[4255.51,4190.86,5],[0,0,0]]"
+    //[0] = "[\"\",[4255.51,4190.86,5],[0,0,0], \"trackerName\"]"
     bool wasEmpty = trackers.empty();
     for (auto& tracker : trackers) {
         tracker.second._update = false;
@@ -40,14 +40,14 @@ void ModuleGPS::OnTrackerUpdate(const std::vector<std::string_view>& arguments) 
         auto netID = Util::trim(split[0], "\"");
         auto position = Vector3D(split[1]);
         auto velocity = Vector3D(split[2]);
+        auto name = Util::trim(split[3], "\"");
 
         GPSTracker& tracker = FindOrCreateTrackerByID(netID);
         tracker.id = netID;
         tracker.position = position;
         tracker.velocity = velocity;
+        tracker.displayName = name;
         tracker._update = true;
-        //Only set this on new tracker
-        if (tracker.displayName.empty()) tracker.displayName = netID;
     }
 
     std::erase_if(trackers, [](const std::pair<const std::string, GPSTracker>& tracker) {
@@ -60,8 +60,8 @@ void ModuleGPS::OnTrackerUpdate(const std::vector<std::string_view>& arguments) 
         RemovePeriodicTask("trackerUpdate");
     else if (wasEmpty) {
         AddPeriodicTask("trackerUpdate", 1s, []() {
-                GGameManager.SendMessage("GPS.Cmd.UpdateTrackers", "");
-            });
+            GGameManager.SendMessage("GPS.Cmd.UpdateTrackers", "");
+        });
     }
 }
 
@@ -84,7 +84,10 @@ void ModuleGPS::OnNetMessage(std::span<std::string_view> function, const nlohman
         GPSTracker& tracker = FindOrCreateTrackerByID(trackerId);
         tracker.displayName = newName;
 
-        GNetworkController.SendStateUpdate();
+        // Publish the name globally via ingame variable
+        GGameManager.SendMessage("GPS.Cmd.SetTrackerName", fmt::format("{}\n{}", tracker.id, arguments["name"]));
+
+        SendStateUpdate();
     }
 }
 
