@@ -123,8 +123,7 @@ namespace TacControl
             GameState.Instance.gameInfo.PropertyChanged += (a, b) =>
             {
                 if (b.PropertyName == nameof(ModuleGameInfo.worldName))
-                    Helper.ParseLayers().ContinueWith(x =>
-                        Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
+                    OnNewTerrainLoaded(GameState.Instance.gameInfo.worldName);
             };
 
 
@@ -169,8 +168,7 @@ namespace TacControl
             };
 
             if (GameState.Instance.gameInfo.worldName != null)
-                Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
-
+                OnNewTerrainLoaded(GameState.Instance.gameInfo.worldName);
         }
 
 
@@ -208,9 +206,19 @@ namespace TacControl
         }
 
 
+        /// <summary>
+        /// New terrain was loaded in Arma, reset map and switch to new terrain
+        /// </summary>
+        /// <param name="terrainName"></param>
+        private void OnNewTerrainLoaded(string terrainName)
+        {
 
+            MapControl.Map.Layers.Clear();
+            MapControl.Map.Layers.Add(MapMarkersLayer);
+            MapControl.Map.Layers.Add(GPSTrackerLayer);
 
-
+            Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
+        }
 
 
         private void OnWaitingForTerrainData(object thisArgs, bool isWaiting)
@@ -258,7 +266,7 @@ namespace TacControl
                 {
                    
                     //#TODO tell the user, this layer is too big and is skipped for safety. TacControl would use TONS of ram, very bad, usually an issue with Forest layer
-
+                
                     continue;
                 }
 

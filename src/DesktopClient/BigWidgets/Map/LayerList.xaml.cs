@@ -30,7 +30,16 @@ namespace TacControl
 
         public void Initialize(LayerCollection layers)
         {
-            //Items.Children.Clear();
+            List<LayerListItem> toRemove = new List<LayerListItem>();
+            foreach (var source in Items.Children)
+            {
+                if (source is LayerListItem x && x.Widget == null)
+                    toRemove.Add(x);
+
+            }
+
+            foreach (var source in toRemove)
+                Items.Children.Remove(source);
 
             foreach (var layer in layers)
             {

@@ -302,7 +302,7 @@ namespace TacControl.Common.Maps
 
                 toRemove.ForEach(x => x.Remove());
 
-                var test = bareDoc.ToString();
+                //var test = bareDoc.ToString();
                 foreach (var xElement in layers)
                 {
                     if (xElement.Attribute("id").Value == "grid") continue;
