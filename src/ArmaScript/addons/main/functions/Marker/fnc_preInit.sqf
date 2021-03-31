@@ -12,6 +12,12 @@ if (!(uiNamespace getVariable [QGVAR(hasMarkerTypes), false])) then {
         private _shadow = getNumber (_x >> "shadow");
         private _icon = getText (_x >> "icon");
 
+
+        if (count _color < 3) then {
+            // wtf? c_unknown config is broken.
+            _color = [1,1,1,1];
+        };
+
         private _markerTypeInfo = [_className, _name, _color, _size, _icon, _shadow];
         _markerTypes pushBack (_markerTypeInfo joinString toString[10]);
 
