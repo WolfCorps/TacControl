@@ -18,7 +18,6 @@ class CfgPatches {
 
 
 class ACE_Triggers{
-
     class TC_Activate_Tracker {
         isAttachable = 1;
         displayName = "Activate GPS Tracker";
@@ -38,8 +37,8 @@ class CfgMagazines {
         mass = 5;
         allowedSlots[] = {901, 801, 701};
 
-descriptionShort = "Type: TK-108 GPS Tracker, Attach on vehicles";
-descriptionUse = "<t color='#9cf953'>Use: </t>Attach";
+        descriptionShort = "Type: TK-108 GPS Tracker, Attach on vehicles";
+        descriptionUse = "<t color='#9cf953'>Use: </t>Attach";
 
 
 
@@ -73,17 +72,42 @@ class CfgAmmo {
         defaultMagazine = ""; //Mag that gets dropped after defuse, if empty the mine will stay in place, as deactivated
 // _mineMaxRndDetectedDistance detector
 //mineTrigger = ""; ?? _mineTrigger
-
-
     };
 };
 
+class CBA_Extended_EventHandlers;
 class CfgVehicles {
     class ACE_Explosives_Place;
     class ACE_Explosives_Place_TC_GPSTracker: ACE_Explosives_Place {
         displayName = "TK-108 GPS Tracker";
         model = "\z\TC\addons\main\data\tk-108.p3d";
     };
+    class Items_base_F;
+    class GVAR(pickupHelper) : Items_base_F {
+            displayName = "TacControl GPS Tracker pickup helper";
+            model = "\a3\weapons_f\dummyweapon.p3d";
+            scope = 1;
+
+            class ACE_Actions {
+                class GVAR(pickUp) {
+                    displayName = "Pick up"; //#Translate
+                    condition = QUOTE(true);
+                    statement = QUOTE(_this call TC_main_fnc_GPS_pickUpTracker);
+                    exceptions[] = {"isNotSwimming"};
+                    distance = 3; // Requires >1.7 to work when standing with weapon on back
+                    icon = "\a3\ui_f\data\igui\cfg\actions\obsolete\ui_action_takemine_ca.paa";
+                };
+            };
+
+            class EventHandlers {
+                class CBA_Extended_EventHandlers: CBA_Extended_EventHandlers {};
+            };
+
+    }
+
+
+
+
 };
 
 class CfgWeapons {

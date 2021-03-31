@@ -41,3 +41,4 @@
 
 
 call TC_main_fnc_Marker_postInit;
+call TC_main_fnc_GPS_postInit;

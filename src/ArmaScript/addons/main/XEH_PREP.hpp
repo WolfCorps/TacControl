@@ -13,10 +13,13 @@ PREP_SUB(Radio,getLRRadioByNetId); //TC_main_fnc_Radio_getLRRadioByNetId
 
 
 PREP_SUB(GPS,preInit); //TC_main_fnc_GPS_preInit
+PREP_SUB(GPS,postInit); //TC_main_fnc_GPS_postInit
 PREP_SUB(GPS,onMessage); //TC_main_fnc_GPS_onMessage
 PREP_SUB(GPS,activateTracker); //TC_main_fnc_GPS_activateTracker
 PREP_SUB(GPS,sendTrackerUpdate); //TC_main_fnc_GPS_sendTrackerUpdate
 PREP_SUB(GPS,onServerTracker); //TC_main_fnc_GPS_onServerTracker
+PREP_SUB(GPS,renderPickUpInteraction); //TC_main_fnc_GPS_renderPickUpInteraction
+PREP_SUB(GPS,pickUpTracker); //TC_main_fnc_GPS_pickUpTracker
 PREP_SUB(GPS,getTrackerByNetId); //TC_main_fnc_GPS_getTrackerByNetId
 
 
