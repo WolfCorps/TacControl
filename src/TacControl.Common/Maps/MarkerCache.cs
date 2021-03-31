@@ -42,7 +42,7 @@ namespace TacControl.Common.Maps
         {
             lock (requests)
             {
-                var path = $"{type.name}_{color?.name ?? ""}";
+                var path = $"{type.icon}_{color?.name ?? ""}";
 
                 if (requests.ContainsKey(path))
                     return requests[path].completionSource.Task;
@@ -53,24 +53,27 @@ namespace TacControl.Common.Maps
 
                 void ContinuationFunction(SKImage image)
                 {
-                    if (color != null)
-                        image = image.ApplyImageFilter(
-                            SkiaSharp.SKImageFilter.CreateColorFilter(SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))),
-                            new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                            new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                            out var outSUbs,
-                            out SKPoint outoffs
-                        );
-
-                    if (type.shadow)
+                    if (image != null)
                     {
-                        image = image.ApplyImageFilter(
-                            SkiaSharp.SKImageFilter.CreateDropShadow(2, 2, 2, 2, SKColors.Black),
-                            new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                            new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
-                            out var outSUbs2,
-                            out SKPoint outoffs2
-                        );
+                        if (color != null)
+                            image = image.ApplyImageFilter(
+                                SkiaSharp.SKImageFilter.CreateColorFilter(SkiaSharp.SKColorFilter.CreateLighting(color.ToSKColor(), new SKColor(0, 0, 0))),
+                                new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                out var outSUbs,
+                                out SKPoint outoffs
+                            );
+
+                        if (type.shadow)
+                        {
+                            image = image.ApplyImageFilter(
+                                SkiaSharp.SKImageFilter.CreateDropShadow(2, 2, 2, 2, SKColors.Black),
+                                new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                new SkiaSharp.SKRectI(0, 0, image.Width, image.Height),
+                                out var outSUbs2,
+                                out SKPoint outoffs2
+                            );
+                        }
                     }
 
                     request.completionSource.SetResult(image);

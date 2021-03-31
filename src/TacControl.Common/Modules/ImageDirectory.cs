@@ -141,6 +141,21 @@ namespace TacControl.Common.Modules
                 //if (bmp == null) Debugger.Break();
                 request.completionSource.SetResult(bmp);
 
+
+                //if (bmp != null)
+                //{
+                //    using (var data2 = bmp.Encode(SKEncodedImageFormat.Png, 80))
+                //    using (var stream = File.OpenWrite(Path.Combine("P:/", Path.ChangeExtension(Path.GetFileName(path), ".png") )))
+                //    {
+                //        // save the data to a stream
+                //        data2.SaveTo(stream);
+                //    }
+                //}
+                
+
+
+
+
                 lock (imageCache)
                 {
                     imageCache[path] = bmp;
