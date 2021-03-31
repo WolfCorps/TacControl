@@ -367,6 +367,11 @@ namespace TacControl
             }
         }
 
+
+        // marker being dragged&moved via Alt+LMB
+        private ActiveMarker movingMarker = null;
+
+
         private void MapControlOnMouseLeftButtonDown(object sender, MouseButtonEventArgs args)
         {
             GPSEditPopup.IsOpen = false;
@@ -470,6 +475,20 @@ namespace TacControl
                 //MapControl.Refresh(ChangeType.Discrete);
                 args.Handled = true;
             }
+            else if (Keyboard.IsKeyDown(Key.LeftAlt))
+            {
+                var mapsPos = args.GetPosition(MapControl).ToMapsui();
+                var info = MapControl.GetMapInfo(mapsPos, 12);
+
+                if (info.Feature is MarkerFeature marker)
+                {
+                    // cannot move global editor markers
+                    if (marker.marker.channel != 0)
+                        movingMarker = marker.marker;
+                }
+
+                args.Handled = true;
+            }
         }
 
         private ActiveMarker polyDraw = null;
@@ -477,13 +496,20 @@ namespace TacControl
 
         private void MapControlOnMouseLeftButtonUp(object sender, MouseButtonEventArgs args)
         {
-            if (polyDraw == null) return;
-            //MapMarkersLayer.Delayer.MillisecondsToWait = 500;
-            if (polyDraw.polyline.Count > 1)
-                GameState.Instance.marker.CreateMarker(polyDraw);
-            var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
-            markerProvider?.RemoveMarker(polyDraw.id);
-            polyDraw = null;
+            if (polyDraw != null)
+            {
+                //MapMarkersLayer.Delayer.MillisecondsToWait = 500;
+                if (polyDraw.polyline.Count > 1)
+                    GameState.Instance.marker.CreateMarker(polyDraw);
+                var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
+                markerProvider?.RemoveMarker(polyDraw.id);
+                polyDraw = null;
+            }
+
+            if (movingMarker != null) {
+                GameState.Instance.marker.EditMarker(movingMarker);
+                movingMarker = null;
+            }
         }
 
         private void MapControlOnMouseMove(object sender, MouseEventArgs args)
@@ -494,17 +520,25 @@ namespace TacControl
             MapCursor.RenderTransform = new TranslateTransform(mapsPos.X - MapCursor.ActualWidth/2, mapsPos.Y - MapCursor.ActualHeight / 2);
             MapCursor.UnderCursor = info;
 
-            if (polyDraw == null) return;
-
-            var lastPos = polyDraw.polyline.Last();
-            
-            
-            if (new Point(lastPos[0], lastPos[1]).Distance(new Point(info.WorldPosition.X, info.WorldPosition.Y)) > 5)
+            if (polyDraw != null)
             {
-                polyDraw.polyline.Add(new float[] { (float)info.WorldPosition.X, (float)info.WorldPosition.Y });
+                var lastPos = polyDraw.polyline.Last();
+
+
+                if (new Point(lastPos[0], lastPos[1]).Distance(new Point(info.WorldPosition.X, info.WorldPosition.Y)) > 5)
+                {
+                    polyDraw.polyline.Add(new float[] { (float)info.WorldPosition.X, (float)info.WorldPosition.Y });
+                    MapMarkersLayer.DataHasChanged();
+                }
+            }
+
+            
+            if (movingMarker != null)
+            {
+                movingMarker.pos[0] = (float)info.WorldPosition.X;
+                movingMarker.pos[1] = (float)info.WorldPosition.Y;
                 MapMarkersLayer.DataHasChanged();
             }
-            
 
             
 
