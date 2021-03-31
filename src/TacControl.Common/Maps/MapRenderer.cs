@@ -233,6 +233,9 @@ namespace TacControl.Common.Maps
                 var intX = (int)x;
                 var intY = (int)y;
 
+                if (intX >= width || intY >= height)
+                    return result;
+
                 using (var surface = SKSurface.Create(imageInfo))
                 {
                     if (surface == null) return null;
