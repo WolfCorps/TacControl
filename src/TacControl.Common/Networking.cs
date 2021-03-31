@@ -286,33 +286,39 @@ namespace TacControl.Common
 
             var udpBroadcastResult = DoUDPBroadcast();
 
-            // try to connect to localhost first
-            TaskCompletionSource<bool> localhostConnectSuccessful = new TaskCompletionSource<bool>();
+            if (System.Environment.OSVersion.Platform != PlatformID.Unix) {// Not on android
 
 
-            socket = new WebSocket($"ws://127.0.0.1:8082/");
-            socket.Open();
-            socket.MessageReceived += OnMessage;
+                // try to connect to localhost first
+                TaskCompletionSource<bool> localhostConnectSuccessful = new TaskCompletionSource<bool>();
+                socket = new WebSocket($"ws://127.0.0.1:8082/");
+                socket.Open();
+                socket.MessageReceived += OnMessage;
 
-            void OnSocketOnError(object sender, ErrorEventArgs e)
-            {
-                localhostConnectSuccessful.SetResult(false);
-                socket = null;
+                SentrySdk.AddBreadcrumb($"Trying localhost connect");
+
+                void OnSocketOnError(object sender, ErrorEventArgs e)
+                {
+                    localhostConnectSuccessful.SetResult(false);
+                    socket = null;
+                }
+
+                socket.Error += OnSocketOnError;
+
+                socket.Opened += (object sender, EventArgs e) =>
+                {
+                    socket.Error -= OnSocketOnError;
+                    localhostConnectSuccessful.SetResult(true);
+                };
+
+                bool localHostSuccessful = await localhostConnectSuccessful.Task;
+
+                if (localHostSuccessful) return;
             }
 
-            socket.Error += OnSocketOnError;
-
-            socket.Opened += (object sender, EventArgs e) =>
-            {
-                socket.Error -= OnSocketOnError;
-                localhostConnectSuccessful.SetResult(true);
-            };
-
-            bool localHostSuccessful = await localhostConnectSuccessful.Task;
-
-            if (localHostSuccessful) return;
-
             var serverResponseData = await udpBroadcastResult;
+
+            SentrySdk.AddBreadcrumb($"Broadcast connecting to {serverResponseData.RemoteEndPoint}");
 
             socket = new WebSocket($"ws://{serverResponseData.RemoteEndPoint}/");
             //socket.Opened += new EventHandler(websocket_Opened);
