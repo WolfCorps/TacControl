@@ -2,12 +2,14 @@ using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -86,7 +88,7 @@ namespace TacControl
         }
     }
 
-    public partial class MapView : UserControl, IDisposable
+    public partial class MapView : UserControl, IDisposable, INotifyPropertyChanged
     {
 
         private MemoryLayer GPSTrackerLayer = new Mapsui.Layers.MemoryLayer("GPS Trackers");
@@ -171,6 +173,7 @@ namespace TacControl
                 OnNewTerrainLoaded(GameState.Instance.gameInfo.worldName);
         }
 
+        public string DefaultMarkerColor { get; set; }
 
         private void MapView_OnLoaded(object sender, RoutedEventArgs e)
         {
@@ -212,7 +215,6 @@ namespace TacControl
         /// <param name="terrainName"></param>
         private void OnNewTerrainLoaded(string terrainName)
         {
-
             MapControl.Map.Layers.Clear();
             MapControl.Map.Layers.Add(MapMarkersLayer);
             MapControl.Map.Layers.Add(GPSTrackerLayer);
@@ -363,8 +365,25 @@ namespace TacControl
                 {
                     markerMarkerType.Value.iconImage = x.Result; //#TODO use this for markerCache caching in general, store cached images in there
                     markNum--;
+                    //if (markNum == 3) // && !ImageDirectory.Instance.HasPendingRequests()
+                    //{
+                    //    // all markers loaded
+                    //    ImageDirectory.Instance.ExportImagesToZip("P:/markers.zip");
+                    //}
                 });
             }
+
+            // hacky, we might not have markerColors available before this method.
+            cmbColors.ItemsSource = GameState.Instance.marker.markerColors.Values;
+            DefaultMarkerColor = "Default";
+
+            cmbColors.DropDownClosed += (x, y) =>
+            {
+                var conv = new MarkerColorStringConverter();
+                DefaultMarkerColor = conv.Convert(cmbColors.SelectedItem as MarkerColor, typeof(string), null, null) as string;
+            };
+
+
         }
 
 
@@ -414,7 +433,7 @@ namespace TacControl
                     {
                         id = GameState.Instance.marker.GenerateMarkerName(MarkerChannel.Global),
                         channel = 0,
-                        color = "Default",
+                        color = DefaultMarkerColor,
                         type = "hd_dot",
                         shape = "ICON",
                         text = "",
@@ -447,12 +466,11 @@ namespace TacControl
                 var mapsPos = args.GetPosition(MapControl).ToMapsui();
                 var info = MapControl.GetMapInfo(mapsPos, 12);
 
-
                 polyDraw = new ActiveMarker
                 {
                     id = GameState.Instance.marker.GenerateMarkerName(MarkerChannel.Global),
                     channel = 0,
-                    color = "ColorBlack",
+                    color = DefaultMarkerColor,
                     type = "hd_dot",
                     shape = "POLYLINE",
                     text = "",
@@ -461,7 +479,6 @@ namespace TacControl
                     dir = 0,
                     brush = "Solid"
                 };
-
 
                 polyDraw.pos.Clear();
                 polyDraw.pos.Add((float)info.WorldPosition.X);
@@ -568,5 +585,12 @@ namespace TacControl
             }
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

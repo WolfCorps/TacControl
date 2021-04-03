@@ -8,13 +8,60 @@
              xmlns:map="clr-namespace:TacControl.BigWidgets.Map"
              xmlns:misc="clr-namespace:TacControl.Misc"
              xmlns:tinyWidgets="clr-namespace:TacControl.TinyWidgets"
+             xmlns:modules="clr-namespace:TacControl.Common.Modules;assembly=TacControl.Common"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="MapViewCtrl"
              Loaded="MapView_OnLoaded"
              >
+    <UserControl.Resources>
+        <local:SKColorConverter x:Key="SKColorConverter" />
+        <local:MarkerColorStringConverter x:Key="MarkerColorStringConverter" />
+
+        <Style x:Key="ComboBoxTest2" TargetType="{x:Type ComboBox}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Grid.Column="2" Focusable="false" IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}" >
+                                <ToggleButton.Template>
+                                    <ControlTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="5*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Border x:Name="Border"  Grid.ColumnSpan="2" Background="#222" BorderBrush="Black" BorderThickness="1" />
+                                            <Border Grid.Column="0" Margin="1"  Background="#222"  BorderBrush="White" BorderThickness="0,0,1,0" />
+                                            <Path x:Name="Arrow" Grid.Column="1"  Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 4 4 L 8 0 Z"/>
+                                        </Grid>
+
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" Margin="3"  />
+                            <TextBox x:Name="PART_EditableTextBox" Visibility="Hidden" IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                            <Popup Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True"  Focusable="False" PopupAnimation="Slide">
+                                <Grid  Name="DropDown" SnapsToDevicePixels="True" MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border x:Name="DropDownBorder" Background="#222" />
+                                    <ScrollViewer SnapsToDevicePixels="True">
+                                        <StackPanel IsItemsHost="True" />
+                                    </ScrollViewer>
+                                </Grid>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+            </Style.Triggers>
+        </Style>
+
+    </UserControl.Resources>
+
     <Grid>
-<!--
+
+        <!--
         <Canvas>
             <Canvas.RenderTransform>
                 <TranslateTransform X="0" Y="0"/>
@@ -31,6 +78,25 @@
         <DockPanel HorizontalAlignment="Right" VerticalAlignment="Top" LastChildFill="False">
             <local:LayerList x:Name="LayerList"/>
             <map:MarkerVisibilityList x:Name="MarkerVisibilityList" />
+
+            <ComboBox
+                Name="cmbColors"
+                SelectedItem="{Binding DefaultMarkerColor, ElementName=MapViewCtrl, Converter={StaticResource MarkerColorStringConverter}, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}"
+                Foreground="White"
+                Style="{StaticResource ComboBoxTest2}"
+            >
+                <ComboBox.ItemTemplate>
+                    <DataTemplate DataType="modules:MarkerColor">
+                        <StackPanel Orientation="Horizontal">
+                            <Rectangle Fill="{Binding Color, Converter={StaticResource SKColorConverter}}" Width="16" Height="16" Margin="0,2,5,2" />
+                            <TextBlock Text="{Binding name}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+
+
         </DockPanel>
 
         <Popup Name="GPSEditPopup">
