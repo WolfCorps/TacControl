@@ -186,7 +186,7 @@ void ModuleMarker::OnGameMessage(const std::vector<std::string_view>& function,
 void ModuleMarker::OnDoCreateMarker(const nlohmann::json& arguments) {
 
 
-    std::string markerName = arguments["name"];
+    std::string markerName = arguments["id"];
     std::string markerType = arguments["type"];
     std::string markerColor = arguments["color"];
     float markerDir = arguments["dir"];
@@ -236,7 +236,7 @@ void ModuleMarker::OnDoCreateMarker(const nlohmann::json& arguments) {
 }
 
 void ModuleMarker::OnDoEditMarker(const nlohmann::json& arguments) {
-    std::string markerName = arguments["name"];
+    std::string markerName = arguments["id"];
     std::string markerType = arguments["type"];
     std::string markerColor = arguments["color"];
     float markerDir = arguments["dir"];
@@ -289,7 +289,7 @@ void ModuleMarker::OnDoEditMarker(const nlohmann::json& arguments) {
 void ModuleMarker::OnDoDeleteMarker(const nlohmann::json& arguments) {
 
 
-    GGameManager.SendMessage("Marker.Cmd.DeleteMarker", arguments["name"]);
+    GGameManager.SendMessage("Marker.Cmd.DeleteMarker", arguments["id"]);
 }
 
 void ModuleMarker::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {

@@ -129,16 +129,16 @@ namespace TacControl.Common.Modules
         }
 
         // retrieve direct play ID of the player that placed this marker, if it was player placed.
-        public Int64 GetDPID()
+        public UInt64 GetDPID()
         {
             // $"_USER_DEFINED #{playerDirectPlayID}/TC_{timeStamp}/{(int) channel}";
 
-            if (!id.StartsWith("_USER_DEFINED")) return -1;
+            if (!id.StartsWith("_USER_DEFINED")) return 0;
             var start = id.IndexOf("#") + 1;
             var length = id.IndexOf("/") - id.IndexOf("#") - 1;
             var dpIdString = id.Substring(start, length);
 
-            return Int64.Parse(dpIdString);
+            return UInt64.Parse(dpIdString);
         }
     }
 
@@ -194,7 +194,7 @@ namespace TacControl.Common.Modules
                 $@"{{
                         ""cmd"": [""Marker"", ""CreateMarker""],
                         ""args"": {{
-                            ""name"": {JsonConvert.ToString(markerRef.id)},
+                            ""id"": {JsonConvert.ToString(markerRef.id)},
                             ""type"": {JsonConvert.ToString(markerRef.type)},
                             ""color"": {JsonConvert.ToString(markerRef.color)},
                             ""dir"": {markerRef.dir.ToString(ci)},
@@ -229,7 +229,7 @@ namespace TacControl.Common.Modules
                 $@"{{
                         ""cmd"": [""Marker"", ""EditMarker""],
                         ""args"": {{
-                            ""name"": {JsonConvert.ToString(markerRef.id)},
+                            ""id"": {JsonConvert.ToString(markerRef.id)},
                             ""type"": {JsonConvert.ToString(markerRef.type)},
                             ""color"": {JsonConvert.ToString(markerRef.color)},
                             ""dir"": {markerRef.dir},
@@ -252,13 +252,11 @@ namespace TacControl.Common.Modules
                 $@"{{
                         ""cmd"": [""Marker"", ""DeleteMarker""],
                         ""args"": {{
-                            ""name"": {JsonConvert.ToString(markerRef.id)}
+                            ""id"": {JsonConvert.ToString(markerRef.id)}
                         }}
                     }}"
             );
         }
-
-
         public void SerializeMarkers(JsonWriter output)
         {
             var jsonSerializer = new JsonSerializer();
@@ -276,6 +274,24 @@ namespace TacControl.Common.Modules
         }
 
 
+        public void SerializeTypes(JsonWriter output)
+        {
+            var jsonSerializer = new JsonSerializer();
+            output.WriteStartObject();
+            output.WritePropertyName("markerTypes");
+            jsonSerializer.Serialize(output, markerTypes);
+            output.WritePropertyName("markerColors");
+            jsonSerializer.Serialize(output, markerColors);
+            output.WritePropertyName("markerBrushes");
+            jsonSerializer.Serialize(output, markerBrushes);
+            output.WriteEndObject();
+        }
 
+
+        public void DeserializeTypes(JsonTextReader input)
+        {
+            var jsonSerializer = new JsonSerializer();
+            jsonSerializer.Populate(input, this);
+        }
     }
 }

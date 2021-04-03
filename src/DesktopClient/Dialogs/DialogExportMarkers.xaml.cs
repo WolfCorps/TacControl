@@ -167,6 +167,14 @@ namespace TacControl.Dialogs
                 }
             }
 
+            //using (StreamWriter sw = new StreamWriter("P:/markerTypes.txt"))
+            //using (JsonWriter writer = new JsonTextWriter(sw))
+            //{
+            //    GameState.Instance.marker.SerializeTypes(writer);
+            //}
+
+
+
             Close();
         }
     }

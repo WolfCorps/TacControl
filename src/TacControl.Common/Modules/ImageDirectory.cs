@@ -123,7 +123,7 @@ namespace TacControl.Common.Modules
 
                 var dataBytes = Convert.FromBase64String(data);
                 
-                //ARGB -> BGRA
+                //ABGR -> BGRA
                 for (int i = 0; i < dataBytes.Length; i += 4)
                 {
                     var A = dataBytes[i];
@@ -176,7 +176,7 @@ namespace TacControl.Common.Modules
                 var dataBytes = Convert.FromBase64String(data);
 
                 //If source was not compressed, still store it compressed, save some disk space especially on mobile
-                if (path.EndsWith("z"))
+                if (path.EndsWith("z") || Path.GetExtension(path) == ".zip")
                     using (var writer = File.Create(Path.Combine(request.targetDirectory, path)))
                     {
                         writer.Write(dataBytes, 0, dataBytes.Length);
@@ -203,5 +203,68 @@ namespace TacControl.Common.Modules
             }
         }
 
+        public unsafe void ExportImagesToZip(string zipFilePath)
+        {
+            if (File.Exists(zipFilePath))
+                File.Delete(zipFilePath);
+            using (var zip = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
+            {
+                foreach (var image in imageCache)
+                {
+                    if (image.Value == null)
+                        continue;
+                    var entry = zip.CreateEntry(new System.IO.FileInfo(image.Key).Name, CompressionLevel.Optimal);
+
+                    using (Stream destination1 = entry.Open())
+                    using (var binWriter = new BinaryWriter(destination1))
+                    using (var pixmap = image.Value.PeekPixels())
+                    {
+                        binWriter.Write(image.Value.Width);
+                        binWriter.Write(image.Value.Height);
+                        binWriter.Write(image.Key);
+              
+
+                        var buffer = new byte[pixmap.BytesSize];
+
+                        if (pixmap.BytesSize != pixmap.Width * pixmap.Height * 4)
+                        {
+                            Debugger.Break();
+                            
+                        }
+
+                        fixed (byte* p = buffer)
+                        {
+                            IntPtr ptr = (IntPtr)p;
+                            pixmap.ReadPixels(new SKImageInfo(pixmap.Width, pixmap.Height, SKColorType.Bgra8888), ptr, pixmap.Width * pixmap.BytesPerPixel);
+                        }
+
+
+                        //BGRA -> ABGR
+                        for (int i = 0; i < buffer.Length; i += 4)
+                        {
+                            var B = buffer[i];
+                            var G = buffer[i + 1];
+                            var R = buffer[i + 2];
+                            var A = buffer[i + 3];
+
+                            buffer[i] = A;
+                            buffer[i + 1] = B;
+                            buffer[i + 2] = G;
+                            buffer[i + 3] = R;
+                        }
+
+
+
+                        binWriter.Write(buffer, 0, pixmap.BytesSize);
+                    }
+                }
+            }
+        }
+
+
+        public bool HasPendingRequests()
+        {
+            return pendingRequests.Count == 0;
+        }
     }
 }

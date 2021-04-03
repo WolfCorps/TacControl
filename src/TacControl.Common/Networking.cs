@@ -19,6 +19,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Sentry;
+using TacControl.Common.Annotations;
 using TacControl.Common.Modules;
 using WebSocket4Net;
 using ErrorEventArgs = SuperSocket.ClientEngine.ErrorEventArgs;
@@ -280,53 +281,73 @@ namespace TacControl.Common
 
 
         private WebSocket socket;
-        public async Task Connect()
+        /// <summary>
+        /// Connect to a TacControl Server or Arma client
+        /// </summary>
+        /// <param name="IsServer"></param>
+        /// <returns></returns>
+        public async Task Connect([CanBeNull] IPEndPoint targetEndpoint = null) 
         {
 
 
-            var udpBroadcastResult = DoUDPBroadcast();
+            // connect to specific host
+            if (targetEndpoint != null)
+            {
+                SentrySdk.AddBreadcrumb($"Direct connecting to {targetEndpoint}");
 
-            if (System.Environment.OSVersion.Platform != PlatformID.Unix) {// Not on android
+                socket = new WebSocket($"ws://{targetEndpoint}/", "", null, null, UserName); // UserAgent==UserName only for TacControl.Server
+            }
+            else // find host in LAN
+            {
+                var udpBroadcastResult = DoUDPBroadcast();
+
+                if (System.Environment.OSVersion.Platform != PlatformID.Unix)
+                {// Not on android
 
 
-                // try to connect to localhost first
-                TaskCompletionSource<bool> localhostConnectSuccessful = new TaskCompletionSource<bool>();
-                socket = new WebSocket($"ws://127.0.0.1:8082/");
-                socket.Open();
-                socket.MessageReceived += OnMessage;
+                    // try to connect to localhost first
+                    TaskCompletionSource<bool> localhostConnectSuccessful = new TaskCompletionSource<bool>();
+                    socket = new WebSocket($"ws://127.0.0.1:8082/");
+                    socket.Open();
+                    socket.MessageReceived += OnMessage;
 
-                SentrySdk.AddBreadcrumb($"Trying localhost connect");
+                    SentrySdk.AddBreadcrumb($"Trying localhost connect");
 
-                void OnSocketOnError(object sender, ErrorEventArgs e)
-                {
-                    localhostConnectSuccessful.SetResult(false);
-                    socket = null;
+                    void OnSocketOnError(object sender, ErrorEventArgs e)
+                    {
+                        localhostConnectSuccessful.SetResult(false);
+                        socket = null;
+                    }
+
+                    socket.Error += OnSocketOnError;
+
+                    socket.Opened += (object sender, EventArgs e) =>
+                    {
+                        socket.Error -= OnSocketOnError;
+                        localhostConnectSuccessful.SetResult(true);
+                    };
+
+                    bool localHostSuccessful = await localhostConnectSuccessful.Task;
+
+                    if (localHostSuccessful) return;
                 }
 
-                socket.Error += OnSocketOnError;
+                var serverResponseData = await udpBroadcastResult;
 
-                socket.Opened += (object sender, EventArgs e) =>
-                {
-                    socket.Error -= OnSocketOnError;
-                    localhostConnectSuccessful.SetResult(true);
-                };
+                SentrySdk.AddBreadcrumb($"Broadcast connecting to {serverResponseData.RemoteEndPoint}");
 
-                bool localHostSuccessful = await localhostConnectSuccessful.Task;
-
-                if (localHostSuccessful) return;
+                socket = new WebSocket($"ws://{serverResponseData.RemoteEndPoint}/");
             }
-
-            var serverResponseData = await udpBroadcastResult;
-
-            SentrySdk.AddBreadcrumb($"Broadcast connecting to {serverResponseData.RemoteEndPoint}");
-
-            socket = new WebSocket($"ws://{serverResponseData.RemoteEndPoint}/");
+  
             //socket.Opened += new EventHandler(websocket_Opened);
             //socket.Error += new EventHandler<ErrorEventArgs>(websocket_Error);
             //socket.Closed += new EventHandler(websocket_Closed);
             socket.MessageReceived += OnMessage;
             socket.Open();
+            // Assuming specific host == TacControl.Server
         }
+
+        public string UserName { get; set; }
 
 
         private async Task<UdpReceiveResult> DoUDPBroadcast()
@@ -350,7 +371,7 @@ namespace TacControl.Common
 
 
             //ConfigureAwait(false) is needed on android
-            var ServerResponseData = await Client.ReceiveAsync().ConfigureAwait(false);
+            var ServerResponseData = await Client.ReceiveAsync().ConfigureAwait(true);
 
             //var ServerResponse = Encoding.ASCII.GetString(ServerResponseData.Buffer);
             //Console.WriteLine("Recived {0} from {1}", ServerResponse, ServerResponseData.RemoteEndPoint);
@@ -422,8 +443,8 @@ namespace TacControl.Common
                 
             }
 
-            GameState.Instance.test();
-            GameState.Instance.radio.OnPropertyChanged("radios"); //#TODO remove
+            //GameState.Instance.test();
+            //GameState.Instance.radio.OnPropertyChanged("radios"); //#TODO remove
         }
 
         public async void SendMessage(string message)

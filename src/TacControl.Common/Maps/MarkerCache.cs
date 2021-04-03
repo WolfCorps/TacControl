@@ -74,6 +74,9 @@ namespace TacControl.Common.Maps
                                 out SKPoint outoffs2
                             );
                         }
+                    } else
+                    {
+                        //Debugger.Break();
                     }
 
                     request.completionSource.SetResult(image);

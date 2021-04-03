@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -103,8 +104,10 @@ namespace TacControl
                 };
 
 
+            //#TODO allow user to choose, use options dialog and use a default value
+            Networking.Instance.UserName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
 
-            Networking.Instance.Connect().ContinueWith((x) =>
+            Networking.Instance.Connect(new IPEndPoint(IPAddress.Loopback, 8082)).ContinueWith((x) =>
             {
                 WaitingForConnectionLabel.Visibility = Visibility.Hidden;
                 MainWindow_Loaded(this, null);

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31025.218
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TacControl.Server", "TacControl.Server.csproj", "{7E8D0A56-242C-4F44-93D9-D1DF99AAF578}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TacControl.Common", "..\TacControl.Common\TacControl.Common.csproj", "{AAAC7D66-D73C-4D83-8BF0-F84BCEDE23E0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7E8D0A56-242C-4F44-93D9-D1DF99AAF578}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E8D0A56-242C-4F44-93D9-D1DF99AAF578}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E8D0A56-242C-4F44-93D9-D1DF99AAF578}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E8D0A56-242C-4F44-93D9-D1DF99AAF578}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAAC7D66-D73C-4D83-8BF0-F84BCEDE23E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAAC7D66-D73C-4D83-8BF0-F84BCEDE23E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAAC7D66-D73C-4D83-8BF0-F84BCEDE23E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAAC7D66-D73C-4D83-8BF0-F84BCEDE23E0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FAC53839-0C6B-40B4-9745-A4EF15902B2D}
+	EndGlobalSection
+EndGlobal

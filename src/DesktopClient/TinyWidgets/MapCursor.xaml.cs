@@ -82,7 +82,7 @@ namespace TacControl.TinyWidgets
             {
                 if (UnderCursor.Feature is MarkerFeature marker)
                 {
-                    UInt64 dpid = (UInt64) marker.marker.GetDPID();
+                    UInt64 dpid = marker.marker.GetDPID();
                     if (GameState.Instance.gameInfo.players.TryGetValue(dpid, out var markerOwnerName))
                         MarkerOwner = markerOwnerName;
                 }
