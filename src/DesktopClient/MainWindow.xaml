@@ -28,6 +28,7 @@
                     <MenuItem Command="{Binding NewTacRadioPropertiesCommand}" Header="TacRadioSettings" />
                     <MenuItem Command="{Binding NewTacExplosivesCommand}" Header="TacExplosives" />
                     <MenuItem Command="{Binding ExportMarkersCommand}" Header="Export Markers" />
+                    <MenuItem Command="{Binding ImportMarkersCommand}" Header="Import Markers" />
                 </MenuItem>
                 <MenuItem Header="Layout">
                     <MenuItem Command="{Binding LoadLayoutCommand, ElementName=MainWindowCtrl}" Header="Load" />

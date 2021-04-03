@@ -2,6 +2,8 @@
 
 params ["_arguments", ["_isUpdate", false]];
 
+// We have to do some hackery to not have missing elements with splitString, we're sending empty strings as whitespace
+_arguments = _arguments apply {[_x, ""] select (_x == " ")};
 
 _arguments params [
     "_markerName",

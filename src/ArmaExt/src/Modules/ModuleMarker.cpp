@@ -220,7 +220,7 @@ void ModuleMarker::OnDoCreateMarker(const nlohmann::json& arguments) {
 
     auto args = fmt::format("{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
         markerName,
-        markerType,
+        markerType.empty() ? " " : markerType, //cannot be empty otherwise splitString parsing fails, whitespace works
         markerColor,
         markerDir,
         markerPos.toString(),
@@ -270,7 +270,7 @@ void ModuleMarker::OnDoEditMarker(const nlohmann::json& arguments) {
 
     auto args = fmt::format("{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}",
         markerName,
-        markerType,
+        markerType.empty() ? " " : markerType, //cannot be empty otherwise splitString parsing fails, whitespace works
         markerColor,
         markerDir,
         markerPos.toString(),

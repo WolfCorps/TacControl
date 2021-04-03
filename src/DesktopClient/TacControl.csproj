@@ -103,6 +103,9 @@
     <Compile Include="BigWidgets\RadioSettingsList.xaml.cs">
       <DependentUpon>RadioSettingsList.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\DialogImportMarkers.xaml.cs">
+      <DependentUpon>DialogImportMarkers.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\DialogExportMarkers.xaml.cs">
       <DependentUpon>DialogExportMarkers.xaml</DependentUpon>
     </Compile>
@@ -183,6 +186,10 @@
     <Page Include="BigWidgets\RadioSettingsList.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\DialogImportMarkers.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Dialogs\DialogExportMarkers.xaml">
       <SubType>Designer</SubType>

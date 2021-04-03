@@ -189,10 +189,29 @@ namespace TacControl
         }
 
 
+        private RelayCommand _ImportMarkersCommand = null;
+
+        private void OpenImportMarkers(object parameter)
+        {
+            var win2 = new DialogImportMarkers();
+            win2.Show();
+        }
+
+        public ICommand ImportMarkersCommand
+        {
+            get
+            {
+                if (_ImportMarkersCommand == null)
+                {
+                    _ImportMarkersCommand = new RelayCommand((p) => OpenImportMarkers(p), (p) => true);
+                }
+
+                return _ImportMarkersCommand;
+            }
+        }
 
 
 
-        
 
 
 

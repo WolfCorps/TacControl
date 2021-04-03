@@ -197,13 +197,13 @@ namespace TacControl.Common.Modules
                             ""name"": {JsonConvert.ToString(markerRef.id)},
                             ""type"": {JsonConvert.ToString(markerRef.type)},
                             ""color"": {JsonConvert.ToString(markerRef.color)},
-                            ""dir"": {markerRef.dir},
+                            ""dir"": {markerRef.dir.ToString(ci)},
                             ""pos"": [{markerRef.pos[0].ToString(ci)},{markerRef.pos[1].ToString(ci)}],
                             ""text"": {JsonConvert.ToString(markerRef.text)},
                             ""shape"": {JsonConvert.ToString(markerRef.shape)},
                             ""alpha"": {markerRef.alpha},
                             ""brush"": {JsonConvert.ToString(markerRef.brush)},
-                            ""size"": {JsonConvert.ToString($"[{markerRef.size}]")},
+                            ""size"": {JsonConvert.ToString($"[{markerRef.size.ToString(ci)}]")},
                             ""channel"": {markerRef.channel},
                             ""polyline"": [{(markerRef.polyline.Count == 0 ? "" : markerRef.polyline.Select(x => $"[{x[0].ToString(ci)},{x[1].ToString(ci)}]").Aggregate((i,j) => i+","+j))}]
                         }}
