@@ -107,7 +107,7 @@ namespace TacControl
             //#TODO allow user to choose, use options dialog and use a default value
             Networking.Instance.UserName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
 
-            Networking.Instance.Connect(new IPEndPoint(IPAddress.Loopback, 8082)).ContinueWith((x) =>
+            Networking.Instance.Connect().ContinueWith((x) =>
             {
                 WaitingForConnectionLabel.Visibility = Visibility.Hidden;
                 MainWindow_Loaded(this, null);
