@@ -53,6 +53,14 @@ namespace TacControl.Views
             MapControl.TouchMove += MapControlOnMouseMove;
             MapControl.MapClicked += MapControlOnClicked;
 
+            // Don't remove these, android doesn't use MapRenderer
+            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
+            MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
+            MapControl.Renderer.WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
+
 
             MapControl.IsNorthingButtonVisible = false;
             MapControl.IsMyLocationButtonVisible = false;
@@ -136,6 +144,11 @@ namespace TacControl.Views
             }
 
             Task.WaitAll(layerLoadTasks.ToArray());
+
+
+            MapControl.Navigator.NavigateTo(new BoundingBox(new Mapsui.Geometries.Point(0, 0), new Mapsui.Geometries.Point(terrainWidth, terrainWidth)));
+            MapControl.RefreshGraphics();
+
             //var layer = new Mapsui.Layers.ImageLayer("Base");
             //layer.DataSource = CreateMemoryProviderWithDiverseSymbols();
             //MapControl.Map.Layers.Add(layer);
@@ -160,7 +173,7 @@ namespace TacControl.Views
 
             //LayerList.Initialize(MapControl.Map.Layers);
             //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
-            MapControl.Navigator.ZoomTo(1, 0);
+            //MapControl.Navigator.ZoomTo(1, 0);
         }
 
 

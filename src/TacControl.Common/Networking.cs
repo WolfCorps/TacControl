@@ -451,7 +451,7 @@ namespace TacControl.Common
         {
             SentrySdk.AddBreadcrumb(message);
 
-            socket.Send(message);
+            socket?.Send(message);
         }
 
     }

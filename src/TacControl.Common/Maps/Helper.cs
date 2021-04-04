@@ -117,8 +117,16 @@ namespace TacControl.Common.Maps
                 wantedDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
             }
 
+            //GameState.Instance.gameInfo.worldName = "takistan";
 
 
+
+            foreach (FileInfo file in new DirectoryInfo(wantedDirectory).GetFiles().ToList())
+            {
+                // https://github.com/svg-net/SVG/issues/861
+                if (file.CreationTimeUtc < new DateTime(2021,04,04,05,00,00))
+                    File.Delete(file.FullName);
+            }
 
 
             string filePath = "";
@@ -276,6 +284,13 @@ namespace TacControl.Common.Maps
                     {
                         def.Descendants(ns + "stop").First().SetAttributeValue("stop-color", "#DFDFDF");
                     }
+                    if (def.Attribute("type")?.Value == "text/css")
+                    {
+                        // https://github.com/svg-net/SVG/issues/861
+                        def.SetValue(def.Value.Replace(": 4; };", ": 4; }"));
+                    }
+
+
                 }
 
 

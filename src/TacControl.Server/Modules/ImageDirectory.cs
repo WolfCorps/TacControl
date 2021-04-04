@@ -156,16 +156,32 @@ namespace TacControl.Server.Modules
             }
             else if (function.First() == "RequestMapfile")
             {
+                //#TODO properly parse args and return the requested mapfile, not the current active one
                 JObject msg = new JObject();
 
                 msg["cmd"] = new JArray("ImgDir", "MapFile");
                 var args = msg["args"] = new JObject();
-                args["name"] = $"{GameState.Instance.gameInfo.worldName}.zip";
+
+                var wantedMap = arguments["name"];
+
 
                 string wantedDirectory = Path.Combine(Directory.GetCurrentDirectory(), "maps");
                 string filePath = "";
-                if (File.Exists(Path.Combine(wantedDirectory, GameState.Instance.gameInfo.worldName + ".zip")))
-                    filePath = Path.Combine(wantedDirectory, GameState.Instance.gameInfo.worldName + ".zip");
+                if (File.Exists(Path.Combine(wantedDirectory, wantedMap + ".zip")))
+                {
+                    filePath = Path.Combine(wantedDirectory, wantedMap + ".zip");
+                    args["name"] = $"{wantedMap}.zip";
+                }
+                else if (File.Exists(Path.Combine(wantedDirectory, wantedMap + ".svgz")))
+                {
+                    filePath = Path.Combine(wantedDirectory, wantedMap + ".svgz");
+                    args["name"] = $"{wantedMap}.svgz";
+                }
+                else if(File.Exists(Path.Combine(wantedDirectory, wantedMap + ".svg")))
+                { 
+                    filePath = Path.Combine(wantedDirectory, wantedMap + ".svg");
+                    args["name"] = $"{wantedMap}.svg";
+                }
                 else
                     Debugger.Break();
 
