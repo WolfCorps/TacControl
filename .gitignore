@@ -71,3 +71,7 @@ src/ArmaExt/CMakeSettings.json
 src/DesktopClient/FodyWeavers.xsd
 
 src/TacControl.Common/FodyWeavers.xsd
+
+src/TacControl.Server/bin/
+
+src/TacControl.Server/obj/

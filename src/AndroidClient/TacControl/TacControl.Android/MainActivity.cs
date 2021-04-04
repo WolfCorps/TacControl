@@ -37,14 +37,15 @@ namespace TacControl.Droid
             AppCenter.Start("b17f9c9d-e90c-488f-8c4b-92ef3e305c0d", typeof(Analytics), typeof(Distribute));
 
             var versionInfo = Application.Context.ApplicationContext?.PackageManager?.GetPackageInfo(Application.Context.ApplicationContext.PackageName, 0);
-            var username = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+            //var username = System.Security.Principal.WindowsIdentity.GetCurrent();
 
             SentryXamarin.Init(o =>
             {
                 o.AddXamarinFormsIntegration();
                 o.Dsn = "https://78e23a3aba34433a89f5a78e172dfcf8@o251526.ingest.sentry.io/5390642";
                 o.Release = $"TacControl@{versionInfo?.VersionName}:{versionInfo?.LongVersionCode}";
-                o.Environment = username == "Dedmen-PC\\dedmen" ? "Dev" : "Alpha";
+                o.Environment = //username == "Dedmen-PC\\dedmen" ? "Dev" :
+                    "Alpha";
             });
 
 
