@@ -385,21 +385,27 @@ namespace TacControl.Common
             //Client.JoinMulticastGroup();
             var RequestData = Encoding.ASCII.GetBytes("R");
 
-
-            Client.EnableBroadcast = true;
             Client.Send(RequestData, RequestData.Length, new IPEndPoint(IPAddress.Broadcast, 8082)); //IPAddress.Broadcast IPAddress.Parse("10.0.0.10")
 
             Console.WriteLine($"Networking: Sent broadcast");
-
             //ConfigureAwait(false) is needed on android
-            var ServerResponseData = await Client.ReceiveAsync().ConfigureAwait(true);
+
+            var ServerResponseData = await Task.WhenAny(Client.ReceiveAsync(), Task.Delay(2000)).ConfigureAwait(true);
 
             //var ServerResponse = Encoding.ASCII.GetString(ServerResponseData.Buffer);
             //Console.WriteLine("Recived {0} from {1}", ServerResponse, ServerResponseData.RemoteEndPoint);
 
             Client.Close();
 
-            return ServerResponseData;
+            if (ServerResponseData is Task<UdpReceiveResult> task)
+            {
+                Console.WriteLine($"Networking: Broadcast result from {task.Result.RemoteEndPoint}");
+                return task.Result;
+            }
+
+            Console.WriteLine($"Networking: Broadcast timeout, connection failed");
+
+            return new UdpReceiveResult();
         }
 
         public static T DeserializeObject<T>(JToken value)
