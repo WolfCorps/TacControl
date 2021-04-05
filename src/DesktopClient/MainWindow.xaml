@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TacControl"
         xmlns:system="clr-namespace:System;assembly=mscorlib"
+        xmlns:common="clr-namespace:TacControl.Common;assembly=TacControl.Common"
         mc:Ignorable="d"
         Title="TacControl" Height="450" Width="800"
         x:Name="MainWindowCtrl">
@@ -12,6 +13,7 @@
         <system:Boolean x:Key="TRUE">True</system:Boolean>
         <system:Boolean x:Key="FALSE">False</system:Boolean>
         <BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <common:Networking x:Key="networking"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -29,6 +31,7 @@
                     <MenuItem Command="{Binding NewTacExplosivesCommand}" Header="TacExplosives" />
                     <MenuItem Command="{Binding ExportMarkersCommand}" Header="Export Markers" />
                     <MenuItem Command="{Binding ImportMarkersCommand}" Header="Import Markers" />
+                    <MenuItem Command="{Binding NetworkConnectCommand}" Header="Connect to Server directly" IsEnabled="{Binding Source={StaticResource networking}, Path=Instance.CanConnect}"/>
                 </MenuItem>
                 <MenuItem Header="Layout">
                     <MenuItem Command="{Binding LoadLayoutCommand, ElementName=MainWindowCtrl}" Header="Load" />

@@ -1,6 +1,7 @@
 using System;
 using System.CodeDom;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Numerics;
 using System.Reactive.Concurrency;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -273,12 +275,15 @@ namespace TacControl.Common
     //Need to get https://github.com/KevinDockx/JsonPatch/blob/adb1ee749f24db67fd3425700e10f46b3fffa590/src/Marvin.JsonPatch/Internal/ObjectVisitor.cs#L48 to return custom adapter
 
     [ConfigureAwait(false)]
-    public class Networking
+    public class Networking : INotifyPropertyChanged
     {
-        public static Networking Instance = new Networking();
+        public static Networking Instance { get; } = new Networking();
 
         public Func<Action, Task> MainThreadInvoke { get; set; }
 
+        // Currently not able to take a Connect request as we are trying to connect somewhere else
+        public bool Busy { get; set; } = false;
+        public bool CanConnect => !Busy;
 
         private WebSocket socket;
         /// <summary>
@@ -288,7 +293,7 @@ namespace TacControl.Common
         /// <returns></returns>
         public async Task Connect([CanBeNull] IPEndPoint targetEndpoint = null) 
         {
-
+            Busy = true;
 
             // connect to specific host
             if (targetEndpoint != null)
@@ -334,6 +339,13 @@ namespace TacControl.Common
 
                 var serverResponseData = await udpBroadcastResult;
 
+                //timeout, no reply
+                if (serverResponseData.RemoteEndPoint == null)
+                {
+                    Busy = false;
+                    return;
+                }
+                
                 SentrySdk.AddBreadcrumb($"Broadcast connecting to {serverResponseData.RemoteEndPoint}");
 
                 socket = new WebSocket($"ws://{serverResponseData.RemoteEndPoint}/");
@@ -345,6 +357,7 @@ namespace TacControl.Common
             socket.MessageReceived += OnMessage;
             socket.Open();
             // Assuming specific host == TacControl.Server
+            Busy = false;
         }
 
         public string UserName { get; set; }
@@ -454,5 +467,12 @@ namespace TacControl.Common
             socket?.Send(message);
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
