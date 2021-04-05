@@ -22,12 +22,14 @@ namespace TacControl.Server
     {
         private JObject clientState;
         private System.Net.IPEndPoint myEndPoint;
+        private readonly TcpClient _client;
         private System.Net.WebSockets.WebSocket socket;
         private Memory<byte> buffer = new(new byte[1024*1024]);
 
-        public Client(IPEndPoint myEndPoint, System.Net.WebSockets.WebSocket socket)
+        public Client(TcpClient client, System.Net.WebSockets.WebSocket socket)
         {
-            this.myEndPoint = myEndPoint;
+            this.myEndPoint = client.Client.RemoteEndPoint as IPEndPoint;
+            _client = client;
             this.socket = socket;
 
             socket.ReceiveAsync(buffer, CancellationToken.None).AsTask().ContinueWith(x => OnDataReceived(x.Result));
@@ -93,6 +95,15 @@ namespace TacControl.Server
 
             socket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
             //Microsoft.AspNetCore.JsonPatch
+
+            if (!_client.Client.Connected)
+            {
+                Networking.Instance.OnClientDisconnected(this);
+            }
+
+           
+
+
         }
 
         static void FillPatchForObject(JObject orig, JObject mod, JsonPatchDocument patch, string path)
@@ -104,7 +115,10 @@ namespace TacControl.Server
             foreach (var k in origNames.Except(modNames))
             {
                 var prop = orig.Property(k);
-                patch.Remove(path + prop.Name);
+                patch.Remove(path + prop.Name
+                        .Replace("~", "~0").Replace("/", "~1")
+                        .Replace(" ", "~2") // Need to cheat because Marvin.JsonPatch had invalid path checking
+                );
             }
 
             // Names added in modified
@@ -128,7 +142,10 @@ namespace TacControl.Server
 
                 if (origProp.Value.Type != modProp.Value.Type)
                 {
-                    patch.Replace(path + modProp.Name, modProp.Value);
+                    patch.Replace(path + modProp.Name
+                            .Replace("~", "~0").Replace("/", "~1")
+                            .Replace(" ", "~2") // Need to cheat because Marvin.JsonPatch had invalid path checking
+                        , modProp.Value);
                 }
                 else if (!string.Equals(
                     origProp.Value.ToString(Newtonsoft.Json.Formatting.None),
@@ -137,12 +154,18 @@ namespace TacControl.Server
                     if (origProp.Value.Type == JTokenType.Object)
                     {
                         // Recurse into objects
-                        FillPatchForObject(origProp.Value as JObject, modProp.Value as JObject, patch, path + modProp.Name + "/");
+                        FillPatchForObject(origProp.Value as JObject, modProp.Value as JObject, patch, path + modProp.Name
+                                .Replace("~", "~0").Replace("/", "~1")
+                                .Replace(" ", "~2") // Need to cheat because Marvin.JsonPatch had invalid path checking
+                            + "/");
                     }
                     else
                     {
                         // Replace values directly
-                        patch.Replace(path + modProp.Name, modProp.Value);
+                        patch.Replace(path + modProp.Name
+                                .Replace("~", "~0").Replace("/", "~1")
+                                .Replace(" ", "~2") // Need to cheat because Marvin.JsonPatch had invalid path checking
+                            , modProp.Value);
                     }
                 }
             }
@@ -227,7 +250,7 @@ namespace TacControl.Server
 
             }
 
-            var newClient = new Client(client.Client.RemoteEndPoint as IPEndPoint,
+            var newClient = new Client(client,
                 System.Net.WebSockets.WebSocket.CreateFromStream(client.GetStream(), true, "HTTP",
                     TimeSpan.FromSeconds(10)));
             _clients.Add(newClient);
@@ -273,6 +296,12 @@ namespace TacControl.Server
             });
            
 
+        }
+
+        public void OnClientDisconnected(Client client)
+        {
+            //#TODO fix this, will crash in UpdateState due to modifying collection while iterating
+            //_clients.Remove(client);
         }
     }
 }
