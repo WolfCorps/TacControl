@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Mapsui.Styles;
 using Newtonsoft.Json;
@@ -115,10 +116,17 @@ namespace TacControl.Common.Modules
         {
             pos.CollectionChanged += (a, e) =>
             {
-                if (pos.Count > 3) //#TODO this is stupid, need Vector3 support
+                if (pos.Count > 2) //#TODO this is stupid, need Vector3 support
                     pos.RemoveAt(0);
                 OnPropertyChanged("pos");
             };
+        }
+
+        public void SetPos(float X, float Y)
+        {
+            pos[0] = X;
+            pos[1] = Y;
+            OnPropertyChanged("pos");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

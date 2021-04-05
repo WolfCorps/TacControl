@@ -500,7 +500,7 @@ namespace TacControl
                 if (info.Feature is MarkerFeature marker)
                 {
                     // cannot move global editor markers
-                    if (marker.marker.channel != 0)
+                    if (marker.marker.channel != -1)
                         movingMarker = marker.marker;
                 }
 
@@ -552,9 +552,7 @@ namespace TacControl
             
             if (movingMarker != null)
             {
-                movingMarker.pos[0] = (float)info.WorldPosition.X;
-                movingMarker.pos[1] = (float)info.WorldPosition.Y;
-                MapMarkersLayer.DataHasChanged();
+                movingMarker.SetPos((float)info.WorldPosition.X, (float)info.WorldPosition.Y);
             }
 
             
