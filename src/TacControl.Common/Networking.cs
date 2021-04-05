@@ -291,14 +291,16 @@ namespace TacControl.Common
         /// </summary>
         /// <param name="IsServer"></param>
         /// <returns></returns>
-        public async Task Connect([CanBeNull] IPEndPoint targetEndpoint = null) 
+        public async Task Connect([CanBeNull] IPEndPoint targetEndpoint = null)
         {
+            Console.WriteLine($"Networking: Connect to {targetEndpoint}");
             Busy = true;
 
             // connect to specific host
             if (targetEndpoint != null)
             {
                 SentrySdk.AddBreadcrumb($"Direct connecting to {targetEndpoint}");
+                Console.WriteLine($"Networking: Direct connecting to {targetEndpoint}");
 
                 socket = new WebSocket($"ws://{targetEndpoint}/", "", null, null, UserName); // UserAgent==UserName only for TacControl.Server
             }
@@ -317,6 +319,7 @@ namespace TacControl.Common
                     socket.MessageReceived += OnMessage;
 
                     SentrySdk.AddBreadcrumb($"Trying localhost connect");
+                    Console.WriteLine($"Networking: Trying localhost connect");
 
                     void OnSocketOnError(object sender, ErrorEventArgs e)
                     {
@@ -334,6 +337,8 @@ namespace TacControl.Common
 
                     bool localHostSuccessful = await localhostConnectSuccessful.Task;
 
+                    Console.WriteLine($"Networking: localhost successful: {localHostSuccessful}");
+
                     if (localHostSuccessful) return;
                 }
 
@@ -342,11 +347,13 @@ namespace TacControl.Common
                 //timeout, no reply
                 if (serverResponseData.RemoteEndPoint == null)
                 {
+                    Console.WriteLine($"Networking: Connection failed, staying offline");
                     Busy = false;
                     return;
                 }
                 
                 SentrySdk.AddBreadcrumb($"Broadcast connecting to {serverResponseData.RemoteEndPoint}");
+                Console.WriteLine($"Networking: Broadcast connecting to {serverResponseData.RemoteEndPoint}");
 
                 socket = new WebSocket($"ws://{serverResponseData.RemoteEndPoint}/");
             }
@@ -382,6 +389,7 @@ namespace TacControl.Common
             Client.EnableBroadcast = true;
             Client.Send(RequestData, RequestData.Length, new IPEndPoint(IPAddress.Broadcast, 8082)); //IPAddress.Broadcast IPAddress.Parse("10.0.0.10")
 
+            Console.WriteLine($"Networking: Sent broadcast");
 
             //ConfigureAwait(false) is needed on android
             var ServerResponseData = await Client.ReceiveAsync().ConfigureAwait(true);
@@ -428,6 +436,7 @@ namespace TacControl.Common
 
             if (parsedMsg["cmd"].Value<string>() == "StateFull")
             {
+                Console.WriteLine($"Networking: FullState received!");
                 var jsonSerializer = new JsonSerializer();
                 using (var reader = new JTokenReader(parsedMsg["data"].Value<JToken>()))
                 {
@@ -462,7 +471,7 @@ namespace TacControl.Common
 
         public async void SendMessage(string message)
         {
-            SentrySdk.AddBreadcrumb(message);
+            Console.WriteLine($"Networking: MSG:\n{message}");
 
             socket?.Send(message);
         }

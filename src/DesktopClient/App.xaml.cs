@@ -29,6 +29,10 @@ namespace TacControl
         public static void Main()
         {
 
+
+            System.Console.SetWindowSize(160, 60);
+            System.Console.SetBufferSize(160, Int16.MaxValue-1);
+
             //https://stackoverflow.com/questions/1600962/displaying-the-build-date
             
             var linkTimeLocal = new DateTime(Builtin.CompileTime, DateTimeKind.Utc);

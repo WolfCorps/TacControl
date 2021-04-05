@@ -109,6 +109,7 @@ namespace TacControl
 
             Networking.Instance.Connect().ContinueWith((x) =>
             {
+                Console.WriteLine($"MainWindow: Network connection done(?), loading window layout...");
                 WaitingForConnectionLabel.Visibility = Visibility.Hidden;
                 MainWindow_Loaded(this, null);
             }, TaskScheduler.FromCurrentSynchronizationContext());

@@ -215,6 +215,7 @@ namespace TacControl
         /// <param name="terrainName"></param>
         private void OnNewTerrainLoaded(string terrainName)
         {
+            Console.WriteLine($"MapView OnNewTerrain {terrainName}, Now loading terrain data...");
             MapControl.Map.Layers.Clear();
             MapControl.Map.Layers.Add(MapMarkersLayer);
             MapControl.Map.Layers.Add(GPSTrackerLayer);
@@ -259,6 +260,7 @@ namespace TacControl
 
         private void GenerateLayers(List<Helper.SvgLayer> layers)
         {
+            Console.WriteLine($"MapView Layerdata arrived, creating layers...");
             List<(BaseLayer, Task)> layerLoadTasks = new List<(BaseLayer, Task)>();
             int terrainWidth = 0;
             int index = 0;
@@ -266,9 +268,9 @@ namespace TacControl
             {
                 if (svgLayer.content.GetSize() > 5e7) //> 50MB
                 {
-                   
+                    Console.WriteLine($"MapView !! Layer is too big, skipping layer {svgLayer.name}");
                     //#TODO tell the user, this layer is too big and is skipped for safety. TacControl would use TONS of ram, very bad, usually an issue with Forest layer
-                
+
                     continue;
                 }
 
@@ -357,6 +359,8 @@ namespace TacControl
                     MapControl.RefreshGraphics();
                 });
             });
+
+            Console.WriteLine($"MapView Layers loaded, preloading marker images from Arma...");
 
             foreach (var markerMarkerType in GameState.Instance.marker.markerTypes)
             {

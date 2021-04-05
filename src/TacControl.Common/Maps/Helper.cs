@@ -139,12 +139,18 @@ namespace TacControl.Common.Maps
 
             if (string.IsNullOrEmpty(filePath))
             {
+                Console.WriteLine($"Terrain data not available, requesting from Arma...");
                 WaitingForTerrain?.Invoke(null, true);
                 var mapFile = await ImageDirectory.Instance.RequestMapfile(GameState.Instance.gameInfo.worldName, wantedDirectory);
+                Console.WriteLine($"Terrain data received from Arma, processing SVG...");
                 var result = await ParseSvgLayers(mapFile);
                 
                 WaitingForTerrain?.Invoke(null, false);
                 return result;
+            }
+            else
+            {
+                Console.WriteLine($"Terrain data loading from {filePath}, processing SVG...");
             }
 
             return await ParseSvgLayers(filePath);
@@ -222,7 +228,7 @@ namespace TacControl.Common.Maps
         {
             if (Path.GetExtension(filePath) == ".zip")
             {
-
+                Console.WriteLine($"Terrain data loading from ZIP");
                 var zip = ZipFile.Open(filePath, ZipArchiveMode.Read);
                 var zipRef = new SharedDisposable<ZipArchive>(zip); //This ref will later do the disposing
 
@@ -242,6 +248,7 @@ namespace TacControl.Common.Maps
 
             if (Path.GetExtension(filePath) == ".svgz")
             {
+                Console.WriteLine($"Terrain data is SVGZ, converting to zip...");
                 //process raw first
                 await Task.Run(() => ProcessRawSVGZ(filePath));
                 filePath = Path.ChangeExtension(filePath, "zip");
@@ -250,6 +257,7 @@ namespace TacControl.Common.Maps
 
             if (Path.GetExtension(filePath) == ".svg")
             {
+                Console.WriteLine($"Terrain data is SVG, converting to zip...");
                 //process raw first
                 await Task.Run(() => ProcessRawSVG(filePath));
                 filePath = Path.ChangeExtension(filePath, "zip");
