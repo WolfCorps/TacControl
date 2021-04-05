@@ -61,6 +61,13 @@ namespace TacControl.Server.Modules
                     return;
 
                 JsonSerializer.Create().Populate(new JTokenReader(arguments), marker);
+
+                // "[1,1]" -> "1,1", thats how Arma script returns it
+                marker.size = marker.size.First() == '['
+                    ? marker.size.Substring(1, marker.size.Length - 2)
+                    : marker.size;
+
+
                 GameState.Instance.UpdateState(StateHolderName);
             }
             else if (function.First() == "DeleteMarker")
