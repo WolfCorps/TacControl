@@ -45,7 +45,7 @@ class ModuleMarker : public ThreadQueue, public IMessageReceiver, public IStateH
         std::string type;
         std::string color; //#TODO parse here already instead of frontend
         float dir;
-        Vector3D pos;
+        Vector2D pos;
         std::string text;
         std::string shape; //#TODO enum
         float alpha;

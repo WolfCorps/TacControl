@@ -27,6 +27,7 @@ Vector2D::Vector2D(std::string_view coordinateString) {
     Util::split(coordinateString, ',', coords);
     switch (coords.size()) {
     case 2:
+    case 3:
         m_x = Util::parseArmaNumber(coords.at(0));
         m_y = Util::parseArmaNumber(coords.at(1));
         break;

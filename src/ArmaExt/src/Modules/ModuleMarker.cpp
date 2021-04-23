@@ -115,7 +115,7 @@ void ModuleMarker::OnMarkerCreated(const std::vector<std::basic_string_view<char
     newMarker.type = arguments[1];
     newMarker.color = arguments[2];
     newMarker.dir = Util::parseArmaNumber(arguments[3]);
-    newMarker.pos = Vector3D(arguments[4]);
+    newMarker.pos = Vector2D(arguments[4]);
     newMarker.text = arguments[5];
     newMarker.shape = arguments[6];
     newMarker.alpha = Util::parseArmaNumber(arguments[7]);
@@ -146,7 +146,7 @@ void ModuleMarker::OnMarkerUpdated(const std::vector<std::basic_string_view<char
     newMarker.type = arguments[1];
     newMarker.color = arguments[2];
     newMarker.dir = Util::parseArmaNumber(arguments[3]);
-    newMarker.pos = Vector3D(arguments[4]);
+    newMarker.pos = Vector2D(arguments[4]);
     newMarker.text = arguments[5];
     newMarker.shape = arguments[6];
     newMarker.alpha = Util::parseArmaNumber(arguments[7]);
