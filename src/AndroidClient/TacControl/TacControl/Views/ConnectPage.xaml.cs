@@ -27,6 +27,7 @@ namespace TacControl.Views
         
         private void OnConnectClick(object sender, EventArgs e)
         {
+            ConnectButton.IsEnabled = false;
             networking.Connect(CurrentEndpoint);
         }
 
