@@ -188,11 +188,7 @@ namespace TacControl.Common.Modules
         {
 
             if (markerRef.polyline.Count != 0 && markerRef.polyline.Count < 2)
-            {
-                // github #8 and #6
-                if (Debugger.IsAttached) Debugger.Break();
                 return;
-            }
 
             //#TODO https://www.wpf-tutorial.com/wpf-application/application-culture-uiculture/
             //keep android in mind? If we set it in common in GameState init that should be fine

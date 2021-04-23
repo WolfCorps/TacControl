@@ -9,6 +9,7 @@ using TacControl.Services;
 using TacControl.Views;
 using Xamarin.Essentials;
 using Xamarin.Forms.Internals;
+using System.Net;
 
 namespace TacControl
 {
@@ -26,10 +27,20 @@ namespace TacControl
 
             InitializeComponent();
 
-            Networking.Instance.Connect();
+            //Networking.Instance.Connect(new IPEndPoint(IPAddress.Parse("10.0.0.10"),8082));
 
             DependencyService.Register<MockDataStore>();
+
             MainPage = new AppShell();
+            Routing.RegisterRoute("//ConnectPage", typeof(ConnectPage));
+            Shell.Current.GoToAsync("//ConnectPage");
+
+            Networking.Instance.OnConnected += () => MainThreadInvoke(() =>
+            {
+                Networking.Instance.StopUDPSearch();
+                Shell.Current.GoToAsync("//MapPage", true);
+            });
+
         }
 
         protected override void OnStart()

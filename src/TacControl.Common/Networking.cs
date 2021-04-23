@@ -445,10 +445,18 @@ namespace TacControl.Common
         {
             //IPEndPoint end = _beaconTarget;
             //_udpClient.EndReceive(null, ref end);
-            _beaconTimer.Dispose();
-            _beaconTimer = null;
-            _udpClient.Close();
-            _udpClient = null;
+
+            if (_beaconTimer != null)
+            {
+                _beaconTimer.Dispose();
+                _beaconTimer = null;
+            }
+
+            if (_udpClient != null)
+            {
+                _udpClient.Close();
+                _udpClient = null;
+            }
             AvailableEndpoints.Clear();
         }
 

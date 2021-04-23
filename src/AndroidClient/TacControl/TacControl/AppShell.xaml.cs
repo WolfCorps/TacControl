@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using TacControl.ViewModels;
 using TacControl.Views;
@@ -8,6 +8,10 @@ namespace TacControl
 {
     public partial class AppShell : Xamarin.Forms.Shell
     {
+        public bool Connected { get; set; } = false;
+        public bool NotConnected => !Connected;
+
+
         public AppShell()
         {
             InitializeComponent();

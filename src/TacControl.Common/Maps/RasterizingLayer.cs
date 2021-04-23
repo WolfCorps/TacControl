@@ -58,7 +58,7 @@ namespace TacControl.Common.Maps
             _layer = layer;
             Name = layer.Name;
             _renderResolutionMultiplier = renderResolutionMultiplier;
-            _rasterizer = rasterizer;
+            _rasterizer = (rasterizer is Common.Maps.MapRenderer) ? rasterizer : new Common.Maps.MapRenderer(); //rasterizer;
             _cache = new MemoryProvider();
             _overscan = overscanRatio;
             _onlyRerasterizeIfOutsideOverscan = onlyRerasterizeIfOutsideOverscan;

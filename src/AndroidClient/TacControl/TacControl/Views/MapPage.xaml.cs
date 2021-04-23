@@ -248,7 +248,8 @@ namespace TacControl.Views
         {
             if (polyDraw == null) return;
             //MapMarkersLayer.Delayer.MillisecondsToWait = 500;
-            GameState.Instance.marker.CreateMarker(polyDraw);
+            if (polyDraw.polyline.Count > 1)
+                GameState.Instance.marker.CreateMarker(polyDraw);
             var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
             markerProvider?.RemoveMarker(polyDraw.id);
             polyDraw = null;

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:common="clr-namespace:TacControl.Common;assembly=TacControl.Common"
+             x:Class="TacControl.Views.ConnectPage"
+             x:Name="ConnectPageCtrl"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="Black"
+             >
+    <ContentPage.Content>
+        <StackLayout>
+            <Label Text="Please connect to Arma."
+                VerticalOptions="CenterAndExpand" 
+                HorizontalOptions="CenterAndExpand" />
+
+            <ListView
+                ItemsSource="{Binding networking.AvailableEndpoints}"
+                BindingContext="{x:Reference Name=ConnectPageCtrl}"
+                SelectionMode="Single"
+                ItemSelected="ListView_OnItemSelected"
+              >
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="common:TacControlEndpoint">
+                        <ViewCell>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Label Grid.Column="0" Text="{Binding ClientID}"/>
+                                <Label Grid.Column="1" Text="{Binding Address, StringFormat='{0}'}"/>
+
+                            </Grid>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <Button x:Name="ConnectButton" Text="Connect!" Pressed="OnConnectClick" IsEnabled="False"/>
+            <Entry Placeholder="Enter IP/Domain" x:Name="DirectIPTextBox"/>
+
+            <Button Text="Add specific Server" Pressed="OnAddServerClick" >
+                <Button.Style>
+                    <Style TargetType="{x:Type Button}">
+                        <Setter Property="IsEnabled" Value="True"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Text}"
+                                         BindingContext="{x:Reference Name=DirectIPTextBox}"
+                                         TargetType="{x:Type Button}"
+                                         Value="">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+
+            </Button>
+
+
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
