@@ -616,8 +616,22 @@ on_accept(beast::error_code ec, tcp::socket socket)
             shared_from_this()));
 }
 
+#include <boost/asio/ip/host_name.hpp>
+
 UDPBroadcastHost::UDPBroadcastHost(net::io_context& ioc, udp::endpoint endpoint): socket_(ioc, endpoint) {
     doReceive();
+
+    auto hostName = boost::asio::ip::host_name();
+
+#define INFO_BUFFER_SIZE 32767
+    TCHAR  infoBuf[INFO_BUFFER_SIZE];
+    DWORD  bufCharCount = INFO_BUFFER_SIZE;
+
+    // Get and display the user name.
+    if (GetUserNameA(infoBuf, &bufCharCount))
+        hostName += "/" + std::string(infoBuf);
+
+    _clientID = "TC"+hostName;
 }
 
 void UDPBroadcastHost::doReceive() {
@@ -625,8 +639,7 @@ void UDPBroadcastHost::doReceive() {
         boost::asio::buffer(recv_buffer_), remote_endpoint_,
         [this](const boost::system::error_code & error, std::size_t)
         {
-
-            socket_.async_send_to(boost::asio::buffer("y", 1), remote_endpoint_,
+            socket_.async_send_to(boost::asio::buffer(_clientID.data(), _clientID.length()), remote_endpoint_,
                 [](const boost::system::error_code& /*error*/,
                     std::size_t /*bytes_transferred*/)
                 {

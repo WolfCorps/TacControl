@@ -118,6 +118,9 @@
     <Compile Include="MediterranianWidgets\MapMarkerOverview.xaml.cs">
       <DependentUpon>MapMarkerOverview.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MediterranianWidgets\NetworkConnectWidget.xaml.cs">
+      <DependentUpon>NetworkConnectWidget.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MediterranianWidgets\RadioSettings.xaml.cs">
       <DependentUpon>RadioSettings.xaml</DependentUpon>
     </Compile>
@@ -207,6 +210,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="MediterranianWidgets\MapMarkerOverview.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MediterranianWidgets\NetworkConnectWidget.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -190,6 +190,7 @@ class UDPBroadcastHost : public boost::enable_shared_from_this<UDPBroadcastHost>
     udp::socket socket_;
     udp::endpoint remote_endpoint_;
     std::array<char, 1> recv_buffer_;
+    std::string _clientID;
 public:
     UDPBroadcastHost(
         net::io_context& ioc,

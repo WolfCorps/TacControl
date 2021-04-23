@@ -273,6 +273,13 @@ namespace TacControl.Common
 
     //#TODO ^ to use Vector3 and potentially more other types later with JsonPatch
     //Need to get https://github.com/KevinDockx/JsonPatch/blob/adb1ee749f24db67fd3425700e10f46b3fffa590/src/Marvin.JsonPatch/Internal/ObjectVisitor.cs#L48 to return custom adapter
+    public class TacControlEndpoint
+    {
+        public string ClientID { get; set; }
+        public IPEndPoint Address { get; set; }
+        public DateTime LastActvity { get; set; }
+    }
+
 
     [ConfigureAwait(false)]
     public class Networking : INotifyPropertyChanged
@@ -284,6 +291,14 @@ namespace TacControl.Common
         // Currently not able to take a Connect request as we are trying to connect somewhere else
         public bool Busy { get; set; } = false;
         public bool CanConnect => !Busy;
+
+
+        public ObservableCollection<TacControlEndpoint> AvailableEndpoints { get; } = new ObservableCollection<TacControlEndpoint>();
+
+        public delegate void OnConnectedHandler();
+
+        public event OnConnectedHandler OnConnected;
+
 
         private WebSocket socket;
         /// <summary>
@@ -367,8 +382,101 @@ namespace TacControl.Common
             Busy = false;
         }
 
+
+        public void Connect(TacControlEndpoint targetEndpoint)
+        {
+            SentrySdk.AddBreadcrumb($"Direct connecting to {targetEndpoint.Address}");
+            Console.WriteLine($"Networking: Direct connecting to {targetEndpoint.Address}");
+            Busy = true;
+
+            socket = new WebSocket($"ws://{targetEndpoint.Address}/", "", null, null, UserName); // UserAgent==UserName only for TacControl.Server
+
+            //socket.Opened += new EventHandler(websocket_Opened);
+            //socket.Error += new EventHandler<ErrorEventArgs>(websocket_Error);
+            //socket.Closed += new EventHandler(websocket_Closed);
+            socket.MessageReceived += OnMessage;
+            socket.Open();
+            // Assuming specific host == TacControl.Server
+            Busy = false;
+        }
+
+
         public string UserName { get; set; }
 
+        private UdpClient _udpClient;
+        private Timer _beaconTimer;
+
+
+        public void StartUDPSearch()
+        {
+            if (_udpClient != null)
+                return;
+
+            _udpClient = new UdpClient(0);//(8082, AddressFamily.InterNetworkV6
+            _udpClient.EnableBroadcast = true;
+
+            _beaconTimer = new Timer((x) =>
+            {
+                SendUDPBeacon();
+            }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(10));
+
+            _udpClient.ReceiveAsync().ContinueWith(UDPRecv, TaskScheduler.FromCurrentSynchronizationContext());
+        }
+
+        private static IPEndPoint _beaconTarget = new IPEndPoint(IPAddress.Broadcast, 8082);
+
+        public void SendUDPBeacon()
+        {
+            if (_udpClient == null)
+            {
+                StartUDPSearch();
+                return;
+            }
+                
+
+            var RequestData = Encoding.ASCII.GetBytes("R");
+            _udpClient.Send(RequestData, RequestData.Length, _beaconTarget) ; //IPAddress.Broadcast IPAddress.Parse("10.0.0.10")
+
+            Console.WriteLine($"Networking: Sent broadcast Beacon");
+        }
+
+
+        public void StopUDPSearch()
+        {
+            //IPEndPoint end = _beaconTarget;
+            //_udpClient.EndReceive(null, ref end);
+            _beaconTimer.Dispose();
+            _beaconTimer = null;
+            _udpClient.Close();
+            _udpClient = null;
+            AvailableEndpoints.Clear();
+        }
+
+        private async void UDPRecv(Task<UdpReceiveResult> task)
+        {
+            if (_udpClient == null)
+                return;
+            Console.WriteLine($"Networking: Broadcast result from {task.Result.RemoteEndPoint}");
+
+            var receivedData = Encoding.ASCII.GetString(task.Result.Buffer);
+
+            if (receivedData.StartsWith("TC"))
+            {
+                var clientID = receivedData.Substring(2);
+
+                var found = AvailableEndpoints.FirstOrDefault(x => x.ClientID == clientID);
+                if (found != null)
+                {
+                    found.LastActvity = DateTime.Now;
+                }
+                else
+                {
+                    AvailableEndpoints.Add(new TacControlEndpoint{Address = task.Result.RemoteEndPoint, ClientID = clientID, LastActvity = DateTime.Now});
+                }
+            }
+
+            _udpClient.ReceiveAsync().ContinueWith(UDPRecv, TaskScheduler.FromCurrentSynchronizationContext());
+        }
 
         private async Task<UdpReceiveResult> DoUDPBroadcast()
         {
@@ -454,8 +562,9 @@ namespace TacControl.Common
                         GameState.Instance.gps.OnPropertyChanged(nameof(ModuleGPS.trackers));
 
                     }).ConfigureAwait(false);
-                    
                 }
+
+                OnConnected?.Invoke();
             }
 
 
@@ -489,5 +598,6 @@ namespace TacControl.Common
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
     }
 }

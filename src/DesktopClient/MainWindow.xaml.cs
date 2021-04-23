@@ -15,6 +15,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using AvalonDock.Layout.Serialization;
@@ -106,13 +107,24 @@ namespace TacControl
 
             //#TODO allow user to choose, use options dialog and use a default value
             Networking.Instance.UserName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+            Networking.Instance.StartUDPSearch();
 
-            Networking.Instance.Connect().ContinueWith((x) =>
+            Networking.Instance.OnConnected += () =>
             {
-                Console.WriteLine($"MainWindow: Network connection done(?), loading window layout...");
-                WaitingForConnectionLabel.Visibility = Visibility.Hidden;
-                MainWindow_Loaded(this, null);
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+                Networking.Instance.MainThreadInvoke(() =>
+                {
+                    Console.WriteLine($"MainWindow: Network connection done(?), loading window layout...");
+                    WaitingForConnectionLabel.Visibility = Visibility.Hidden;
+                    dockManager.Visibility = Visibility.Visible;
+                    var parent = VisualTreeHelper.GetParent(WaitingForConnectionLabel) as Grid;
+                    parent.Children.Remove(WaitingForConnectionLabel);
+                    MainWindow_Loaded(this, null);
+                    Networking.Instance.StopUDPSearch();
+                });
+
+
+
+            };
 
             var directory = new DirectoryInfo(Path.Combine(Directory.GetCurrentDirectory(), "maps"));
             if (!directory.Exists) directory.Create();
