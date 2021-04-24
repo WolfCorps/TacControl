@@ -211,27 +211,35 @@ namespace TacControl
         }
 
 
-        private RelayCommand _NetworkConnectCommand = null;
-        public ICommand NetworkConnectCommand
+        private RelayCommand _OptionsMenuCommand = null;
+        public ICommand OptionsMenuCommand
         {
             get
             {
-                if (_NetworkConnectCommand == null)
+                if (_OptionsMenuCommand == null)
                 {
-                    _NetworkConnectCommand = new RelayCommand((p) =>
+                    _OptionsMenuCommand = new RelayCommand((p) =>
                     {
-                        var win = new DialogNetworkDirectConnect();
+                        var win = new DialogOptions();
                         win.Show();
 
-                    }, (p) => true);
+                    }, (p) => !MainWindow.IsWindowOpen<DialogOptions>());
                 }
 
-                return _NetworkConnectCommand;
+                return _OptionsMenuCommand;
             }
         }
 
 
+
         
+
+
+
+
+
+
+
         public List<Tuple<string, Theme>> Themes { get; set; }
 
         public Tuple<string, Theme> SelectedTheme

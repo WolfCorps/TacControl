@@ -1,5 +1,6 @@
 using System;
 using System.CodeDom;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -22,6 +23,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Sentry;
 using TacControl.Common.Annotations;
+using TacControl.Common.Config;
 using TacControl.Common.Modules;
 using WebSocket4Net;
 using ErrorEventArgs = SuperSocket.ClientEngine.ErrorEventArgs;
@@ -277,6 +279,8 @@ namespace TacControl.Common
     {
         public string ClientID { get; set; }
         public IPEndPoint Address { get; set; }
+
+        [ConfigNoSerialize]
         public DateTime LastActvity { get; set; }
     }
 
@@ -421,6 +425,13 @@ namespace TacControl.Common
             }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(10));
 
             _udpClient.ReceiveAsync().ContinueWith(UDPRecv, TaskScheduler.FromCurrentSynchronizationContext());
+
+            foreach (var tacControlEndpoint in AppConfig.Instance.GetEntry<IEnumerable<TacControlEndpoint>>("Networking.DirectEndpoints"))
+            {
+                AvailableEndpoints.Add(tacControlEndpoint);
+            }
+
+
         }
 
         private static IPEndPoint _beaconTarget = new IPEndPoint(IPAddress.Broadcast, 8082);

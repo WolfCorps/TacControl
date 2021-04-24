@@ -24,19 +24,24 @@
         <WrapPanel Margin="5">
             <Menu VerticalAlignment="Center">
                 <MenuItem Header="File">
+                    
+                    <MenuItem Command="{Binding ExportMarkersCommand}" Header="Export Markers" />
+                    <MenuItem Command="{Binding ImportMarkersCommand}" Header="Import Markers" />
+                    <!-- <MenuItem Command="{Binding NetworkConnectCommand}" Header="Connect to Server directly" IsEnabled="{Binding Source={StaticResource networking}, Path=Instance.CanConnect}"/> -->
+                </MenuItem>
+                <MenuItem Header="Layout">
                     <MenuItem Command="{Binding NewTacMapCommand}" Header="TacMap" />
                     <MenuItem Command="{Binding NewTacRadioCommand}" Header="TacRadio" />
                     <MenuItem Command="{Binding NewTacVecCommand}" Header="TacVec" />
                     <MenuItem Command="{Binding NewTacNoteCommand}" Header="TacNote" />
                     <MenuItem Command="{Binding NewTacRadioPropertiesCommand}" Header="TacRadioSettings" />
                     <MenuItem Command="{Binding NewTacExplosivesCommand}" Header="TacExplosives" />
-                    <MenuItem Command="{Binding ExportMarkersCommand}" Header="Export Markers" />
-                    <MenuItem Command="{Binding ImportMarkersCommand}" Header="Import Markers" />
-                    <!-- <MenuItem Command="{Binding NetworkConnectCommand}" Header="Connect to Server directly" IsEnabled="{Binding Source={StaticResource networking}, Path=Instance.CanConnect}"/> -->
+                    <Separator/>
+                    <MenuItem Command="{Binding LoadLayoutCommand, ElementName=MainWindowCtrl}" Header="Load Layout" />
+                    <MenuItem Command="{Binding SaveLayoutCommand, ElementName=MainWindowCtrl}" Header="Save Layout" />
                 </MenuItem>
-                <MenuItem Header="Layout">
-                    <MenuItem Command="{Binding LoadLayoutCommand, ElementName=MainWindowCtrl}" Header="Load" />
-                    <MenuItem Command="{Binding SaveLayoutCommand, ElementName=MainWindowCtrl}" Header="Save" />
+                <MenuItem Header="Options">
+                    <MenuItem Command="{Binding OptionsMenuCommand}" Header="Options" />
                 </MenuItem>
             </Menu>
             <ComboBox

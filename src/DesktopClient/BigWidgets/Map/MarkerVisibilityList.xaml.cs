@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TacControl.Common.Maps;
+using TacControl.Common.Modules;
 using TacControl.TinyWidgets;
 
 namespace TacControl.BigWidgets.Map
@@ -23,6 +24,9 @@ namespace TacControl.BigWidgets.Map
     public partial class MarkerVisibilityList : UserControl
     {
         private MarkerVisibilityManager _manager;
+
+        public Action<MarkerChannel> OnCurrentChannelSelected;
+
 
         public MarkerVisibilityList()
         {
@@ -46,6 +50,9 @@ namespace TacControl.BigWidgets.Map
             {
                 var item = new MarkerVisibilityElement { Title = name };
 
+                if (channelid == 0)
+                    item.IsCurrent = true;
+
                 item.OnSoloChanged += () =>
                 {
                     _manager.SetChannelSolo(channelid, item.IsSolo);
@@ -54,6 +61,20 @@ namespace TacControl.BigWidgets.Map
                 {
                     _manager.SetChannelIgnore(channelid, item.IsIgnore);
                 };
+
+                item.OnCurrentChanged += () =>
+                {
+                    if (item.IsCurrent)
+                    {
+                        OnCurrentChannelSelected?.Invoke((MarkerChannel)channelid);
+                    }
+                    foreach (MarkerVisibilityElement itemsChild in Items.Children)
+                    {
+                        if (itemsChild != item)
+                            itemsChild.IsCurrent = false;
+                    }
+                };
+
 
                 Items.Children.Add(item);
             }

@@ -152,10 +152,16 @@ namespace TacControl
 
             LayerList.AddWidget("Grid", gridWidget);
             MarkerVisibilityList.Initialize(MarkerVisibilityManager);
-            //MapControl.ZoomToBox(new Point(0, 0), new Point(8192, 8192));
-            //MapControl.Navigator.ZoomTo(6);
 
             var markerProvider = MapMarkersLayer.DataSource as MapMarkerProvider;
+
+            MarkerVisibilityList.OnCurrentChannelSelected += (x) =>
+            {
+                DefaultMarkerChannel = x;
+                markerProvider.SetForegroundChannel(DefaultMarkerChannel);
+            };
+            markerProvider.SetForegroundChannel(DefaultMarkerChannel);
+
             MarkerCreate.OnChannelChanged += (oldID) =>
             {
                 markerProvider?.RemoveMarker(oldID);
@@ -174,6 +180,11 @@ namespace TacControl
         }
 
         public string DefaultMarkerColor { get; set; }
+        public MarkerChannel DefaultMarkerChannel { get; set; } = MarkerChannel.Global; // Default also has to be set in MarkerVisibilityList
+        //#TODO make config option
+
+
+
 
         private void MapView_OnLoaded(object sender, RoutedEventArgs e)
         {
@@ -386,8 +397,6 @@ namespace TacControl
                 var conv = new MarkerColorStringConverter();
                 DefaultMarkerColor = conv.Convert(cmbColors.SelectedItem as MarkerColor, typeof(string), null, null) as string;
             };
-
-
         }
 
 
@@ -473,7 +482,7 @@ namespace TacControl
                 polyDraw = new ActiveMarker
                 {
                     id = GameState.Instance.marker.GenerateMarkerName(MarkerChannel.Global),
-                    channel = 0,
+                    channel = (int)DefaultMarkerChannel,
                     color = DefaultMarkerColor,
                     type = "hd_dot",
                     shape = "POLYLINE",

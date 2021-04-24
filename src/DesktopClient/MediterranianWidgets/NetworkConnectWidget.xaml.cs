@@ -65,6 +65,10 @@ namespace TacControl.MediterranianWidgets
                 //#TODO only add if doesn't exist yet
                 var newEndpoint = new TacControlEndpoint { Address = new IPEndPoint(addr, 8082), ClientID = hostName, LastActvity = DateTime.Now };
                 networking.AvailableEndpoints.Add(newEndpoint);
+
+                // also add to config
+                AppConfig.Instance.GetEntry<ICollection<TacControlEndpoint>>("Networking.DirectEndpoints").Add(newEndpoint);
+
             }
             catch (System.Net.Sockets.SocketException)
             {

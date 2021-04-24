@@ -9,12 +9,14 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="40"/>
+            <ColumnDefinition Width="50"/>
+            <ColumnDefinition Width="30"/>
         </Grid.ColumnDefinitions>
 
         <Label Grid.Column="0" Content="{Binding Title, ElementName=MarkerVisibilityElementCtrl}"/>
         <Button Grid.Column="1" Content="Solo" Background="{Binding SoloColor, ElementName=MarkerVisibilityElementCtrl}" Name="SoloButton"  Click="SoloButton_OnClick"/>
         <Button Grid.Column="2" Content="Ignore" Background="{Binding IgnoreColor, ElementName=MarkerVisibilityElementCtrl}" Name="IgnoreButton"  Click="IgnoreButton_OnClick"/>
+        <Button Grid.Column="3" Content="CUR" Background="{Binding CurColor, ElementName=MarkerVisibilityElementCtrl}" Name="CurChannelButton"  Click="CurChannelButton_OnClick"/>
     </Grid>
 </UserControl>

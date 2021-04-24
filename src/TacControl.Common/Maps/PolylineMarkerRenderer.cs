@@ -30,7 +30,7 @@ namespace TacControl.Common.Maps
             //#TODO store paint with shader in the style
             using (SKPaint paint = new SKPaint())
             {
-                paint.Color = style.color;
+                paint.Color = style.color.WithAlpha((byte)(style.Opacity*255));
                 paint.StrokeWidth = 3f * (float)viewport.Resolution;
                 paint.Style = SKPaintStyle.Stroke;
                 paint.IsAntialias = true;

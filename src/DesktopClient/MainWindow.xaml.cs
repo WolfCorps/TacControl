@@ -21,7 +21,9 @@ using System.Windows.Navigation;
 using AvalonDock.Layout.Serialization;
 using Sentry.Protocol;
 using TacControl.Common;
+using TacControl.Common.Config;
 using TacControl.Common.Modules;
+using TacControl.Misc;
 using Path = System.IO.Path;
 using PixelFormat = System.Windows.Media.PixelFormat;
 using Rectangle = System.Windows.Shapes.Rectangle;
@@ -134,6 +136,7 @@ namespace TacControl
 
         private void LoadLayout(string path)
         {
+
             var layoutSerializer = new XmlLayoutSerializer(dockManager);
 
             // Here I've implemented the LayoutSerializationCallback just to show
@@ -153,14 +156,42 @@ namespace TacControl
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            if (File.Exists(@".\AvalonDock.config"))
-                LoadLayout(@".\AvalonDock.config");
+            if (File.Exists(Path.Combine(AppConfig.Instance.ConfigDirectory, "AvalonDock.config")))
+                LoadLayout(Path.Combine(AppConfig.Instance.ConfigDirectory, "AvalonDock.config"));
+            else
+                LoadDefaultLayout();
+        }
+
+        private void LoadDefaultLayout()
+        {
+            File.WriteAllText(Path.Combine(AppConfig.Instance.ConfigDirectory, "AvalonDock.config"), @"<?xml version=""1.0"" encoding=""utf-8""?>
+<LayoutRoot>
+  <RootPanel Orientation=""Horizontal"">
+    <LayoutAnchorablePane DockWidth=""1.54856115107914*"" FloatingWidth=""1128"" FloatingHeight=""657"" FloatingLeft=""205"" FloatingTop=""608"">
+      <LayoutAnchorable AutoHideMinWidth=""100"" AutoHideMinHeight=""100"" Title=""TacControl.MapView"" IsSelected=""True"" ContentId=""TacControl.MapView"" FloatingLeft=""205"" FloatingTop=""608"" FloatingWidth=""1128"" FloatingHeight=""657"" CanClose=""True"" LastActivationTimeStamp=""04/24/2021 16:28:21"" PreviousContainerId=""8334c561-83ba-42e7-b6f0-d85ecdd928d3"" PreviousContainerIndex=""3"" />
+    </LayoutAnchorablePane>
+    <LayoutAnchorablePane Id=""8334c561-83ba-42e7-b6f0-d85ecdd928d3"" Name=""ToolsPane"" DockWidth=""0.451438848920863*"">
+      <LayoutAnchorable AutoHideMinWidth=""100"" AutoHideMinHeight=""100"" Title=""TacControl.RadioWidget"" IsSelected=""True"" ContentId=""TacControl.RadioWidget"" CanClose=""True"" LastActivationTimeStamp=""04/24/2021 16:28:24"" />
+      <LayoutAnchorable AutoHideMinWidth=""100"" AutoHideMinHeight=""100"" Title=""TacControl.BigWidgets.RadioSettingsList"" ContentId=""TacControl.BigWidgets.RadioSettingsList"" CanClose=""True"" />
+      <LayoutAnchorable AutoHideMinWidth=""100"" AutoHideMinHeight=""100"" Title=""TacControl.MediterranianWidgets.ACEExplosives"" ContentId=""TacControl.MediterranianWidgets.ACEExplosives"" CanClose=""True"" />
+    </LayoutAnchorablePane>
+  </RootPanel>
+  <TopSide />
+  <RightSide />
+  <LeftSide />
+  <BottomSide />
+  <FloatingWindows />
+  <Hidden />
+</LayoutRoot>"
+            );
+
+            LoadLayout(Path.Combine(AppConfig.Instance.ConfigDirectory, "AvalonDock.config"));
         }
 
         private void MainWindow_Unloaded(object sender, RoutedEventArgs e)
         {
-            var serializer = new AvalonDock.Layout.Serialization.XmlLayoutSerializer(dockManager);
-            serializer.Serialize(@".\AvalonDock.config");
+            var serializer = new XmlLayoutSerializer(dockManager);
+            serializer.Serialize(Path.Combine(AppConfig.Instance.ConfigDirectory, "AvalonDock.config"));
         }
 
 
@@ -183,12 +214,12 @@ namespace TacControl
 
         private bool CanLoadLayout()
         {
-            return File.Exists(@".\AvalonDock.Layout.config");
+            return File.Exists(Path.Combine(AppConfig.Instance.ConfigDirectory, "AvalonDock.Layout.config"));
         }
 
         private void OnLoadLayout()
         {
-            LoadLayout(@".\AvalonDock.Layout.config");
+            LoadLayout(Path.Combine(AppConfig.Instance.ConfigDirectory, "AvalonDock.Layout.config"));
         }
 
         #endregion LoadLayoutCommand
@@ -218,7 +249,7 @@ namespace TacControl
         private void OnSaveLayout()
         {
             var layoutSerializer = new XmlLayoutSerializer(dockManager);
-            layoutSerializer.Serialize(@".\AvalonDock.Layout.config");
+            layoutSerializer.Serialize(Path.Combine(AppConfig.Instance.ConfigDirectory, "AvalonDock.Layout.config"));
         }
 
         #endregion SaveLayoutCommand

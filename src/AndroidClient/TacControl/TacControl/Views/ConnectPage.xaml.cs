@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using TacControl.Common;
+using TacControl.Common.Config;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -46,6 +47,9 @@ namespace TacControl.Views
                 //#TODO only add if doesn't exist yet
                 var newEndpoint = new TacControlEndpoint { Address = new IPEndPoint(addr, 8082), ClientID = hostName, LastActvity = DateTime.Now };
                 networking.AvailableEndpoints.Add(newEndpoint);
+
+                // also add to config
+                AppConfig.Instance.GetEntry<ICollection<TacControlEndpoint>>("Networking.DirectEndpoints").Add(newEndpoint);
             }
             catch (System.Net.Sockets.SocketException)
             {

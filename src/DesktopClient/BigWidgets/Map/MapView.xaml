@@ -75,7 +75,7 @@
 
         <!--<Button Margin="0,0,727,433" Click="ButtonBase_OnClick" /> -->
 
-        <DockPanel HorizontalAlignment="Right" VerticalAlignment="Top" LastChildFill="False">
+        <DockPanel HorizontalAlignment="Right" VerticalAlignment="Top" LastChildFill="False" Margin="0,15,0,0">
             <local:LayerList x:Name="LayerList"/>
             <map:MarkerVisibilityList x:Name="MarkerVisibilityList" />
 
@@ -94,9 +94,6 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
-
-
-
         </DockPanel>
 
         <Popup Name="GPSEditPopup">

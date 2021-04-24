@@ -112,6 +112,9 @@
     <Compile Include="Dialogs\DialogNetworkDirectConnect.xaml.cs">
       <DependentUpon>DialogNetworkDirectConnect.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\DialogOptions.xaml.cs">
+      <DependentUpon>DialogOptions.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MediterranianWidgets\ACEExplosives.xaml.cs">
       <DependentUpon>ACEExplosives.xaml</DependentUpon>
     </Compile>
@@ -146,6 +149,7 @@
     <Compile Include="DockFramework\PanesStyleSelector.cs" />
     <Compile Include="DockFramework\PanesTemplateSelector.cs" />
     <Compile Include="DockViewModels\PaneViewModel.cs" />
+    <Compile Include="Misc\JsonLayoutSerializer.cs" />
     <Compile Include="Misc\MapControl.cs" />
     <Compile Include="Misc\SKElement.cs" />
     <Compile Include="Misc\SKGLWpfControl.cs" />
@@ -202,6 +206,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Dialogs\DialogNetworkDirectConnect.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\DialogOptions.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

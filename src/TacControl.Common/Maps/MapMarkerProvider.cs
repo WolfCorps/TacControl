@@ -10,6 +10,9 @@ using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Styles;
 using SkiaSharp;
+using Svg;
+using TacControl.Common.Config;
+using TacControl.Common.Config.Section;
 using TacControl.Common.Modules;
 
 namespace TacControl.Common.Maps
@@ -19,6 +22,7 @@ namespace TacControl.Common.Maps
     {
         public ActiveMarker marker { get; private set; }
         private MarkerColor markerColor;
+        private float opacityCoef = 1f;
 
         public event DataChangedEventHandler DataChanged;
 
@@ -208,7 +212,7 @@ namespace TacControl.Common.Maps
                 MarkerIconStyle iconStyle = (MarkerIconStyle)Styles.First(x => x is MarkerIconStyle);
                 if (iconStyle == null) return;
 
-                iconStyle.Opacity = marker.alpha;
+                iconStyle.Opacity = marker.alpha * opacityCoef;
                 DataHasChanged();
             }
         }
@@ -287,12 +291,40 @@ namespace TacControl.Common.Maps
                 TiledBitmapStyle iconStyle = (TiledBitmapStyle)Styles.First(x => x is TiledBitmapStyle);
                 if (iconStyle == null) return;
 
-                iconStyle.Opacity = marker.alpha;
+                iconStyle.Opacity = marker.alpha * opacityCoef;
                 DataHasChanged();
             }
         }
 
+        public void SetOpacityCoef(float coef)
+        {
+            if (coef == opacityCoef)
+                return;
+            opacityCoef = coef;
 
+            //#TODO store ref to the style in a var
+            MarkerIconStyle iconStyle = (MarkerIconStyle)Styles.FirstOrDefault(x => x is MarkerIconStyle);
+            if (iconStyle != null)
+            {
+                iconStyle.Opacity = marker.alpha * opacityCoef;
+            }
+
+
+            TiledBitmapStyle TiconStyle = (TiledBitmapStyle)Styles.FirstOrDefault(x => x is TiledBitmapStyle);
+            if (TiconStyle != null)
+            {
+                TiconStyle.Opacity = marker.alpha * opacityCoef;
+            }
+
+            var PiconStyle = (PolylineMarkerStyle)Styles.FirstOrDefault(x => x is PolylineMarkerStyle);
+            if (PiconStyle != null)
+            {
+                PiconStyle.Opacity = marker.alpha * opacityCoef;
+            }
+
+
+            DataHasChanged();
+        }
 
         private void DataHasChanged()
         {
@@ -305,6 +337,7 @@ namespace TacControl.Common.Maps
         private BoundingBox _boundingBox;
         private readonly IMarkerVisibilityManager _visibilityManager;
         private readonly ModuleMarker _makerModule;
+        private MarkerChannel foregroundChannel = MarkerChannel.None;
 
         public string CRS { get; set; } = "";
 
@@ -333,6 +366,12 @@ namespace TacControl.Common.Maps
             _visibilityManager.OnUpdated += () =>
             {
                 MapMarkerLayer.DataHasChanged();
+            };
+
+            AppConfig.Instance.GetSection<Map>("Map").PropertyChanged += (x, y) =>
+            {
+                if (y.PropertyName == nameof(Map.TransparentOffchannelMarkers))
+                    UpdateForegroundChannelTransparency();
             };
 
 
@@ -370,6 +409,35 @@ namespace TacControl.Common.Maps
 
             OnMarkersUpdated();
         }
+
+        public void SetForegroundChannel(MarkerChannel markerChannel)
+        {
+            foregroundChannel = markerChannel;
+
+            UpdateForegroundChannelTransparency();
+        }
+
+        private void UpdateForegroundChannelTransparency()
+        {
+            if (AppConfig.Instance.GetEntry<bool>($"Map.{nameof(Map.TransparentOffchannelMarkers)}"))
+            {
+                foreach(var markerFeature in features.Values.OfType<MarkerFeature>())
+                {
+                    markerFeature.SetOpacityCoef((markerFeature.marker.channel != (int)foregroundChannel) ? 0.5f : 1f);
+                }
+                MapMarkerLayer.DataHasChanged();
+            }
+            else
+            {
+                foreach (var markerFeature in features.Values.OfType<MarkerFeature>())
+                {
+                    markerFeature.SetOpacityCoef(1f);
+                }
+            }
+        }
+
+
+
 
         private void OnMarkersUpdated()
         {

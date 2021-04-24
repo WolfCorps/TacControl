@@ -27,14 +27,16 @@ namespace TacControl.TinyWidgets
 
         public Action OnSoloChanged { get; set; }
         public Action OnIgnoreChanged { get; set; }
+        public Action OnCurrentChanged { get; set; }
 
         public string Title { get; set; }
         public bool IsSolo { get; set; }
         public bool IsIgnore { get; set; }
+        public bool IsCurrent { get; set; }
 
         public Brush SoloColor => IsSolo ? new SolidColorBrush(Colors.LimeGreen) : new SolidColorBrush(Colors.DarkGreen);
         public Brush IgnoreColor => IsIgnore ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.DarkRed);
-
+        public Brush CurColor => IsCurrent ? new SolidColorBrush(Colors.Khaki) : new SolidColorBrush(Colors.DarkKhaki);
 
         private void SoloButton_OnClick(object sender, RoutedEventArgs e)
         {
@@ -70,6 +72,13 @@ namespace TacControl.TinyWidgets
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void CurChannelButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            IsCurrent = true;
+            OnCurrentChanged?.Invoke();
+            OnPropertyChanged(nameof(IsCurrent));
         }
     }
 }
