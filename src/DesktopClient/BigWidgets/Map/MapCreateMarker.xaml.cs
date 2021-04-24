@@ -137,7 +137,16 @@ namespace TacControl
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             if (value is string typeName)
+            {
+                if (!GameState.Instance.marker.markerColors.ContainsKey(typeName))
+                {
+                    SentrySdk.CaptureException(new KeyNotFoundException($"marker color {typeName} not found"));
+                    return GameState.Instance.marker.markerColors.FirstOrDefault();
+                }
+
                 return GameState.Instance.marker.markerColors[typeName];
+            }
+                
             if (value is MarkerColor type)
                 return GameState.Instance.marker.markerColors.First(x => x.Value == type).Key; //#TODO store id in markerType
 
