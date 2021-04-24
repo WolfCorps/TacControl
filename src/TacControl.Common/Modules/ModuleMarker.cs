@@ -71,15 +71,29 @@ namespace TacControl.Common.Modules
             CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
             ci.NumberFormat.NumberDecimalSeparator = ".";
 
-            var colorArr = color.Trim('[', ']').Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToList();
 
-            if (colorArr.Count != 4)
+            try
             {
-                SentrySdk.CaptureException(new System.ArgumentOutOfRangeException(%"Marker color {color} doesn't have 4 elements!"));
+
+                var colorArr = color.Trim('[', ']').Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci))
+                    .ToList();
+
+                if (colorArr.Count != 4)
+                {
+                    SentrySdk.CaptureException(new System.ArgumentOutOfRangeException($"Marker color {color} doesn't have 4 elements!"));
+                    return SKColors.Black;
+                }
+
+                return new SKColor((byte) (colorArr[0] * 255), (byte) (colorArr[1] * 255), (byte) (colorArr[2] * 255),
+                    (byte) (colorArr[3] * 255));
+
+            }
+            catch (System.FormatException ex)
+            {
+                SentrySdk.AddBreadcrumb($"color = {color}");
+                SentrySdk.CaptureException(ex);
                 return SKColors.Black;
             }
-
-            return new SKColor((byte)(colorArr[0] * 255), (byte)(colorArr[1] * 255), (byte)(colorArr[2] * 255), (byte)(colorArr[3] * 255));
         }
 
         public Mapsui.Styles.Color ToMapsuiColor()
