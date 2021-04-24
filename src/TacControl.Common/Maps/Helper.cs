@@ -109,6 +109,8 @@ namespace TacControl.Common.Maps
         {
             string wantedDirectory = Path.Combine(AppConfig.Instance.ConfigDirectory, "maps");
 
+            System.IO.Directory.CreateDirectory(wantedDirectory);
+
             foreach (FileInfo file in new DirectoryInfo(wantedDirectory).GetFiles().ToList())
             {
                 // https://github.com/svg-net/SVG/issues/861

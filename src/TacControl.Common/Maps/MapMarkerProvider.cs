@@ -51,8 +51,7 @@ namespace TacControl.Common.Maps
                 var markerType = GameState.Instance.marker.markerTypes[marker.type];
 
                 if (marker.color == "Default")
-                    markerColor = new MarkerColor
-                    { color = markerType.color, name = markerType.name };
+                    markerColor = new MarkerColor { color = markerType.color, name = markerType.name };
 
                 try
                 {
