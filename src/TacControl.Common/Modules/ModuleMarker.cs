@@ -16,6 +16,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Mapsui.Styles;
 using Newtonsoft.Json;
+using Sentry;
 using SkiaSharp;
 
 namespace TacControl.Common.Modules
@@ -71,6 +72,12 @@ namespace TacControl.Common.Modules
             ci.NumberFormat.NumberDecimalSeparator = ".";
 
             var colorArr = color.Trim('[', ']').Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToList();
+
+            if (colorArr.Count != 4)
+            {
+                SentrySdk.CaptureException(new System.ArgumentOutOfRangeException(%"Marker color {color} doesn't have 4 elements!"));
+                return SKColors.Black;
+            }
 
             return new SKColor((byte)(colorArr[0] * 255), (byte)(colorArr[1] * 255), (byte)(colorArr[2] * 255), (byte)(colorArr[3] * 255));
         }
