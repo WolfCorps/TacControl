@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using TacControl.Common.Config;
 using TacControl.Common.Modules;
 
 namespace TacControl.Common.Maps
@@ -106,20 +107,7 @@ namespace TacControl.Common.Maps
 
         public static async Task<List<SvgLayer>> ParseLayers()
         {
-
-            string wantedDirectory = Path.Combine(Directory.GetCurrentDirectory(), "maps");
-            if (System.Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                //wantedDirectory = Path.Combine(Directory.GetCurrentDirectory(), "maps");
-            }
-            else if (System.Environment.OSVersion.Platform == PlatformID.Unix) //Android
-            {
-                wantedDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
-            }
-
-            //GameState.Instance.gameInfo.worldName = "takistan";
-
-
+            string wantedDirectory = Path.Combine(AppConfig.Instance.ConfigDirectory, "maps");
 
             foreach (FileInfo file in new DirectoryInfo(wantedDirectory).GetFiles().ToList())
             {
