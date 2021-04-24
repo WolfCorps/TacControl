@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TacControl.Common;
+using TacControl.Common.Config;
 
 namespace TacControl.MediterranianWidgets
 {
@@ -51,13 +52,27 @@ namespace TacControl.MediterranianWidgets
 
         private void OnAddServerClick(object sender, RoutedEventArgs e)
         {
+            var hostName = DirectIPTextBox.Text;
+            DirectIPTextBox.Text = "";
 
-            var host = System.Net.Dns.GetHostEntry(DirectIPTextBox.Text);
-            var addr = host.AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
-            if (addr == null) return;
+            try
+            {
+                var host = System.Net.Dns.GetHostEntry(hostName);
+                var addr = host.AddressList.FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
+                if (addr == null) return;
 
-            //#TODO let user provide port with :
-            networking.AvailableEndpoints.Add(new TacControlEndpoint{Address = new IPEndPoint(addr, 8082), ClientID = DirectIPTextBox.Text, LastActvity = DateTime.Now});
+                //#TODO let user provide port with :
+                //#TODO only add if doesn't exist yet
+                var newEndpoint = new TacControlEndpoint { Address = new IPEndPoint(addr, 8082), ClientID = hostName, LastActvity = DateTime.Now };
+                networking.AvailableEndpoints.Add(newEndpoint);
+            }
+            catch (System.Net.Sockets.SocketException)
+            {
+                // throws exception if "could not resolve host"
+                return;
+            }
+            
+
         }
     }
 }
