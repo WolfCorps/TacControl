@@ -55,6 +55,9 @@ namespace TacControl.MediterranianWidgets
             var hostName = DirectIPTextBox.Text;
             DirectIPTextBox.Text = "";
 
+            if (string.IsNullOrEmpty(hostName))
+                return;
+
             try
             {
                 var host = System.Net.Dns.GetHostEntry(hostName);
