@@ -28,10 +28,33 @@ namespace TacControl
         [System.Diagnostics.DebuggerNonUserCodeAttribute()]
         public static void Main()
         {
+            int width = 0;
+            try
+            {
+                
+                while (width < 160)
+                {
+                    System.Console.SetWindowSize(++width, 1);
+                }
+            } catch (System.ArgumentOutOfRangeException)
+            {
+                width--;
+            }
 
+            try
+            {
+                int height = 0;
+                while (height < 80)
+                {
+                    System.Console.SetWindowSize(width, ++height);
+                }
+            }
+            catch (System.ArgumentOutOfRangeException)
+            {
 
-            System.Console.SetWindowSize(160, 60);
-            System.Console.SetBufferSize(160, Int16.MaxValue-1);
+            }
+
+            System.Console.SetBufferSize(width, Int16.MaxValue-1);
 
             //https://stackoverflow.com/questions/1600962/displaying-the-build-date
             
