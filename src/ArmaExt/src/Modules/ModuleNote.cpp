@@ -15,7 +15,7 @@ void ModuleNote::OnGameMessage(const std::vector<std::string_view>& function,
                                const std::vector<std::string_view>& arguments) {}
 
 void ModuleNote::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments,
-    const std::function<void(std::string_view)>& replyFunc) {
+    const std::function<void(ReplyMessageType)>& replyFunc) {
 
     if (function.front() == "Create") {
         Note newNote;

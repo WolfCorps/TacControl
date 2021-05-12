@@ -1,6 +1,7 @@
 #pragma once
 #include <span>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 #include "nlohmann/json.hpp"
@@ -8,6 +9,8 @@
 using namespace std::string_view_literals;
 
 class JsonArchive;
+
+using ReplyMessageType = std::variant<std::string_view, const std::reference_wrapper<nlohmann::json>>;
 
 class IModule {
 public:
@@ -22,7 +25,7 @@ public:
     virtual ~IMessageReceiver() = default;
     virtual void OnGameMessage(const std::vector<std::string_view>& function, const std::vector<std::string_view>& arguments) {}
     virtual bool IsReceiveGameMessageAsync() const { return true; }
-    virtual void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {}
+    virtual void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(ReplyMessageType)>& replyFunc) {}
     virtual std::string_view GetMessageReceiverName() = 0;
 };
 

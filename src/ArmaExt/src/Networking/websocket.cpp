@@ -26,9 +26,7 @@ join(websocket_session* session)
     stateUpdate["cmd"] = "StateFull";
     stateUpdate["data"] = *session->lastState;
 
-    auto const ss = boost::make_shared<std::string const>(std::move(stateUpdate.dump()));
-
-    session->send(ss);
+    session->send(stateUpdate);
 }
 
 void
@@ -39,31 +37,32 @@ leave(websocket_session* session)
     sessions_.erase(session);
 }
 
+//#TODO add proper json support to send commands
 // Broadcast a message to all websocket client sessions
-void
-shared_state::
-send(std::string message)
-{
-    // Put the message in a shared pointer so we can re-use it for each client
-    auto const ss = boost::make_shared<std::string const>(std::move(message));
-
-    // Make a local list of all the weak pointers representing
-    // the sessions, so we can do the actual sending without
-    // holding the mutex:
-    std::vector<boost::weak_ptr<websocket_session>> v;
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        v.reserve(sessions_.size());
-        for (auto p : sessions_)
-            v.emplace_back(p->weak_from_this());
-    }
-
-    // For each session in our local list, try to acquire a strong
-    // pointer. If successful, then send the message on that session.
-    for (auto const& wp : v)
-        if (auto sp = wp.lock())
-            sp->send(ss);
-}
+//void
+//shared_state::
+//send(std::string message)
+//{
+//    // Put the message in a shared pointer so we can re-use it for each client
+//    auto const ss = boost::make_shared<websocket_session::MessageType>(std::move(message));
+//
+//    // Make a local list of all the weak pointers representing
+//    // the sessions, so we can do the actual sending without
+//    // holding the mutex:
+//    std::vector<boost::weak_ptr<websocket_session>> v;
+//    {
+//        std::lock_guard<std::mutex> lock(mutex_);
+//        v.reserve(sessions_.size());
+//        for (auto p : sessions_)
+//            v.emplace_back(p->weak_from_this());
+//    }
+//
+//    // For each session in our local list, try to acquire a strong
+//    // pointer. If successful, then send the message on that session.
+//    for (auto const& wp : v)
+//        if (auto sp = wp.lock())
+//            sp->send(ss);
+//}
 
 void shared_state::updateState(const nlohmann::json&& newState)
 {
@@ -94,9 +93,7 @@ void shared_state::updateState(const nlohmann::json&& newState)
             stateUpdate["cmd"] = "StateUpdate";
             stateUpdate["data"] = std::move(diff);
 
-            auto const ss = boost::make_shared<std::string const>(std::move(stateUpdate.dump()));
-
-            sp->send(ss);
+            sp->send(stateUpdate);           
         }
 
 }
@@ -474,7 +471,7 @@ on_read(beast::error_code ec, std::size_t)
 
 void
 websocket_session::
-send(boost::shared_ptr<std::string const> const& ss)
+send(boost::shared_ptr<websocket_session::MessageType> const& ss)
 {
     // Post our work to the strand, this ensures
     // that the members of `this` will not be
@@ -488,9 +485,39 @@ send(boost::shared_ptr<std::string const> const& ss)
             ss));
 }
 
+
+inline void websocket_session::send(const nlohmann::json& jsonMessage) {
+
+    switch (jsonType) {
+
+    case websocket_session::JsonType::plainText: {
+        auto const ss = boost::make_shared<websocket_session::MessageType>(jsonMessage.dump());
+        send(ss);
+    } break;
+    case websocket_session::JsonType::BSON: {
+        auto const ss = boost::make_shared<websocket_session::MessageType>(nlohmann::json::to_bson(jsonMessage));
+        send(ss);
+    } break;
+    case websocket_session::JsonType::CBOR: {
+        auto const ss = boost::make_shared<websocket_session::MessageType>(nlohmann::json::to_cbor(jsonMessage));
+        send(ss);
+    } break;
+    case websocket_session::JsonType::MsgPack: {
+        auto const ss = boost::make_shared<websocket_session::MessageType>(nlohmann::json::to_msgpack(jsonMessage));
+        send(ss);
+    } break;
+    case websocket_session::JsonType::UBJSON: {
+        auto const ss = boost::make_shared<websocket_session::MessageType>(nlohmann::json::to_ubjson(jsonMessage));
+        send(ss);
+    } break;
+    default:;
+    }
+
+}
+
 void
 websocket_session::
-on_send(boost::shared_ptr<std::string const> const& ss)
+on_send(boost::shared_ptr<websocket_session::MessageType> const& ss)
 {
     // Always add to queue
     queue_.push_back(ss);
@@ -500,11 +527,20 @@ on_send(boost::shared_ptr<std::string const> const& ss)
         return;
 
     // We are not currently writing, so send this immediately
-    ws_.async_write(
-        net::buffer(*queue_.front()),
-        beast::bind_front_handler(
-            &websocket_session::on_write,
-            shared_from_this()));
+    if (queue_.front()->index() == 0) { // string    
+        ws_.async_write(
+            net::buffer(std::get<const std::string>(*queue_.front())),
+            beast::bind_front_handler(
+                &websocket_session::on_write,
+                shared_from_this()));
+    } else {
+        ws_.binary(true);
+        ws_.async_write(
+            net::buffer(std::get<const std::vector<uint8_t>>(*queue_.front())),
+            beast::bind_front_handler(
+                &websocket_session::on_write,
+                shared_from_this()));
+    }
 }
 
 void
@@ -517,14 +553,25 @@ on_write(beast::error_code ec, std::size_t)
 
     // Remove the string from the queue
     queue_.erase(queue_.begin());
+    ws_.binary(false);
 
     // Send the next message if any
     if (!queue_.empty())
-        ws_.async_write(
-            net::buffer(*queue_.front()),
-            beast::bind_front_handler(
-                &websocket_session::on_write,
-                shared_from_this()));
+        if (queue_.front()->index() == 0) { // string    
+            ws_.async_write(
+                net::buffer(std::get<const std::string>(*queue_.front())),
+                beast::bind_front_handler(
+                    &websocket_session::on_write,
+                    shared_from_this()));
+        } else {
+            ws_.binary(true);
+            ws_.async_write(
+                net::buffer(std::get<const std::vector<uint8_t>>(*queue_.front())),
+                beast::bind_front_handler(
+                    &websocket_session::on_write,
+                    shared_from_this()));
+        }
+
 }
 
 listener::

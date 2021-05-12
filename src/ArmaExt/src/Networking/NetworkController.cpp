@@ -13,9 +13,20 @@ void NetworkController::ModuleInit() {
         Logger::log(LoggerTypes::General, message);
 
 
-        auto replyFunc = [sender](std::string_view message) {
-            auto const ss = boost::make_shared<std::string const>(message);
-            sender->send(ss);
+        auto replyFunc = [sender](ReplyMessageType message) {
+
+
+            std::visit([&sender](auto&& arg) {
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<T, std::string_view>) {
+                    auto const ss = boost::make_shared<websocket_session::MessageType>(std::string(arg));
+                    sender->send(ss);
+                }
+                else if constexpr (std::is_same_v<T, std::reference_wrapper<nlohmann::json>>) {
+                    sender->send(arg.get());
+                } else
+                    static_assert(std::false_type::value, "non-exhaustive visitor!");
+                }, message);
         };
 
         try {

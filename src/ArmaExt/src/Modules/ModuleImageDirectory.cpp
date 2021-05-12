@@ -258,7 +258,7 @@ nlohmann::json ModuleImageDirectory::generateMapfileMessage(std::string_view pat
     return msg;
 }
 
-void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {
+void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(ReplyMessageType)>& replyFunc) {
 
     if (function[0] == "RequestTexture") {
         std::string_view path = arguments["path"];
@@ -273,7 +273,7 @@ void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, co
         args["width"] = width;
         args["height"] = height;
 
-        replyFunc(msg.dump());
+        replyFunc(std::reference_wrapper(msg));
     } else if (function[0] == "RequestMapfile") {
         std::string_view path = arguments["name"];
 
@@ -284,6 +284,6 @@ void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, co
             return;
         }
 
-        replyFunc(msg.dump());
+        replyFunc(std::reference_wrapper(msg));
     }
 }

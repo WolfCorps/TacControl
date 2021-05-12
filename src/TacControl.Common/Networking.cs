@@ -26,6 +26,7 @@ using TacControl.Common.Annotations;
 using TacControl.Common.Config;
 using TacControl.Common.Modules;
 using WebSocket4Net;
+using DataReceivedEventArgs = WebSocket4Net.DataReceivedEventArgs;
 using ErrorEventArgs = SuperSocket.ClientEngine.ErrorEventArgs;
 
 namespace TacControl.Common.Modules
@@ -393,17 +394,17 @@ namespace TacControl.Common
             Console.WriteLine($"Networking: Direct connecting to {targetEndpoint.Address}");
             Busy = true;
 
-            socket = new WebSocket($"ws://{targetEndpoint.Address}/", "", null, null, UserName); // UserAgent==UserName only for TacControl.Server
+            socket = new WebSocket($"ws://{targetEndpoint.Address}/", "", null, new List<KeyValuePair<string,string>>{new KeyValuePair<string,string>("accept-encoding", "CBOR")}, UserName); // UserAgent==UserName only for TacControl.Server)
 
             //socket.Opened += new EventHandler(websocket_Opened);
             //socket.Error += new EventHandler<ErrorEventArgs>(websocket_Error);
             //socket.Closed += new EventHandler(websocket_Closed);
             socket.MessageReceived += OnMessage;
-            socket.Open();
+            socket.DataReceived += OnBinaryMessage;
+            socket.Open(); //#TODO Assert.True(await websocket.OpenAsync(), "Failed to connect");
             // Assuming specific host == TacControl.Server
             Busy = false;
         }
-
 
         public string UserName { get; set; }
 
@@ -548,15 +549,12 @@ namespace TacControl.Common
 
         }
 
-        private async void OnMessage(Object _, MessageReceivedEventArgs args)
+        private async void OnMessage(JObject parsedMsg)
         {
-            var msg = args.Message;
-            JObject parsedMsg = JObject.Parse(msg);
-
             if (parsedMsg["cmd"].Type == JTokenType.Array)
             {
                 var cmd = parsedMsg["cmd"].Value<JArray>().Select(x => x.Value<string>());
-                
+
                 var cmdFirst = cmd.First();
                 if (cmdFirst == "ImgDir")
                 {
@@ -596,12 +594,55 @@ namespace TacControl.Common
                 {
                     patchDoc.ApplyTo(GameState.Instance);
                 }).ConfigureAwait(false);
-                
+
             }
 
             //GameState.Instance.test();
             //GameState.Instance.radio.OnPropertyChanged("radios"); //#TODO remove
         }
+
+
+        private async void OnMessage(Object _, MessageReceivedEventArgs args)
+        {
+            var msg = args.Message;
+            
+            try
+            {
+                JObject parsedMsg = JObject.Parse(msg);
+                OnMessage(parsedMsg);
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.AddBreadcrumb(msg);
+                SentrySdk.CaptureException(ex);
+                throw;
+            }
+        }
+
+
+        private void OnBinaryMessage(object sender, DataReceivedEventArgs args)
+        {
+            var msg = args.Data;
+
+            try
+            {
+                using (var stringReader = new MemoryStream(msg))
+                using (var reader = new Newtonsoft.Json.Cbor.CborDataReader(stringReader))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    var parsedMsg = serializer.Deserialize<JObject>(reader);
+                    OnMessage(parsedMsg);
+                }
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+                throw;
+            }
+        }
+
+
+
 
         public async void SendMessage(string message)
         {

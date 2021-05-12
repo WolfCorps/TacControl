@@ -41,7 +41,7 @@ void ModuleACE::OnGameMessage(const std::vector<std::string_view>& function, con
     }
 }
 
-void ModuleACE::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {
+void ModuleACE::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(ReplyMessageType)>& replyFunc) {
 
     if (function[0] == "Detonate") {
         std::map<std::string, std::string> detonatorToId;

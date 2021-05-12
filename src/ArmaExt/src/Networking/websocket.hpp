@@ -15,6 +15,8 @@
 #include <filesystem>
 #include <mutex>
 #include <unordered_set>
+#include <variant>
+
 #include "Util/SignalSlot.hpp"
 
 using json = nlohmann::json;
@@ -63,7 +65,7 @@ public:
 
     void join(websocket_session* session);
     void leave(websocket_session* session);
-    void send(std::string message);
+    //void send(std::string message);
     void updateState(const nlohmann::json&& newState);
 
 
@@ -101,10 +103,7 @@ class websocket_session : public boost::enable_shared_from_this<websocket_sessio
     beast::flat_buffer buffer_;
     websocket::stream<beast::tcp_stream> ws_;
     boost::shared_ptr<shared_state> state_;
-    std::vector<boost::shared_ptr<std::string const>> queue_;
-
-
-
+    std::vector<boost::shared_ptr<std::variant<const std::string, const std::vector<uint8_t>>>> queue_;
 
     void fail(beast::error_code ec, char const* what);
     void on_accept(beast::error_code ec);
@@ -112,6 +111,10 @@ class websocket_session : public boost::enable_shared_from_this<websocket_sessio
     void on_write(beast::error_code ec, std::size_t bytes_transferred);
 
 public:
+
+    using MessageType = std::variant<const std::string, const std::vector<uint8_t>>;
+
+
     websocket_session(
         tcp::socket&& socket,
         boost::shared_ptr<shared_state> const& state);
@@ -119,20 +122,27 @@ public:
     ~websocket_session();
 
     template<class Body, class Allocator>
-    void
-        run(http::request<Body, http::basic_fields<Allocator>> req);
+    void run(http::request<Body, http::basic_fields<Allocator>> req);
 
     // Send a message
-    void
-        send(boost::shared_ptr<std::string const> const& ss);
+    void send(boost::shared_ptr<MessageType> const& ss);
+    void send(const nlohmann::json& jsonMessage);
 
     std::shared_ptr<nlohmann::json> lastState;
 
+    enum class JsonType {
+        plainText,
+        BSON,
+        CBOR,
+        MsgPack,
+        UBJSON
+    };
+
+    JsonType jsonType = JsonType::plainText;
 
 
 private:
-    void
-        on_send(boost::shared_ptr<std::string const> const& ss);
+    void on_send(boost::shared_ptr<MessageType> const& ss);
 };
 
 template<class Body, class Allocator>
@@ -153,6 +163,18 @@ run(http::request<Body, http::basic_fields<Allocator>> req)
                 std::string(BOOST_BEAST_VERSION_STRING) +
                 " websocket-chat-multi");
         }));
+
+
+    auto enc = req[http::field::accept_encoding];
+    if (enc == "CBOR") {
+        jsonType = JsonType::CBOR;
+    } else if (enc == "BSON") {
+        jsonType = JsonType::BSON;
+    } else if (enc == "MsgPack") {
+        jsonType = JsonType::MsgPack;
+    } else if (enc == "UBJSON") {
+        jsonType = JsonType::UBJSON;
+    }
 
     // Accept the websocket handshake
     ws_.async_accept(

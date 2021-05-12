@@ -136,7 +136,7 @@ void ModuleRadio::OnGameMessage(const std::vector<std::string_view>& function, c
     }
 }
 
-void ModuleRadio::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(std::string_view)>& replyFunc) {
+void ModuleRadio::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(ReplyMessageType)>& replyFunc) {
 
     if (function[0] == "Transmit") {
         std::string_view radioId = arguments["radioId"];

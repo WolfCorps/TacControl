@@ -204,7 +204,7 @@ void GameManager::SendMessageInternal(std::string_view function, const std::vect
     //IncomingMessage(function, arguments);
 }
 
-void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& function, nlohmann::json&& arguments, const std::function<void(std::string_view)>& replyFunc) {
+void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& function, nlohmann::json&& arguments, const std::function<void(ReplyMessageType)>& replyFunc) {
 
     //#TODO into task?
 
