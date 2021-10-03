@@ -30,6 +30,7 @@ class CfgMagazines {
     class ATMine_Range_Mag;
     class TC_GPSTracker_Mag : ATMine_Range_Mag {
         ace_explosives_SetupObject = "ACE_Explosives_Place_TC_GPSTracker"; // CfgVehicle class for setup object.
+        ACE_attachable = "TC_ACE_Attach_GPSTracker"; // Self-Attach
         model =  "\z\TC\addons\main\data\tk-108.p3d";
         picture = "\z\TC\addons\main\data\tk-108_preview.paa";
         displayName = "TK-108 GPS Tracker";
@@ -102,11 +103,13 @@ class CfgVehicles {
             class EventHandlers {
                 class CBA_Extended_EventHandlers: CBA_Extended_EventHandlers {};
             };
-
-    }
-
+    };
 
 
+	class TC_ACE_Attach_GPSTracker: ACE_Explosives_Place { // self-attach
+        displayName = "TK-108 GPS Tracker";
+        model = "\z\TC\addons\main\data\tk-108.p3d";
+    };
 
 };
 
