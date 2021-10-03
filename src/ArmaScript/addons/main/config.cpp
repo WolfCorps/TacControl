@@ -103,8 +103,7 @@ class CfgVehicles {
             class EventHandlers {
                 class CBA_Extended_EventHandlers: CBA_Extended_EventHandlers {};
             };
-
-    }
+    };
 
 
 	class TC_ACE_Attach_GPSTracker: ACE_Explosives_Place { // self-attach
