@@ -5,7 +5,7 @@
              x:Class="TacControl.Views.ConnectPage"
              x:Name="ConnectPageCtrl"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="Black"
+             BackgroundColor="LightSlateGray"
              >
     <ContentPage.Content>
         <StackLayout>
