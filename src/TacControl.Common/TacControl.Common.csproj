@@ -15,18 +15,18 @@
 
   <ItemGroup>
     <PackageReference Include="ConfigureAwait.Fody" Version="3.3.1" />
-    <PackageReference Include="Fody" Version="6.4.0">
+    <PackageReference Include="Fody" Version="6.6.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Mapsui" Version="3.0.0-alpha.4" />
-    <PackageReference Include="Marvin.JsonPatch" Version="2.1.1" />
+    <PackageReference Include="Mapsui" Version="3.0.2" />
+    <PackageReference Include="Marvin.JsonPatch" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json.Cbor" Version="0.3.4-alpha" />
-    <PackageReference Include="PropertyChanged.Fody" Version="3.3.3" />
-    <PackageReference Include="Sentry" Version="3.1.0" />
-    <PackageReference Include="SkiaSharp" Version="2.80.3-preview.40" />
-    <PackageReference Include="Svg.Skia" Version="0.5.0" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0-preview.2.21154.6" />
+    <PackageReference Include="PropertyChanged.Fody" Version="3.4.0" />
+    <PackageReference Include="Sentry" Version="3.13.0" />
+    <PackageReference Include="SkiaSharp" Version="2.88.0-preview.179" />
+    <PackageReference Include="Svg.Skia" Version="0.5.11.1" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.2-mauipre.1.22054.8" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="WebSocket4Net" Version="0.15.2" />
     <PackageReference Include="Zlib.Portable.Signed" Version="1.11.0" />

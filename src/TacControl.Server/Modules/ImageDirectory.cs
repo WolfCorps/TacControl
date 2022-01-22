@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Svg.Model.Primitives;
 using TacControl.Common.Maps;
 using Path = System.IO.Path;
 

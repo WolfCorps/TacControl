@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Mapsui.Forms" Version="3.0.0-alpha.4" />
-    <PackageReference Include="Svg.Skia" Version="0.5.0" />
-    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2012" />  
-    <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
+    <PackageReference Include="Mapsui.Forms" Version="3.0.2" />
+    <PackageReference Include="Svg.Skia" Version="0.5.11.1" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2291" />  
+    <PackageReference Include="Xamarin.Essentials" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>

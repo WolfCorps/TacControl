@@ -55,16 +55,159 @@ namespace TacControl.Misc
 
     public partial class MapControl : Grid, IMapControl
     {
-        //https://github.com/Mapsui/Mapsui/blob/af2bf64d3f45c0a3a7b91d2d58cc2a4fff3d13d3/Mapsui.UI.Shared/MapControl.cs
-
-
-
-
-
-
+        //https://github.com/Mapsui/Mapsui/blob/af2bf64d3f45c0a3a7b91d2d58cc2a4fff3d13d3/Mapsui.UI.Shared/MapControl.cs with Renderer swapped out
 
         private Map _map;
         private double _unSnapRotationDegrees;
+        // Flag indicating if a drawing process is running
+        private bool _drawing = false;
+        // Flag indicating if a new drawing process should start
+        private bool _refresh = false;
+        // Action to call for a redraw of the control
+        private Action _invalidate;
+        // Timer for loop to invalidating the control
+        private System.Threading.Timer _invalidateTimer;
+        // Interval between two calls of the invalidate function in ms
+        private int _updateInterval = 16;
+        // Stopwatch for measuring drawing times
+        private System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+
+        void CommonInitialize()
+        {
+            // Create map
+            Map = new Map();
+            // Create timer for invalidating the control
+            _invalidateTimer = new System.Threading.Timer((state) => InvalidateTimerCallback(state), null, System.Threading.Timeout.Infinite, 16);
+            // Start the invalidation timer
+            StartUpdates(false);
+        }
+
+        void CommonDrawControl(object canvas)
+        {
+            if (_drawing)
+                return;
+            if (Renderer == null)
+                return;
+            if (_map == null)
+                return;
+            if (!Viewport.HasSize)
+                return;
+
+            // Start drawing
+            _drawing = true;
+
+            // Start stopwatch before updating animations and drawing control
+            _stopwatch.Restart();
+
+            // All requested updates up to this point will be handled by this redraw
+            _refresh = false;
+            Navigator.UpdateAnimations();
+            Renderer.Render(canvas, new Viewport(Viewport), _map.Layers, _map.Widgets, _map.BackColor);
+
+            // Stop stopwatch after drawing control
+            _stopwatch.Stop();
+
+            // If we are interessted in performance measurements, we save the new drawing time
+            if (_performance != null)
+                _performance.Add(_stopwatch.Elapsed.TotalMilliseconds);
+
+            // Log drawing time
+            Logger.Log(LogLevel.Information, $"Time for drawing control [ms]: {_stopwatch.Elapsed.TotalMilliseconds}");
+
+            // End drawing
+            _drawing = false;
+        }
+
+        void InvalidateTimerCallback(object state)
+        {
+            if (!_refresh)
+                return;
+
+            if (_drawing)
+            {
+                if (_performance != null)
+                    _performance.Dropped++;
+
+                return;
+            }
+
+            _invalidate?.Invoke();
+        }
+
+        /// <summary>
+        /// Start updates for control
+        /// </summary>
+        /// <remarks>
+        /// When this function is called, the control is redrawn if needed
+        /// </remarks>
+        public void StartUpdates(bool refresh = true)
+        {
+            _refresh = refresh;
+            _invalidateTimer.Change(0, _updateInterval);
+        }
+
+        /// <summary>
+        /// Stop updates for control
+        /// </summary>
+        /// <remarks>
+        /// When this function is called, the control stops to redraw itself, 
+        /// even if it is needed
+        /// </remarks>
+        public void StopUpdates()
+        {
+            _invalidateTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+        }
+
+        /// <summary>
+        /// Force a update of control
+        /// </summary>
+        /// <remarks>
+        /// When this function is called, the control draws itself once 
+        /// </remarks>
+        public void ForceUpdate()
+        {
+            _invalidate?.Invoke();
+        }
+
+        /// <summary>
+        /// Interval between two redraws of the MapControl in ms
+        /// </summary>
+        public int UpdateInterval
+        {
+            get => _updateInterval;
+            set
+            {
+                if (value <= 0)
+                    throw new ArgumentOutOfRangeException("UpdateInterval must be greater than 0");
+
+                if (_updateInterval != value)
+                {
+                    _updateInterval = value;
+                    StartUpdates();
+                }
+            }
+        }
+
+        private Performance _performance;
+
+        /// <summary>
+        /// Object to save performance information about the drawing of the map
+        /// </summary>
+        /// <remarks>
+        /// If this is null, no performance information is saved.
+        /// </remarks>
+        public Performance Performance
+        {
+            get { return _performance; }
+            set
+            {
+                if (_performance != value)
+                {
+                    _performance = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         /// <summary>
         /// After how many degrees start rotation to take place
@@ -223,6 +366,11 @@ namespace TacControl.Misc
         {
             RefreshData(changeType);
             RefreshGraphics();
+        }
+
+        public void RefreshGraphics()
+        {
+            _refresh = true;
         }
 
         private void MapDataChanged(object sender, DataChangedEventArgs e)
@@ -514,7 +662,6 @@ namespace TacControl.Misc
 
 
 
-
         // https://github.com/Mapsui/Mapsui/blob/af2bf64d3f45c0a3a7b91d2d58cc2a4fff3d13d3/Mapsui.UI.Wpf/MapControl.cs
 
 
@@ -540,8 +687,20 @@ namespace TacControl.Misc
 
         static private bool GLRunning = false; // true == GL rendering completely disabled, false == one GL window allowed
 
+
         public MapControl()
         {
+            CommonInitialize();
+            Initialize();
+        }
+
+        void Initialize()
+        {
+            _invalidate = () => {
+                if (Dispatcher.CheckAccess()) InvalidateCanvas();
+                else RunOnUIThread(InvalidateCanvas);
+            };
+
             Children.Add(WpfCanvas);
 
             if (!GLRunning)
@@ -613,7 +772,7 @@ namespace TacControl.Misc
 
         public Canvas WpfCanvas { get; } = CreateWpfRenderCanvas();
 
-        private ISkiaCanvas SkiaCanvas { get; } 
+        private ISkiaCanvas SkiaCanvas { get; private set; }
 
         public RenderMode RenderMode
         {
@@ -655,7 +814,6 @@ namespace TacControl.Misc
             return new SKGLWpfControl(mVersion++);
         }
 
-
         private static SKElement CreateSkiaRenderElement()
         {
             return new SKElement
@@ -665,21 +823,12 @@ namespace TacControl.Misc
             };
         }
 
-
-
         public event EventHandler<FeatureInfoEventArgs> FeatureInfo; // todo: Remove and add sample for alternative
-
-        public void RefreshGraphics()
-        {
-            if (Dispatcher.CheckAccess()) InvalidateCanvas();
-            else RunOnUIThread(InvalidateCanvas);
-        }
 
         internal void InvalidateCanvas()
         {
             if (RenderMode == RenderMode.Wpf) InvalidateVisual(); // To trigger OnRender of this MapControl
             else SkiaCanvas.InvalidateVisual();
-
         }
 
         private void MapControlLoaded(object sender, RoutedEventArgs e)
@@ -908,6 +1057,8 @@ namespace TacControl.Misc
         {
             if (_mouseDown)
             {
+                if (_previousMousePosition == null || _previousMousePosition.IsEmpty()) return;
+
                 var from = _previousMousePosition;
                 var to = newPos;
 
@@ -1002,39 +1153,34 @@ namespace TacControl.Misc
             Refresh();
         }
 
-        private void SKElementOnPaintSurface(object sender, SKPaintSurfaceEventArgs args) //  
+        private void SKElementOnPaintSurface(object sender, SKPaintSurfaceEventArgs args)
         {
-            if (Renderer == null) return;
-            if (_map == null) return;
-            if (PixelDensity <= 0) return;
+            if (PixelDensity <= 0)
+                return;
 
-            args.Surface.Canvas.Scale(PixelDensity, PixelDensity);
+            var canvas = args.Surface.Canvas;
 
-            Navigator.UpdateAnimations();
-            Renderer.Render(args.Surface.Canvas, new Viewport(Viewport), Map.Layers, Map.Widgets, Map.BackColor);
+            canvas.Scale(PixelDensity, PixelDensity);
+
+            CommonDrawControl(canvas);
         }
-
-
 
         private void SKGLElementOnPaintSurface(object sender, SKPaintGLSurfaceEventArgs args) //  SKPaintSurfaceEventArgs
         {
-            if (Renderer == null) return;
-            if (_map == null) return;
-            if (PixelDensity <= 0) return;
+            if (PixelDensity <= 0)
+                return;
 
-            args.Surface.Canvas.Scale(PixelDensity, PixelDensity);
+            var canvas = args.Surface.Canvas;
 
-            Navigator.UpdateAnimations();
-            Renderer.Render(args.Surface.Canvas, new Viewport(Viewport), Map.Layers, Map.Widgets, Map.BackColor);
+            canvas.Scale(PixelDensity, PixelDensity);
+
+            CommonDrawControl(canvas);
         }
+
 
         private void PaintWpf()
         {
-            if (Renderer == null) return;
-            if (_map == null) return;
-
-            Navigator.UpdateAnimations();
-            Renderer.Render(WpfCanvas, Viewport, _map.Layers, Map.Widgets, _map.BackColor);
+            CommonDrawControl(WpfCanvas);
         }
 
         private float GetPixelDensity()

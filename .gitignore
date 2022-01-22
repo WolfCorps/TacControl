@@ -75,3 +75,5 @@ src/TacControl.Common/FodyWeavers.xsd
 src/TacControl.Server/bin/
 
 src/TacControl.Server/obj/
+
+*.user
