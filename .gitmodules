@@ -3,7 +3,7 @@
 	url = https://github.com/nlohmann/json.git
 [submodule "src/ArmaExt/lib/boost-cmake"]
 	path = src/ArmaExt/lib/boost-cmake
-	url = https://github.com/Orphis/boost-cmake.git
+	url = https://github.com/KevinThierauf/boost-cmake
 [submodule "src/ArmaExt/lib/fmt"]
 	path = src/ArmaExt/lib/fmt
 	url = https://github.com/fmtlib/fmt.git
