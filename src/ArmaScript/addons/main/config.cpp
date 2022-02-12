@@ -22,7 +22,7 @@ class ACE_Triggers{
         isAttachable = 1;
         displayName = "Activate GPS Tracker";
         picture = "\z\TC\addons\main\data\tk-108_preview.paa";
-        onPlace = QUOTE(_this call TC_main_fnc_GPS_activateTracker;false);
+        onPlace = QUOTE([_this select 0] call TC_main_fnc_GPS_activateTracker;false);
     };
 };
 
