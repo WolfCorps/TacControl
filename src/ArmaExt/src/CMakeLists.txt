@@ -34,7 +34,7 @@ add_library(${PLUGIN_NAME} SHARED
 )
 
 target_include_directories(${PLUGIN_NAME} PRIVATE
-    "${PROJECT_SOURCE_DIR}/lib/json/single_include/"
+    "${PROJECT_SOURCE_DIR}/lib/json/"
     "${PROJECT_SOURCE_DIR}/lib/ArmaPboLib/src/"
     "${PROJECT_SOURCE_DIR}/lib/MipMapTool/"
     "${PROJECT_SOURCE_DIR}/lib/cpp-base64/"

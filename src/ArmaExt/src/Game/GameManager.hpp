@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "nlohmann/json.hpp"
+#include <json.hpp>
 #include "Util/Util.hpp"
 #include "GameMessage.hpp"
 #include "Util/Thread.hpp"

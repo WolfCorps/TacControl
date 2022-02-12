@@ -4,7 +4,7 @@
 #include <variant>
 #include <vector>
 
-#include "nlohmann/json.hpp"
+#include <json.hpp>
 
 using namespace std::string_view_literals;
 

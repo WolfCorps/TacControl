@@ -772,7 +772,7 @@ namespace TacControl.Misc
 
         public Canvas WpfCanvas { get; } = CreateWpfRenderCanvas();
 
-        private ISkiaCanvas SkiaCanvas { get; private set; }
+        private ISkiaCanvas SkiaCanvas { get; set; }
 
         public RenderMode RenderMode
         {
