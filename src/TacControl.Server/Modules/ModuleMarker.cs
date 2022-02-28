@@ -82,24 +82,24 @@ namespace TacControl.Server.Modules
         public string StateHolderName => "Marker";
         public void SerializeState(JObject ar)
         {
-            if (!ar.ContainsKey("markerTypes"))
+            if (!((IDictionary<string, JToken>) ar).ContainsKey("markerTypes"))
             {
                 ar["markerTypes"] = JObject.FromObject(markerTypes);
             }
 
-            if (!ar.ContainsKey("markerColors"))
+            if (!((IDictionary<string, JToken>) ar).ContainsKey("markerColors"))
             {
                 ar["markerColors"] = JObject.FromObject(markerColors);
             }
 
-            if (!ar.ContainsKey("markerBrushes"))
+            if (!((IDictionary<string, JToken>) ar).ContainsKey("markerBrushes"))
             {
                 ar["markerBrushes"] = JObject.FromObject(markerBrushes);
             }
 
 
             // state update
-            if (ar.ContainsKey("markers"))
+            if (((IDictionary<string, JToken>) ar).ContainsKey("markers"))
             {
                 var markObj = ar["markers"];
 

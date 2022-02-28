@@ -28,7 +28,7 @@ namespace TacControl.Common.Maps
         private static void IterateLayer(IReadOnlyViewport viewport, ILayer layer,
             Action<IReadOnlyViewport, ILayer, IStyle, IFeature, float> callback)
         {
-            var features = layer.GetFeaturesInView(viewport.Extent, viewport.Resolution).ToList();
+            var features = layer.GetFeatures(viewport.Extent, viewport.Resolution).ToList();
 
             var layerStyles = ToArray(layer);
             foreach (var layerStyle in layerStyles)

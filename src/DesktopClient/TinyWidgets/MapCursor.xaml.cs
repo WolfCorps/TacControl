@@ -15,10 +15,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Mapsui;
 using TacControl.Annotations;
 using TacControl.Common;
 using TacControl.Common.Maps;
-using Point = Mapsui.Geometries.Point;
 
 namespace TacControl.TinyWidgets
 {
@@ -48,7 +48,7 @@ namespace TacControl.TinyWidgets
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        private (uint, uint) WorldPosToGrid(Point worldPosition)
+        private (uint, uint) WorldPosToGrid(MPoint worldPosition)
         {
 
             var Xgrid10KM = (uint)(worldPosition.X / 10000) % 10;

@@ -2,27 +2,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Mapsui.Geometries;
+using Mapsui;
+using Mapsui.Nts.Extensions;
+using NetTopologySuite.Geometries;
 
 namespace TacControl.Common.Maps
 {
-    public class BoundBox : Mapsui.Geometries.Geometry
+    public class BoundBox : NetTopologySuite.Geometries.LinearRing
     {
-        public BoundBox(BoundingBox x)
+        //#TODO remove
+        public BoundBox(Mapsui.MRect x) : base( x.Vertices.Select(x => x.ToCoordinate()).Append(x.BottomLeft.ToCoordinate()).ToArray())
         {
-            BoundingBox = x;
+            //BoundingBox = x;
+        }
+     
+        public BoundBox(MPoint minPoint, MPoint maxPoint) : base (new Mapsui.MRect(minPoint.X, minPoint.Y, maxPoint.X, maxPoint.Y).Vertices.Select(x => x.ToCoordinate()).Append(new Coordinate(minPoint.X, minPoint.Y)).ToArray())
+        {
+            //BoundingBox = new BoundingBox(minPoint, maxPoint);
         }
 
-        public BoundBox(Point minPoint, Point maxPoint)
+        public BoundBox(IEnumerable<float[]> points) : base (GenerateCoordinatesFromPolyline(points))
         {
-            BoundingBox = new BoundingBox(minPoint, maxPoint);
+            //BoundingBox = boundingBox;
         }
 
-        public BoundBox(IEnumerable<float[]> points)
+        private static Coordinate[] GenerateCoordinatesFromPolyline(IEnumerable<float[]> points)
         {
-
             var firstPoint = new Point(points.First()[0], points.First()[1]);
-            var boundingBox = new BoundingBox(firstPoint, firstPoint);
+            var boundingBox = new MRect(firstPoint.X, firstPoint.Y, firstPoint.X, firstPoint.Y);
             foreach (var point in points.Skip(1))
             {
                 var X = point[0];
@@ -34,11 +41,10 @@ namespace TacControl.Common.Maps
                 boundingBox.Max.Y = Y > boundingBox.Max.Y ? Y : boundingBox.Max.Y;
             }
 
-            BoundingBox = boundingBox;
+            return boundingBox.Vertices.Select(x => x.ToCoordinate()).Append(boundingBox.BottomLeft.ToCoordinate()).ToArray();
         }
 
-
-        
+        /*
 
         public override bool IsEmpty()
         {
@@ -63,6 +69,7 @@ namespace TacControl.Common.Maps
         {
             return BoundingBox.Contains(point);
         }
+        */
     }
 
 }

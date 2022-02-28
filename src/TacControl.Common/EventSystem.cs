@@ -11,12 +11,12 @@ namespace TacControl.Common
        // public static EventSystem Instance { get; set; } = new EventSystem();
 
 
-        public delegate void CenterMapEvt(Mapsui.Geometries.Point position);
+        public delegate void CenterMapEvt(Mapsui.MPoint position);
 
         // Define an Event based on the above Delegate
         public static event CenterMapEvt CenterMap;
 
-        public static void CenterMapOn(Mapsui.Geometries.Point position)
+        public static void CenterMapOn(Mapsui.MPoint position)
         {
             CenterMap?.Invoke(position);
         }

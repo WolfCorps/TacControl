@@ -1,346 +1,42 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{463E85A0-2713-4261-9977-4A14DC950F66}</ProjectGuid>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <OutputType>Exe</OutputType>
-    <RootNamespace>TacControl</RootNamespace>
-    <AssemblyName>TacControl</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <WarningLevel>4</WarningLevel>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Deterministic>true</Deterministic>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWPF>true</UseWPF>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>true</Prefer32Bit>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>TacControl.MainSentry</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Svg.Skia">
-      <HintPath>C:\Users\dedmen\.nuget\packages\svg.skia\0.4.2-preview3\lib\netstandard2.0\Svg.Skia.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-  </ItemGroup>
-  <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
-    <Compile Include="BigWidgets\HelicopterControlButtons.xaml.cs">
-      <DependentUpon>HelicopterControlButtons.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="BigWidgets\Map\LayerList.xaml.cs">
-      <DependentUpon>LayerList.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="BigWidgets\Map\LayerListItem.xaml.cs">
-      <DependentUpon>LayerListItem.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="BigWidgets\Map\MarkerVisibilityList.xaml.cs">
-      <DependentUpon>MarkerVisibilityList.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="BigWidgets\RadioSettingsList.xaml.cs">
-      <DependentUpon>RadioSettingsList.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Dialogs\DialogImportMarkers.xaml.cs">
-      <DependentUpon>DialogImportMarkers.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Dialogs\DialogExportMarkers.xaml.cs">
-      <DependentUpon>DialogExportMarkers.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Dialogs\DialogNetworkDirectConnect.xaml.cs">
-      <DependentUpon>DialogNetworkDirectConnect.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Dialogs\DialogOptions.xaml.cs">
-      <DependentUpon>DialogOptions.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="MediterranianWidgets\ACEExplosives.xaml.cs">
-      <DependentUpon>ACEExplosives.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="MediterranianWidgets\MapMarkerOverview.xaml.cs">
-      <DependentUpon>MapMarkerOverview.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="MediterranianWidgets\NetworkConnectWidget.xaml.cs">
-      <DependentUpon>NetworkConnectWidget.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="MediterranianWidgets\RadioSettings.xaml.cs">
-      <DependentUpon>RadioSettings.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DockFramework\LayoutInitializer.cs" />
-    <Compile Include="BigWidgets\Map\MapCreateMarker.xaml.cs">
-      <DependentUpon>MapCreateMarker.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="BigWidgets\Map\MapEditGPS.xaml.cs">
-      <DependentUpon>MapEditGPS.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="BigWidgets\Map\MapView.xaml.cs">
-      <DependentUpon>MapView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="MapViewWindow.xaml.cs">
-      <DependentUpon>MapViewWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="BigWidgets\NotesList.xaml.cs">
-      <DependentUpon>NotesList.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="BigWidgets\NoteWidget.xaml.cs">
-      <DependentUpon>NoteWidget.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DockFramework\PanesStyleSelector.cs" />
-    <Compile Include="DockFramework\PanesTemplateSelector.cs" />
-    <Compile Include="DockViewModels\PaneViewModel.cs" />
-    <Compile Include="Misc\JsonLayoutSerializer.cs" />
-    <Compile Include="Misc\MapControl.cs" />
-    <Compile Include="Misc\SKElement.cs" />
-    <Compile Include="Misc\SKGLWpfControl.cs" />
-    <Compile Include="Properties\Annotations.cs" />
-    <Compile Include="MediterranianWidgets\RadioTransmitButtons.xaml.cs">
-      <DependentUpon>RadioTransmitButtons.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="BigWidgets\RadioWidget.xaml.cs">
-      <DependentUpon>RadioWidget.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="RadioWindow.xaml.cs">
-      <DependentUpon>RadioWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DockFramework\RelayCommand.cs" />
-    <Compile Include="DockViewModels\ToolViewModel.cs" />
-    <Compile Include="DockViewModels\UserControlViewModel.cs" />
-    <Compile Include="DockViewModels\ViewModelBase.cs" />
-    <Compile Include="DockFramework\Workspace.cs" />
-    <Compile Include="TinyWidgets\ACEExplosive.xaml.cs">
-      <DependentUpon>ACEExplosive.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="TinyWidgets\MapCursor.xaml.cs">
-      <DependentUpon>MapCursor.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="TinyWidgets\MarkerVisibilityElement.xaml.cs">
-      <DependentUpon>MarkerVisibilityElement.xaml</DependentUpon>
-    </Compile>
-    <Page Include="BigWidgets\HelicopterControlButtons.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="BigWidgets\Map\LayerList.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="BigWidgets\Map\LayerListItem.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="BigWidgets\Map\MarkerVisibilityList.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="BigWidgets\RadioSettingsList.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Dialogs\DialogImportMarkers.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Dialogs\DialogExportMarkers.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Dialogs\DialogNetworkDirectConnect.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Dialogs\DialogOptions.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MediterranianWidgets\ACEExplosives.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="MediterranianWidgets\MapMarkerOverview.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MediterranianWidgets\NetworkConnectWidget.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MediterranianWidgets\RadioSettings.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Compile Include="App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Page Include="BigWidgets\Map\MapCreateMarker.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="BigWidgets\Map\MapEditGPS.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="BigWidgets\Map\MapView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MapViewWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="BigWidgets\NotesList.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="BigWidgets\NoteWidget.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="MediterranianWidgets\RadioTransmitButtons.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="BigWidgets\RadioWidget.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="RadioWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="TinyWidgets\ACEExplosive.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="TinyWidgets\MapCursor.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="TinyWidgets\MarkerVisibilityElement.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Costura.Fody">
       <Version>5.7.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Dirkster.AvalonDock">
-      <Version>4.60.1</Version>
-    </PackageReference>
+    <PackageReference Include="Dirkster.AvalonDock" Version="4.70.0" />
     <PackageReference Include="Dirkster.AvalonDock.Themes.VS2013">
-      <Version>4.60.1</Version>
+      <Version>4.70.0</Version>
     </PackageReference>
-    <PackageReference Include="Extended.Wpf.Toolkit">
-      <Version>4.2.0</Version>
-    </PackageReference>
+    <PackageReference Include="DotNetProjects.Extended.Wpf.Toolkit" Version="5.0.100" />
     <PackageReference Include="Fody">
       <Version>6.6.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Mapsui">
-      <Version>3.0.2</Version>
-    </PackageReference>
+    <PackageReference Include="Mapsui" Version="4.0.0-beta.1" />
     <PackageReference Include="Mapsui.Wpf">
-      <Version>3.0.2</Version>
+      <Version>4.0.0-beta.1</Version>
     </PackageReference>
     <PackageReference Include="Marvin.JsonPatch">
       <Version>2.2.0</Version>
@@ -348,6 +44,7 @@
     <PackageReference Include="Microsoft.CSharp">
       <Version>4.7.0</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub">
       <Version>1.1.1</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -355,12 +52,6 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="OpenTK">
-      <Version>3.3.2</Version>
-    </PackageReference>
-    <PackageReference Include="OpenTK.GLWpfControl">
-      <Version>3.3.0</Version>
     </PackageReference>
     <PackageReference Include="PropertyChanged.Fody">
       <Version>3.4.0</Version>
@@ -371,21 +62,23 @@
     <PackageReference Include="Svg.Skia">
       <Version>0.5.11.1</Version>
     </PackageReference>
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="Tavis.JsonPointer">
       <Version>1.0.0-beta</Version>
     </PackageReference>
     <PackageReference Include="WebSocket4Net">
       <Version>0.15.2</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.3.310801">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="OpenTK" Version="4.3.0" />
+    <PackageReference Include="OpenTK.GLWpfControl" Version="4.1.0" />
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TacControl.Common\TacControl.Common.csproj">
-      <Project>{e30fb38c-4069-4ccf-984c-6fbeb592082c}</Project>
-      <Name>TacControl.Common</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\TacControl.Common\TacControl.Common.csproj" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="Date" BeforeTargets="CoreCompile">
     <WriteLinesToFile File="$(IntermediateOutputPath)gen.cs" Lines="static partial class Builtin { public static long CompileTime = $([System.DateTime]::UtcNow.Ticks) %3B }" Overwrite="true" />
     <ItemGroup>

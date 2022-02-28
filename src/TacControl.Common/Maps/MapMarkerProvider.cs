@@ -4,21 +4,24 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Mapsui;
 using Mapsui.Fetcher;
-using Mapsui.Geometries;
 using Mapsui.Layers;
+using Mapsui.Nts;
+using Mapsui.Nts.Extensions;
 using Mapsui.Providers;
 using Mapsui.Styles;
+using NetTopologySuite.Geometries;
 using SkiaSharp;
 using Svg;
 using TacControl.Common.Config;
-using TacControl.Common.Config.Section;
 using TacControl.Common.Modules;
+using Map = TacControl.Common.Config.Section.Map;
 
 namespace TacControl.Common.Maps
 {
 
-    public class MarkerFeature : Feature, IDisposable
+    public class MarkerFeature : GeometryFeature, IDisposable
     {
         public ActiveMarker marker { get; private set; }
         private MarkerColor markerColor;
@@ -92,8 +95,8 @@ namespace TacControl.Common.Maps
                 var markerSize = marker.size.Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToArray();
 
 
-                var center = new Point(marker.pos[0], marker.pos[1]);
-
+                var center = new MPoint(marker.pos[0], marker.pos[1]);
+                
                 //set rect
                 Geometry = new BoundBox(center.Offset(-markerSize[0], -markerSize[1]), center.Offset(markerSize[0], markerSize[1]));
 
@@ -136,12 +139,11 @@ namespace TacControl.Common.Maps
             
 
         }
-
-        protected override void Dispose(bool disposing)
+        public override void Dispose()
         {
             marker.PropertyChanged -= OnMarkerOnPropertyChangedIcon;
             marker.PropertyChanged -= OnMarkerOnPropertyChangedTiled;
-            base.Dispose(disposing);
+            base.Dispose();
         }
 
         void OnMarkerOnPropertyChangedIcon(object a, PropertyChangedEventArgs e)
@@ -234,7 +236,7 @@ namespace TacControl.Common.Maps
                 ci.NumberFormat.NumberDecimalSeparator = ".";
 
                 var markerSize = marker.size.Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToArray();
-                var center = new Point(marker.pos[0], marker.pos[1]);
+                var center = new MPoint(marker.pos[0], marker.pos[1]);
                 Geometry = new BoundBox(center.Offset(-markerSize[0], -markerSize[1]), center.Offset(markerSize[0], markerSize[1]));
                 iconStyle.rect = new SkiaSharp.SKRect(-markerSize[0], -markerSize[1], markerSize[0], markerSize[1]);
                 DataHasChanged();
@@ -329,11 +331,27 @@ namespace TacControl.Common.Maps
         {
             DataChanged?.Invoke(this, null);
         }
+
+        public void CoordinateVisitor(Action<double, double, CoordinateSetter> visit)
+        {
+            var Rect = Geometry.EnvelopeInternal.ToMRect();
+            foreach (var point in new[] { Rect.Min, Rect.Max })
+                visit(point.X, point.Y, (x, y) => {
+                    point.X = x;
+                    point.Y = x;
+                });
+        }
+
+
+        public MRect? Extent => Geometry.EnvelopeInternal.ToMRect(); //#TODO we don't need full geometry https://github.com/Mapsui/Mapsui/blob/7ce9087a1cfb3dcfb6550ace05a33db4021c2443/Mapsui/Features/RectFeature.cs
     }
-    public class MapMarkerProvider : IProvider, IDisposable
+
+
+    // Example MemoryPorvider https://github.com/Mapsui/Mapsui/blob/e348df64afcb1030dbec1d31c4f5d2dbdbe24148/Mapsui.Core/Providers/MemoryProvider.cs#L51
+    public class MapMarkerProvider : IProvider<IFeature>, IDisposable
     {
         public ILayer MapMarkerLayer { get; private set; }
-        private BoundingBox _boundingBox;
+        private MRect _boundingBox;
         private readonly IMarkerVisibilityManager _visibilityManager;
         private readonly ModuleMarker _makerModule;
         private MarkerChannel foregroundChannel = MarkerChannel.None;
@@ -342,8 +360,8 @@ namespace TacControl.Common.Maps
 
         private Dictionary<string, IFeature> features = new Dictionary<string, IFeature>();
 
-
-        public MapMarkerProvider(ILayer mapMarkerLayer, BoundingBox boundingBox, IMarkerVisibilityManager visibilityManager)
+        
+        public MapMarkerProvider(ILayer mapMarkerLayer, MRect boundingBox, IMarkerVisibilityManager visibilityManager)
         {
             MapMarkerLayer = mapMarkerLayer;
             _boundingBox = boundingBox;
@@ -379,7 +397,7 @@ namespace TacControl.Common.Maps
             OnMarkersUpdated();
         }
 
-        public MapMarkerProvider(ILayer mapMarkerLayer, BoundingBox boundingBox, IMarkerVisibilityManager visibilityManager, ModuleMarker makerModule)
+        public MapMarkerProvider(ILayer mapMarkerLayer, MRect boundingBox, IMarkerVisibilityManager visibilityManager, ModuleMarker makerModule)
         {
             MapMarkerLayer = mapMarkerLayer;
             _boundingBox = boundingBox;
@@ -478,33 +496,36 @@ namespace TacControl.Common.Maps
             if (fireDataChanged) MapMarkerLayer.DataHasChanged();
         }
 
-        public virtual IEnumerable<IFeature> GetFeaturesInView(
-          BoundingBox box,
-          double resolution)
+        public static double SymbolSize { get; set; } = 64;
+
+        public virtual IEnumerable<IFeature> GetFeatures(FetchInfo fetchInfo)
         {
-            if (box == null)
-                throw new ArgumentNullException(nameof(box));
+            if (fetchInfo == null) throw new ArgumentNullException(nameof(fetchInfo));
+            if (fetchInfo.Extent == null) throw new ArgumentNullException(nameof(fetchInfo.Extent));
 
-            BoundingBox grownBox = box.Grow(resolution);
 
-            return features.Values.Where(f => f.Geometry != null && f.Geometry.BoundingBox.Intersects(grownBox) && _visibilityManager.IsVisible(((MarkerFeature)f).marker)).ToList();
+            fetchInfo = new FetchInfo(fetchInfo);
+            // Use a larger extent so that symbols partially outside of the extent are included
+            var biggerBox = fetchInfo.Extent?.Grow(fetchInfo.Resolution * SymbolSize * 0.5);
+
+            return features.Values.Where(f => f != null && ((f.Extent?.Intersects(biggerBox)) ?? false) && _visibilityManager.IsVisible(((MarkerFeature)f).marker)).ToList();
         }
 
-        public BoundingBox GetExtents()
+        public MRect? GetExtent()
         {
             return this._boundingBox;
         }
 
-        private static BoundingBox GetExtents(IReadOnlyList<IFeature> features)
-        {
-            BoundingBox boundingBox = (BoundingBox)null;
-            foreach (IFeature feature in (IEnumerable<IFeature>)features)
-            {
-                if (!feature.Geometry.IsEmpty())
-                    boundingBox = boundingBox == null ? feature.Geometry.BoundingBox : boundingBox.Join(feature.Geometry.BoundingBox);
-            }
-            return boundingBox;
-        }
+        //private static BoundingBox GetExtents(IReadOnlyList<IFeature> features)
+        //{
+        //    BoundingBox boundingBox = (BoundingBox)null;
+        //    foreach (IFeature feature in (IEnumerable<IFeature>)features)
+        //    {
+        //        if (!feature.Geometry.IsEmpty())
+        //            boundingBox = boundingBox == null ? feature.Geometry.BoundingBox : boundingBox.Join(feature.Geometry.BoundingBox);
+        //    }
+        //    return boundingBox;
+        //}
 
         public void Dispose()
         {

@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Mapsui;
-using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Logging;
+using Mapsui.Nts;
 using Mapsui.Providers;
 using Mapsui.Rendering;
 using Mapsui.Rendering.Skia;
+using Mapsui.Rendering.Skia.Extensions;
 using Mapsui.Rendering.Skia.SkiaStyles;
 using Mapsui.Rendering.Skia.SkiaWidgets;
 using Mapsui.Styles;
@@ -17,6 +19,7 @@ using Mapsui.UI;
 using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Mapsui.Widgets.Zoom;
+using NetTopologySuite.Geometries;
 using SkiaSharp;
 
 namespace TacControl.Common.Maps
@@ -152,13 +155,13 @@ namespace TacControl.Common.Maps
         private static void RemoveOldBitmaps(IDictionary<object, BitmapInfo> tileCache, int numberToRemove)
         {
             var counter = 0;
-            var orderedKeys = tileCache.OrderBy(kvp => kvp.Value.IterationUsed).Select(kvp => kvp.Key).ToList();
+            var orderedKeys = tileCache.OrderBy(kvp => kvp.Value?.IterationUsed).Select(kvp => kvp.Key).ToList();
             foreach (var key in orderedKeys)
             {
                 if (counter >= numberToRemove) break;
                 var textureInfo = tileCache[key];
                 tileCache.Remove(key);
-                textureInfo.Bitmap.Dispose();
+                textureInfo?.Bitmap?.Dispose();
                 counter++;
             }
         }
@@ -180,25 +183,34 @@ namespace TacControl.Common.Maps
                     return;
             }
 
-            //return; //Not using any standard renderers ;)
+            // https://github.com/Mapsui/Mapsui/blob/a9c28e1f111605775881fa57382f7142b5c2ade9/Mapsui.Rendering.Skia/MapRenderer.cs#L147
 
-            //// No special style renderer handled this up to now, than try standard renderers
-            ////if (feature.Geometry is Point)
-            ////    PointRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, _symbolCache, layerOpacity * style.Opacity);
-            ////else
-            //if (feature.Geometry is MultiPoint)
-            //    MultiPointRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, _symbolCache, layerOpacity * style.Opacity);
-            //else if (feature.Geometry is LineString)
-            //    LineStringRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity);
-            //else if (feature.Geometry is MultiLineString)
-            //    MultiLineStringRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity);
-            ////else if (feature.Geometry is Polygon)
-            ////    PolygonRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity, _symbolCache);
-            //else if (feature.Geometry is MultiPolygon)
-            //    MultiPolygonRenderer.Draw(canvas, viewport, style, feature, feature.Geometry, layerOpacity * style.Opacity, _symbolCache);
-            //else
-            if (feature.Geometry is IRaster)
-                RasterRenderer.Draw(canvas, viewport, style, feature, layerOpacity * style.Opacity, _tileCache, _currentIteration);
+            if (feature is GeometryFeature geometryFeatureNts)
+            {
+                GeometryRenderer.Draw(canvas, viewport, style, layerOpacity, geometryFeatureNts, _symbolCache);
+                return;
+            }
+            else if (feature is RasterFeature rasterFeature)
+            {
+                RasterRenderer.Draw(canvas, viewport, style, rasterFeature, rasterFeature.Raster, layerOpacity * style.Opacity, _tileCache, _currentIteration);
+                return;
+            }
+            else if (feature is PointFeature pointFeature)
+            {
+                PointRenderer.Draw(canvas, viewport, style, pointFeature, pointFeature.Point.X, pointFeature.Point.Y, _symbolCache, layerOpacity * style.Opacity);
+                return;
+            }
+            else if (feature is GPSTrackerFeature gpsFeature) 
+            {
+                // GPSTrackerFeature uses MarkerIconStyle to render itself
+                return;
+            }
+
+
+
+#if DEBUG
+            Debugger.Break();
+#endif
         }
 
         private void Render(object canvas, IReadOnlyViewport viewport, IEnumerable<IWidget> widgets, float layerOpacity)
@@ -218,7 +230,7 @@ namespace TacControl.Common.Maps
             var list = new List<MapInfoRecord>();
             var result = new MapInfo()
             {
-                ScreenPosition = new Point(x, y),
+                ScreenPosition = new MPoint(x, y),
                 WorldPosition = viewport.ScreenToWorld(x, y),
                 Resolution = viewport.Resolution
             };
@@ -280,7 +292,7 @@ namespace TacControl.Common.Maps
             return result;
         }
 
-        public MapInfo GetMapInfo(Point screenPosition, IReadOnlyViewport viewport, IEnumerable<ILayer> layers, int margin = 0)
+        public MapInfo GetMapInfo(MPoint screenPosition, IReadOnlyViewport viewport, IEnumerable<ILayer> layers, int margin = 0)
         {
             return GetMapInfo(screenPosition.X, screenPosition.Y, viewport, layers, margin);
         }

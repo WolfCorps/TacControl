@@ -43,7 +43,7 @@ namespace TacControl
             if (string.IsNullOrEmpty(NoteRef.gpsTracker)) return;
 
             var tracker = gpsRef.trackers[NoteRef.gpsTracker];
-            EventSystem.CenterMapOn(new Mapsui.Geometries.Point(tracker.pos[0], tracker.pos[1]));
+            EventSystem.CenterMapOn(new Mapsui.MPoint(tracker.pos[0], tracker.pos[1]));
 
         }
 

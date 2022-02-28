@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using Mapsui;
-using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Rendering;
@@ -32,13 +31,13 @@ namespace TacControl.Common.Maps
         {
             var style = ((MarkerIconStyle)istyle);
 
-            if (!viewport.Extent.Contains(feature.Geometry.BoundingBox))
+            if (!viewport.Extent.Contains(feature.Extent))
                 return false;
 
             if (style.markerIcon == null) return false;
 
-            var position = feature.Geometry as Point;
-            var dest = viewport.WorldToScreen(position);
+            var position = feature.Extent as MRect;
+            var dest = viewport.WorldToScreen(position.BottomLeft);
 
 
             var zoom = 1 / (float)viewport.Resolution;

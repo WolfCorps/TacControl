@@ -3,24 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Mapsui;
-using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Providers;
 using TacControl.Common.Modules;
 
 namespace TacControl.Common.Maps
 {
-    public class GPSTrackerProvider : IProvider, IDisposable
+    public class GPSTrackerProvider : IProvider<IFeature>, IDisposable
     {
         public ILayer GpsTrackerLayer { get; private set; }
-        private BoundingBox _boundingBox;
+        private MRect _boundingBox;
 
         public string CRS { get; set; } = "";
 
         private Dictionary<string, IFeature> features = new Dictionary<string, IFeature>();
 
 
-        public GPSTrackerProvider(ILayer gpsTrackerLayer, BoundingBox boundingBox)
+        public GPSTrackerProvider(ILayer gpsTrackerLayer, MRect boundingBox)
         {
             GpsTrackerLayer = gpsTrackerLayer;
             _boundingBox = boundingBox;
@@ -68,7 +67,7 @@ namespace TacControl.Common.Maps
                         }
                         else if (e.PropertyName == nameof(GPSTracker.pos))
                         {
-                            feature.SetPosition(new Point(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]));
+                            feature.SetPosition(new MPoint(keyValuePair.Value.pos[0], keyValuePair.Value.pos[1]));
                             OnDataChanged();
                         }
                         else if (e.PropertyName == nameof(GPSTracker.vel))
@@ -88,33 +87,55 @@ namespace TacControl.Common.Maps
             OnDataChanged();
         }
 
-        public virtual IEnumerable<IFeature> GetFeaturesInView(
-          BoundingBox box,
-          double resolution)
+
+        public static double SymbolSize { get; set; } = 64;
+        //#TODO combine MapMarkerProvider and GPSTrackerProvider into a common baseclass that shares all common code
+        public virtual IEnumerable<IFeature> GetFeatures(FetchInfo fetchInfo)
         {
-            if (box == null)
-                throw new ArgumentNullException(nameof(box));
+            if (fetchInfo == null) throw new ArgumentNullException(nameof(fetchInfo));
+            if (fetchInfo.Extent == null) throw new ArgumentNullException(nameof(fetchInfo.Extent));
 
-            BoundingBox grownBox = box.Grow(resolution);
 
-            return features.Values.Where(f => f.Geometry != null && f.Geometry.BoundingBox.Intersects(grownBox)).ToList();
+            fetchInfo = new FetchInfo(fetchInfo);
+            // Use a larger extent so that symbols partially outside of the extent are included
+            var biggerBox = fetchInfo.Extent?.Grow(fetchInfo.Resolution * SymbolSize * 0.5);
+
+            return features.Values.Where(f => f != null && ((f.Extent?.Intersects(biggerBox)) ?? false)).ToList();
         }
 
-        public BoundingBox GetExtents()
+        public MRect? GetExtent()
         {
             return this._boundingBox;
         }
 
-        private static BoundingBox GetExtents(IEnumerable<IFeature> features)
-        {
-            BoundingBox boundingBox = (BoundingBox)null;
-            foreach (IFeature feature in features)
-            {
-                if (!feature.Geometry.IsEmpty())
-                    boundingBox = boundingBox == null ? feature.Geometry.BoundingBox : boundingBox.Join(feature.Geometry.BoundingBox);
-            }
-            return boundingBox;
-        }
+
+        //public virtual IEnumerable<IFeature> GetFeaturesInView(
+        //  BoundingBox box,
+        //  double resolution)
+        //{
+        //    if (box == null)
+        //        throw new ArgumentNullException(nameof(box));
+        //
+        //    BoundingBox grownBox = box.Grow(resolution);
+        //
+        //    return features.Values.Where(f => f.Geometry != null && f.Geometry.BoundingBox.Intersects(grownBox)).ToList();
+        //}
+        //
+        //public BoundingBox GetExtents()
+        //{
+        //    return this._boundingBox;
+        //}
+        //
+        //private static BoundingBox GetExtents(IEnumerable<IFeature> features)
+        //{
+        //    BoundingBox boundingBox = (BoundingBox)null;
+        //    foreach (IFeature feature in features)
+        //    {
+        //        if (!feature.Geometry.IsEmpty())
+        //            boundingBox = boundingBox == null ? feature.Geometry.BoundingBox : boundingBox.Join(feature.Geometry.BoundingBox);
+        //    }
+        //    return boundingBox;
+        //}
 
         public void Dispose()
         {

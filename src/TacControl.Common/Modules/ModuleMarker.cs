@@ -1,10 +1,3 @@
-// /*
-// * Copyright (C) Dedmen Miller @ R4P3 - All Rights Reserved
-// * Unauthorized copying of this file, via any medium is strictly prohibited
-// * Proprietary and confidential
-// * Written by Dedmen Miller <dedmen@dedmen.de>, 08 2016
-// */
-
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;

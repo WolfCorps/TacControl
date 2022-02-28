@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Mapsui;
-using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Rendering;
@@ -22,7 +21,7 @@ namespace TacControl.Common.Maps
 
             if (style.image == null || style.Opacity == 0) return false;
 
-            var position = feature.Geometry.BoundingBox.Centroid;
+            var position = feature.Extent.Centroid;
             var dest = viewport.WorldToScreen(position);
 
 

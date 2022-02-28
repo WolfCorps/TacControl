@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Mapsui;
-using Mapsui.Geometries;
 using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Rendering;
@@ -19,7 +18,7 @@ namespace TacControl.Common.Maps
         {
             var style = ((VelocityIndicatorStyle)istyle);
 
-            var position = feature.Geometry as Point;
+            var position = feature.Extent.BottomLeft;
             var dest = viewport.WorldToScreen(position);
 
             var zoom = 1 / (float)viewport.Resolution;

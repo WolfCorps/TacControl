@@ -12,14 +12,15 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Mapsui.Geometries;
+using Mapsui;
 using Mapsui.Layers;
+using Mapsui.Nts;
 using Mapsui.Providers;
 using Mapsui.UI;
 using TacControl.Common;
 using TacControl.Common.Maps;
 using TacControl.Common.Modules;
-using Point = Mapsui.Geometries.Point;
+using Point = Mapsui.MPoint;
 using RasterizingLayer = TacControl.Common.Maps.RasterizingLayer;
 
 namespace TacControl.MediterranianWidgets
@@ -30,7 +31,7 @@ namespace TacControl.MediterranianWidgets
     public partial class MapMarkerOverview : UserControl
     {
         private MemoryLayer MapMarkersLayer = new Mapsui.Layers.MemoryLayer("Map Markers");
-        public BoundingBox currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, 0, 0);
+        public MRect currentBounds = new Mapsui.MRect(0, 0, 0, 0);
 
         public ModuleMarker ModuleMarkerRef
         {
@@ -54,7 +55,7 @@ namespace TacControl.MediterranianWidgets
 
         private void MapMarkerOverview_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            MapControl.Navigator.NavigateTo(new BoundingBox(new Point(0, 0), new Point(terrainWidth, terrainWidth)));
+            MapControl.Navigator.NavigateTo(new MRect(0, 0, terrainWidth, terrainWidth));
         }
 
         private void MapMarkerOverview_OnLoaded(object sender, RoutedEventArgs e)
@@ -106,10 +107,10 @@ namespace TacControl.MediterranianWidgets
 
                 terrainWidth = svgLayer.width;
 
-                currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
+                currentBounds = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
 
-                var features = new Features();
-                var feature = new Feature { Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name };
+                var features = new List<IFeature>();
+                var feature = new GeometryFeature() { Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name };
 
 
                 if (renderLayer.Enabled)
@@ -126,7 +127,7 @@ namespace TacControl.MediterranianWidgets
                 features.Add(feature);
 
                 layer.Enabled = true;
-                layer.DataSource = new MemoryProvider(features);
+                layer.DataSource = new MemoryProvider<IFeature>(features);
                 layer.MinVisible = 0;
                 layer.MaxVisible = double.MaxValue;
                 MapControl.Map.Layers.Insert(index++, renderLayer);
@@ -134,7 +135,7 @@ namespace TacControl.MediterranianWidgets
 
             MapControl.RefreshGraphics();
 
-            MapControl.Navigator.NavigateTo(new BoundingBox(new Point(0, 0), new Point(terrainWidth, terrainWidth)));
+            MapControl.Navigator.NavigateTo(new MRect(0, 0, terrainWidth, terrainWidth));
         }
 
     }

@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
-using Mapsui.Geometries;
+using Mapsui;
+using Mapsui.Layers;
+using Mapsui.Nts;
+using Mapsui.Nts.Extensions;
 using Mapsui.Providers;
 using Mapsui.Styles;
 using SkiaSharp;
@@ -10,7 +13,8 @@ using TacControl.Common.Modules;
 
 namespace TacControl.Common.Maps
 {
-    public class GPSTrackerFeature : Feature
+    // Mapsui.Layers.PointFeature, but with editable point
+    public class GPSTrackerFeature : BaseFeature, IFeature
     {
         public GPSTracker Tracker { get; private set; }
         private MarkerIconStyle imgStyle;
@@ -59,8 +63,9 @@ namespace TacControl.Common.Maps
             velStyle = new VelocityIndicatorStyle {velocity = new Vector3(tracker.vel[0], tracker.vel[1], 0f) };
             Styles.Add(velStyle);
 
-            Geometry = new Point(tracker.pos[0], tracker.pos[1]);
+            Point = new MPoint(tracker.pos[0], tracker.pos[1]);
         }
+
 
         public void SetDisplayName(string newName)
         {
@@ -69,9 +74,9 @@ namespace TacControl.Common.Maps
             imgStyle.text = newName;
         }
 
-        public void SetPosition(Point newPos)
+        public void SetPosition(MPoint newPos)
         {
-            Geometry = newPos;
+            Point = newPos;
             heightStyle.Text = $"({Tracker.pos[2]:F0}m)";
         }
 
@@ -79,6 +84,18 @@ namespace TacControl.Common.Maps
         {
             velStyle.velocity.X = Tracker.vel[0];
             velStyle.velocity.Y = Tracker.vel[1];
+        }
+
+
+        public MPoint Point { get; private set; }
+        public MRect Extent => Point.MRect;
+
+        public void CoordinateVisitor(Action<double, double, CoordinateSetter> visit)
+        {
+            visit(Point.X, Point.Y, (x, y) => {
+                Point.X = x;
+                Point.Y = y;
+            });
         }
     }
 }

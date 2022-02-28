@@ -24,10 +24,12 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml;
 using System.Xml.Linq;
+using HarfBuzzSharp;
 using Mapsui;
-using Mapsui.Geometries;
+using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Logging;
+using Mapsui.Nts;
 using Mapsui.Providers;
 using Mapsui.Rendering;
 using Mapsui.Rendering.Skia;
@@ -36,6 +38,7 @@ using Mapsui.Rendering.Skia.SkiaWidgets;
 using Mapsui.Styles;
 using Mapsui.UI;
 using Mapsui.UI.Wpf;
+using Mapsui.UI.Wpf.Extensions;
 using Mapsui.Utilities;
 using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
@@ -49,14 +52,13 @@ using TacControl.Common.Modules;
 using static TacControl.Common.Modules.ModuleMarker;
 using Brush = Mapsui.Styles.Brush;
 using Color = Mapsui.Styles.Color;
-using Geometry = Mapsui.Geometries.Geometry;
 using LineStringRenderer = Mapsui.Rendering.Skia.LineStringRenderer;
 using Math = System.Math;
 using MultiLineStringRenderer = Mapsui.Rendering.Skia.MultiLineStringRenderer;
 using MultiPolygonRenderer = Mapsui.Rendering.Skia.MultiPolygonRenderer;
 using Path = System.IO.Path;
-using Point = Mapsui.Geometries.Point;
-using Polygon = Mapsui.Geometries.Polygon;
+using Point = Mapsui.MPoint;
+using Polygon = NetTopologySuite.Geometries.Polygon;
 using RasterizingLayer = TacControl.Common.Maps.RasterizingLayer;
 using SymbolCache = Mapsui.Rendering.Skia.SymbolCache;
 
@@ -93,7 +95,7 @@ namespace TacControl
 
         private MemoryLayer GPSTrackerLayer = new Mapsui.Layers.MemoryLayer("GPS Trackers");
         private MemoryLayer MapMarkersLayer = new Mapsui.Layers.MemoryLayer("Map Markers");
-        public static BoundingBox currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, 0, 0);
+        public static MRect currentBounds = new Mapsui.MRect(0, 0, 0, 0);
         public readonly MarkerVisibilityManager MarkerVisibilityManager = new MarkerVisibilityManager();
 
         public MapView()
@@ -259,7 +261,7 @@ namespace TacControl
 
             resolution = Math.Exp((e.Delta/120) * -0.1f) * resolution;
             // Limit target resolution before animation to avoid an animation that is stuck on the max resolution, which would cause a needless delay
-            resolution = MapControl.Map.Limiter.LimitResolution(resolution, MapControl.Viewport.Width, MapControl.Viewport.Height, MapControl.Map.Resolutions, MapControl.Map.Envelope);
+            resolution = MapControl.Map.Limiter.LimitResolution(resolution, MapControl.Viewport.Width, MapControl.Viewport.Height, MapControl.Map.Resolutions, MapControl.Map.Extent);
             MapControl.Navigator.ZoomTo(resolution, _currentMousePosition, MapControl.MouseWheelAnimation.Duration, MapControl.MouseWheelAnimation.Easing);
         }
 
@@ -298,10 +300,10 @@ namespace TacControl
 
                 terrainWidth = svgLayer.width;
 
-                currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
+                currentBounds = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
 
-                var features = new Features();
-                var feature = new Feature {Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name};
+                var features = new List<IFeature>();
+                var feature = new GeometryFeature() {Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name};
 
              
                 if (renderLayer.Enabled)
@@ -344,13 +346,13 @@ namespace TacControl
                 features.Add(feature);
 
 
-                layer.DataSource = new MemoryProvider(features);
+                layer.DataSource = new MemoryProvider<IFeature>(features);
                 layer.MinVisible = 0;
                 layer.MaxVisible = double.MaxValue;
                 MapControl.Map.Layers.Insert(index++, renderLayer);
             }
 
-            MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
+            MapControl.Map.Limiter.PanLimits = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
 
 
             Task.WhenAll(layerLoadTasks.Select(x => x.Item2).ToArray()).ContinueWith(x =>
@@ -366,7 +368,7 @@ namespace TacControl
 
                     LayerList.Initialize(MapControl.Map.Layers);
 
-                    MapControl.Navigator.NavigateTo(new BoundingBox(new Point(0, 0), new Point(terrainWidth, terrainWidth)));
+                    MapControl.Navigator.NavigateTo(new MRect(0, 0, terrainWidth, terrainWidth));
                     MapControl.RefreshGraphics();
                 });
             });

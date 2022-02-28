@@ -20,6 +20,7 @@ using Mapsui.UI.Utils;
 using Mapsui.UI.Wpf;
 using Mapsui.Utilities;
 using Mapsui.Rendering;
+using Mapsui.UI.Wpf.Extensions;
 using Mapsui.Widgets;
 using SkiaSharp.Views.Desktop;
 using SkiaSharp.Views.WPF;
@@ -77,7 +78,8 @@ namespace TacControl.Misc
             // Create map
             Map = new Map();
             // Create timer for invalidating the control
-            _invalidateTimer = new System.Threading.Timer((state) => InvalidateTimerCallback(state), null, System.Threading.Timeout.Infinite, 16);
+            _invalidateTimer?.Dispose();
+            _invalidateTimer = new System.Threading.Timer(InvalidateTimerCallback, null, System.Threading.Timeout.Infinite, 16);
             // Start the invalidation timer
             StartUpdates(false);
         }
@@ -101,15 +103,13 @@ namespace TacControl.Misc
 
             // All requested updates up to this point will be handled by this redraw
             _refresh = false;
-            Navigator.UpdateAnimations();
             Renderer.Render(canvas, new Viewport(Viewport), _map.Layers, _map.Widgets, _map.BackColor);
 
             // Stop stopwatch after drawing control
             _stopwatch.Stop();
 
-            // If we are interessted in performance measurements, we save the new drawing time
-            if (_performance != null)
-                _performance.Add(_stopwatch.Elapsed.TotalMilliseconds);
+            // If we are interested in performance measurements, we save the new drawing time
+            _performance?.Add(_stopwatch.Elapsed.TotalMilliseconds);
 
             // Log drawing time
             Logger.Log(LogLevel.Information, $"Time for drawing control [ms]: {_stopwatch.Elapsed.TotalMilliseconds}");
@@ -120,6 +120,14 @@ namespace TacControl.Misc
 
         void InvalidateTimerCallback(object state)
         {
+            // Check, if we have to redraw the screen
+
+            if (_map?.UpdateAnimations() == true)
+                _refresh = true;
+
+            if (_viewport.UpdateAnimations())
+                _refresh = true;
+
             if (!_refresh)
                 return;
 
@@ -143,7 +151,7 @@ namespace TacControl.Misc
         public void StartUpdates(bool refresh = true)
         {
             _refresh = refresh;
-            _invalidateTimer.Change(0, _updateInterval);
+            _invalidateTimer?.Change(0, _updateInterval);
         }
 
         /// <summary>
@@ -155,7 +163,7 @@ namespace TacControl.Misc
         /// </remarks>
         public void StopUpdates()
         {
-            _invalidateTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+            _invalidateTimer?.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
         }
 
         /// <summary>
@@ -243,10 +251,7 @@ namespace TacControl.Misc
             }
         }
 
-        public float PixelDensity
-        {
-            get => GetPixelDensity();
-        }
+        public float PixelDensity => GetPixelDensity();
 
         private IRenderer _renderer = new MapRenderer();
 
@@ -285,6 +290,9 @@ namespace TacControl.Misc
                 if (_navigator != null)
                 {
                     _navigator.Navigated -= Navigated;
+#pragma warning disable IDISP007 // Don't dispose injected
+                    _navigator.Dispose();
+#pragma warning restore IDISP007 // Don't dispose injected
                 }
                 _navigator = value ?? throw new ArgumentException($"{nameof(Navigator)} can not be null");
                 _navigator.Navigated += Navigated;
@@ -293,7 +301,11 @@ namespace TacControl.Misc
 
         private void Navigated(object sender, ChangeType changeType)
         {
-            _map.Initialized = true;
+            if (_map != null)
+            {
+                _map.Initialized = true;
+            }
+
             Refresh(changeType);
         }
 
@@ -310,16 +322,18 @@ namespace TacControl.Misc
         /// <summary>
         /// Called whenever a property is changed
         /// </summary>
-#if __FORMS__
-        public new event PropertyChangedEventHandler PropertyChanged;
+#if __FORMS__ || __MAUI__ || __AVALONIA__
+        public new event PropertyChangedEventHandler? PropertyChanged;
+#else
+        public event PropertyChangedEventHandler? PropertyChanged;
+#endif
 
+#if __FORMS__ || __MAUI__
         protected override void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 #else
-        public event PropertyChangedEventHandler PropertyChanged;
-
         protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -426,7 +440,7 @@ namespace TacControl.Misc
             {
                 Refresh(); // There is a new DataSource so let's fetch the new data.
             }
-            else if (e.PropertyName == nameof(Map.Envelope))
+            else if (e.PropertyName == nameof(Map.Extent))
             {
                 CallHomeIfNeeded();
                 Refresh();
@@ -436,16 +450,16 @@ namespace TacControl.Misc
                 CallHomeIfNeeded();
                 Refresh();
             }
-            if (e.PropertyName.Equals(nameof(Map.Limiter)))
+            if (e.PropertyName == nameof(Map.Limiter))
             {
-                _viewport.Limiter = Map.Limiter;
+                _viewport.Limiter = Map?.Limiter;
             }
         }
         // ReSharper restore RedundantNameQualifier
 
         public void CallHomeIfNeeded()
         {
-            if (_map != null && !_map.Initialized && _viewport.HasSize && _map?.Envelope != null)
+            if (_map != null && !_map.Initialized && _viewport.HasSize && _map?.Extent != null)
             {
                 _map.Home?.Invoke(Navigator);
                 _map.Initialized = true;
@@ -455,7 +469,7 @@ namespace TacControl.Misc
         /// <summary>
         /// Map holding data for which is shown in this MapControl
         /// </summary>
-        public Map Map
+        public Map? Map
         {
             get => _map;
             set
@@ -472,8 +486,8 @@ namespace TacControl.Misc
                 {
                     SubscribeToMapEvents(_map);
                     Navigator = new Navigator(_map, _viewport);
-                    _viewport.Map = Map;
-                    _viewport.Limiter = Map.Limiter;
+                    _viewport.Map = _map;
+                    _viewport.Limiter = _map.Limiter;
                     CallHomeIfNeeded();
                 }
 
@@ -483,17 +497,17 @@ namespace TacControl.Misc
         }
 
         /// <inheritdoc />
-        public Mapsui.Geometries.Point ToPixels(Mapsui.Geometries.Point coordinateInDeviceIndependentUnits)
+        public Mapsui.MPoint ToPixels(Mapsui.MPoint coordinateInDeviceIndependentUnits)
         {
-            return new Mapsui.Geometries.Point(
+            return new Mapsui.MPoint(
                 coordinateInDeviceIndependentUnits.X * PixelDensity,
                 coordinateInDeviceIndependentUnits.Y * PixelDensity);
         }
 
         /// <inheritdoc />
-        public Mapsui.Geometries.Point ToDeviceIndependentUnits(Mapsui.Geometries.Point coordinateInPixels)
+        public Mapsui.MPoint ToDeviceIndependentUnits(Mapsui.MPoint coordinateInPixels)
         {
-            return new Mapsui.Geometries.Point(coordinateInPixels.X / PixelDensity, coordinateInPixels.Y / PixelDensity);
+            return new Mapsui.MPoint(coordinateInPixels.X / PixelDensity, coordinateInPixels.Y / PixelDensity);
         }
 
         private void OnViewportSizeInitialized()
@@ -506,17 +520,24 @@ namespace TacControl.Misc
         /// </summary>
         public void RefreshData(ChangeType changeType = ChangeType.Discrete)
         {
-            _map?.RefreshData(Viewport.Extent, Viewport.Resolution, changeType);
+            if (Viewport.Extent != null)
+            {
+                if (Viewport.Extent == null)
+                    return;
+                var fetchInfo = new FetchInfo(Viewport.Extent, Viewport.Resolution, Map?.CRS, changeType);
+                _map?.RefreshData(fetchInfo);
+            }
         }
 
         private void OnInfo(MapInfoEventArgs mapInfoEventArgs)
         {
             if (mapInfoEventArgs == null) return;
 
+            Map?.OnInfo(mapInfoEventArgs); // Also propagate to Map
             Info?.Invoke(this, mapInfoEventArgs);
         }
 
-        private bool WidgetTouched(IWidget widget, Mapsui.Geometries.Point screenPosition)
+        private bool WidgetTouched(IWidget widget, Mapsui.MPoint screenPosition)
         {
             var result = widget.HandleWidgetTouched(Navigator, screenPosition);
 
@@ -531,9 +552,12 @@ namespace TacControl.Misc
         }
 
         /// <inheritdoc />
-        public MapInfo GetMapInfo(Mapsui.Geometries.Point screenPosition, int margin = 0)
+        public MapInfo GetMapInfo(Mapsui.MPoint screenPosition, int margin = 0)
         {
-            return Renderer.GetMapInfo(screenPosition.X, screenPosition.Y, Viewport, Map.Layers, margin);
+            if (screenPosition == null)
+                return null;
+
+            return Renderer?.GetMapInfo(screenPosition.X, screenPosition.Y, Viewport, Map?.Layers ?? new LayerCollection(), margin);
         }
 
         /// <inheritdoc />
@@ -557,10 +581,10 @@ namespace TacControl.Misc
         /// <param name="startScreenPosition">Screen position of Viewport/MapControl</param>
         /// <param name="numTaps">Number of clickes/taps</param>
         /// <returns>True, if something done </returns>
-        private MapInfoEventArgs InvokeInfo(Mapsui.Geometries.Point screenPosition, Mapsui.Geometries.Point startScreenPosition, int numTaps)
+        private MapInfoEventArgs InvokeInfo(Mapsui.MPoint screenPosition, Mapsui.MPoint startScreenPosition, int numTaps)
         {
             return InvokeInfo(
-                Map.GetWidgetsOfMapAndLayers(),
+                Map?.GetWidgetsOfMapAndLayers() ?? new List<IWidget>(),
                 screenPosition,
                 startScreenPosition,
                 WidgetTouched,
@@ -576,9 +600,12 @@ namespace TacControl.Misc
         /// <param name="widgetCallback">Callback, which is called when Widget is hit</param>
         /// <param name="numTaps">Number of clickes/taps</param>
         /// <returns>True, if something done </returns>
-        private MapInfoEventArgs InvokeInfo(IEnumerable<IWidget> widgets, Mapsui.Geometries.Point screenPosition,
-            Mapsui.Geometries.Point startScreenPosition, Func<IWidget, Mapsui.Geometries.Point, bool> widgetCallback, int numTaps)
+        private MapInfoEventArgs InvokeInfo(IEnumerable<IWidget> widgets, Mapsui.MPoint screenPosition,
+            Mapsui.MPoint startScreenPosition, Func<IWidget, Mapsui.MPoint, bool> widgetCallback, int numTaps)
         {
+            if (screenPosition == null || startScreenPosition == null)
+                return null;
+
             // Check if a Widget is tapped. In the current design they are always on top of the map.
             var touchedWidgets = WidgetTouch.GetTouchedWidget(screenPosition, startScreenPosition, widgets);
 
@@ -596,7 +623,7 @@ namespace TacControl.Misc
             }
 
             // Check which features in the map were tapped.
-            var mapInfo = Renderer.GetMapInfo(screenPosition.X, screenPosition.Y, Viewport, Map.Layers);
+            var mapInfo = Renderer?.GetMapInfo(screenPosition.X, screenPosition.Y, Viewport, Map?.Layers ?? new LayerCollection());
 
             if (mapInfo != null)
             {
@@ -630,7 +657,19 @@ namespace TacControl.Misc
             RefreshGraphics();
         }
 
-
+        private void CommonDispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Unsubscribe();
+#pragma warning disable IDISP007 // Don't dispose injected
+                _navigator?.Dispose();
+#pragma warning restore IDISP007
+                StopUpdates();
+                _invalidateTimer?.Dispose();
+            }
+            _invalidateTimer = null;
+        }
 
 
 
@@ -669,14 +708,14 @@ namespace TacControl.Misc
 
 
         private readonly Rectangle _selectRectangle = CreateSelectRectangle();
-        private Mapsui.Geometries.Point _currentMousePosition;
-        private Mapsui.Geometries.Point _downMousePosition;
+        private Mapsui.MPoint _currentMousePosition;
+        private Mapsui.MPoint _downMousePosition;
         private bool _mouseDown;
-        private Mapsui.Geometries.Point _previousMousePosition;
+        private Mapsui.MPoint _previousMousePosition;
         private RenderMode _renderMode;
         private bool _hasBeenManipulated;
         private double _innerRotation;
-        private readonly FlingTracker _flingTracker = new FlingTracker();
+        //private readonly FlingTracker _flingTracker = new FlingTracker();
 
         public MouseWheelAnimation MouseWheelAnimation { get; } = new MouseWheelAnimation();
 
@@ -733,7 +772,7 @@ namespace TacControl.Misc
 
             MouseMove += MapControlMouseMove;
             MouseLeave += MapControlMouseLeave;
-            MouseWheel += MapControlMouseWheel;
+            //MouseWheel += MapControlMouseWheel;
 
             SizeChanged += MapControlSizeChanged;
 
@@ -791,7 +830,7 @@ namespace TacControl.Misc
                 {
                     SkiaCanvas.Visibility = Visibility.Collapsed;
                     WpfCanvas.Visibility = Visibility.Visible;
-                    Renderer = new Mapsui.Rendering.Xaml.MapRenderer();
+                    Renderer = new Mapsui.Rendering.Skia.MapRenderer();
                     RefreshGraphics();
                 }
                 OnPropertyChanged();
@@ -840,14 +879,14 @@ namespace TacControl.Misc
 
         private void MapControlMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (Map.ZoomLock) return;
+            if (_map?.ZoomLock ?? true) return;
             if (!Viewport.HasSize) return;
 
             _currentMousePosition = e.GetPosition(this).ToMapsui();
 
             var resolution = MouseWheelAnimation.GetResolution(e.Delta, _viewport, _map);
             // Limit target resolution before animation to avoid an animation that is stuck on the max resolution, which would cause a needless delay
-            resolution = Map.Limiter.LimitResolution(resolution, Viewport.Width, Viewport.Height, Map.Resolutions, Map.Envelope);
+            resolution = _map.Limiter.LimitResolution(resolution, Viewport.Width, Viewport.Height, _map.Resolutions, _map.Extent);
             Navigator.ZoomTo(resolution, _currentMousePosition, MouseWheelAnimation.Duration, MouseWheelAnimation.Easing);
         }
 
@@ -859,7 +898,7 @@ namespace TacControl.Misc
 
         private void MapControlMouseLeave(object sender, MouseEventArgs e)
         {
-            _previousMousePosition = new Mapsui.Geometries.Point();
+            _previousMousePosition = null;
             ReleaseMouseCapture();
         }
 
@@ -877,25 +916,12 @@ namespace TacControl.Misc
 
         private void MapControlMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // We have a new interaction with the screen, so stop all navigator animations
-            Navigator.StopRunningAnimation();
-
             var touchPosition = e.GetPosition(this).ToMapsui();
             _previousMousePosition = touchPosition;
             _downMousePosition = touchPosition;
             _mouseDown = true;
-            _flingTracker.Clear();
+            //_flingTracker.Clear();
             CaptureMouse();
-
-            if (!IsInBoxZoomMode())
-            {
-                if (IsClick(_currentMousePosition, _downMousePosition))
-                {
-                    HandleFeatureInfo(e);
-                    var mapInfoEventArgs = InvokeInfo(touchPosition, _downMousePosition, e.ClickCount);
-                    OnInfo(mapInfoEventArgs);
-                }
-            }
         }
 
         private static bool IsInBoxZoomMode()
@@ -907,29 +933,38 @@ namespace TacControl.Misc
         {
             var mousePosition = e.GetPosition(this).ToMapsui();
 
-            if (IsInBoxZoomMode())
+            if (_previousMousePosition != null)
             {
-                var previous = Viewport.ScreenToWorld(_previousMousePosition.X, _previousMousePosition.Y);
-                var current = Viewport.ScreenToWorld(mousePosition.X, mousePosition.Y);
-                ZoomToBox(previous, current);
+                if (IsInBoxZoomMode())
+                {
+                    var previous = Viewport.ScreenToWorld(_previousMousePosition.X, _previousMousePosition.Y);
+                    var current = Viewport.ScreenToWorld(mousePosition.X, mousePosition.Y);
+                    ZoomToBox(previous, current);
+                }
+                else if (_downMousePosition != null && IsClick(mousePosition, _downMousePosition))
+                {
+                    HandleFeatureInfo(e);
+                    OnInfo(InvokeInfo(mousePosition, _downMousePosition, e.ClickCount));
+                }
             }
 
             RefreshData();
             _mouseDown = false;
 
-            double velocityX;
-            double velocityY;
+            // TacControl doesn't fling
+            //double velocityX;
+            //double velocityY;
+            //
+            //(velocityX, velocityY) = _flingTracker.CalcVelocity(1, DateTime.Now.Ticks);
+            //
+            //if (Math.Abs(velocityX) > 200 || Math.Abs(velocityY) > 200)
+            //{
+            //    // This was the last finger on screen, so this is a fling
+            //    e.Handled = OnFlinged(velocityX, velocityY);
+            //}
+            //_flingTracker.RemoveId(1);
 
-            (velocityX, velocityY) = _flingTracker.CalcVelocity(1, DateTime.Now.Ticks);
-
-            if (Math.Abs(velocityX) > 200 || Math.Abs(velocityY) > 200)
-            {
-                // This was the last finger on screen, so this is a fling
-                e.Handled = OnFlinged(velocityX, velocityY);
-            }
-            _flingTracker.RemoveId(1);
-
-            _previousMousePosition = new Mapsui.Geometries.Point();
+            _previousMousePosition = new MPoint();
             ReleaseMouseCapture();
         }
 
@@ -952,7 +987,7 @@ namespace TacControl.Misc
             return true;
         }
 
-        private static bool IsClick(Mapsui.Geometries.Point currentPosition, Mapsui.Geometries.Point previousPosition)
+        private static bool IsClick(Mapsui.MPoint currentPosition, Mapsui.MPoint previousPosition)
         {
             return
                 Math.Abs(currentPosition.X - previousPosition.X) < SystemParameters.MinimumHorizontalDragDistance &&
@@ -981,11 +1016,14 @@ namespace TacControl.Misc
             if (FeatureInfo == null) return; // don't fetch if you the call back is not set.
 
             if (_downMousePosition == e.GetPosition(this).ToMapsui())
-                foreach (var layer in Map.Layers)
+                if (this.Map != null)
                 {
-                    // ReSharper disable once SuspiciousTypeConversion.Global
-                    (layer as IFeatureInfo)?.GetFeatureInfo(Viewport, _downMousePosition.X, _downMousePosition.Y,
-                        OnFeatureInfo);
+                    foreach (var layer in Map.Layers)
+                    {
+                        // ReSharper disable once SuspiciousTypeConversion.Global
+                        (layer as IFeatureInfo)?.GetFeatureInfo(Viewport, _downMousePosition.X, _downMousePosition.Y,
+                            OnFeatureInfo);
+                    }
                 }
         }
 
@@ -1006,7 +1044,7 @@ namespace TacControl.Misc
 
             if (_mouseDown)
             {
-                if (_previousMousePosition == null || _previousMousePosition.IsEmpty())
+                if (_previousMousePosition == null)
                 {
                     // Usually MapControlMouseLeftButton down initializes _previousMousePosition but in some
                     // situations it can be null. So far I could only reproduce this in debug mode when putting
@@ -1014,7 +1052,7 @@ namespace TacControl.Misc
                     return;
                 }
 
-                _flingTracker.AddEvent(1, _currentMousePosition, DateTime.Now.Ticks);
+                //_flingTracker.AddEvent(1, _currentMousePosition, DateTime.Now.Ticks);
 
                 _viewport.Transform(_currentMousePosition, _previousMousePosition);
                 RefreshGraphics();
@@ -1031,7 +1069,7 @@ namespace TacControl.Misc
             }
         }
 
-        public void ZoomToBox(Mapsui.Geometries.Point beginPoint, Mapsui.Geometries.Point endPoint)
+        public void ZoomToBox(Mapsui.MPoint beginPoint, Mapsui.MPoint endPoint)
         {
             var width = Math.Abs(endPoint.X - beginPoint.X);
             var height = Math.Abs(endPoint.Y - beginPoint.Y);
@@ -1041,7 +1079,7 @@ namespace TacControl.Misc
             ZoomHelper.ZoomToBoudingbox(beginPoint.X, beginPoint.Y, endPoint.X, endPoint.Y,
                 ActualWidth, ActualHeight, out var x, out var y, out var resolution);
 
-            Navigator.NavigateTo(new Mapsui.Geometries.Point(x, y), resolution, 384);
+            Navigator.NavigateTo(new Mapsui.MPoint(x, y), resolution, 384);
 
             RefreshData();
             RefreshGraphics();
@@ -1057,7 +1095,7 @@ namespace TacControl.Misc
         {
             if (_mouseDown)
             {
-                if (_previousMousePosition == null || _previousMousePosition.IsEmpty()) return;
+                if (_previousMousePosition == null) return; // can happen during debug
 
                 var from = _previousMousePosition;
                 var to = newPos;
@@ -1108,11 +1146,11 @@ namespace TacControl.Misc
             var prevAngle = 0f;
 
             _hasBeenManipulated |= Math.Abs(e.DeltaManipulation.Translation.X) > SystemParameters.MinimumHorizontalDragDistance
-                     || Math.Abs(e.DeltaManipulation.Translation.Y) > SystemParameters.MinimumVerticalDragDistance;
+                                   || Math.Abs(e.DeltaManipulation.Translation.Y) > SystemParameters.MinimumVerticalDragDistance;
 
             double rotationDelta = 0;
 
-            if (!Map.RotationLock)
+            if (!(_map?.RotationLock ?? false))
             {
                 _innerRotation += angle - prevAngle;
                 _innerRotation %= 360;
@@ -1140,7 +1178,7 @@ namespace TacControl.Misc
 
         private double GetDeltaScale(XamlVector scale)
         {
-            if (Map.ZoomLock) return 1;
+            if (_map?.ZoomLock ?? true) return 1;
             var deltaScale = (scale.X + scale.Y) / 2;
             if (Math.Abs(deltaScale) < Constants.Epsilon)
                 return 1; // If there is no scaling the deltaScale will be 0.0 in Windows Phone (while it is 1.0 in wpf)
@@ -1199,5 +1237,22 @@ namespace TacControl.Misc
 
             return (float)dpiX;
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _map?.Dispose();
+            }
+
+            CommonDispose(disposing);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
     }
 }

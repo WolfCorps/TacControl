@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <UserSecretsId>c1f4b666-7436-4178-8666-78e8659203c4</UserSecretsId>
   </PropertyGroup>
 
@@ -19,7 +19,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Mapsui" Version="3.0.2" />
+    <PackageReference Include="Mapsui" Version="4.0.0-beta.1" />
     <PackageReference Include="Marvin.JsonPatch" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json.Cbor" Version="0.3.4-alpha" />
     <PackageReference Include="PropertyChanged.Fody" Version="3.4.0" />
@@ -29,7 +29,7 @@
     <PackageReference Include="System.Drawing.Common" Version="6.0.2-mauipre.1.22054.8" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="WebSocket4Net" Version="0.15.2" />
-    <PackageReference Include="Zlib.Portable.Signed" Version="1.11.0" />
+    <PackageReference Include="zlib.net-mutliplatform" Version="1.0.6" />
   </ItemGroup>
 
 </Project>
