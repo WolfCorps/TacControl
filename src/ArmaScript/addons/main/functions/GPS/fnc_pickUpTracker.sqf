@@ -20,5 +20,8 @@ deleteVehicle _activeTracker;
 
 TC_GPSTrackers = TC_GPSTrackers - [objNull];
 publicVariable "TC_GPSTrackers";
+#if TC_OfflineMode
+call TC_main_fnc_GPS_onServerTracker;
+#else
 remoteExec ["TC_main_fnc_GPS_onServerTracker", 0];
-
+#endif

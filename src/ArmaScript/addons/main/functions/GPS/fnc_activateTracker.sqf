@@ -16,9 +16,11 @@ params ["_explosive", ["_trackerName", ""]];
 //Will prevent Minedetector beep
 player action ["deactivateMine", player, _explosive];
 
+#ifndef TC_OfflineMode
 if (!isServer) exitWith {
     _this remoteExec ["TC_main_fnc_GPS_activateTracker", 2];
 };
+#endif
 
 if (_trackerName == "") then {
     private _attachedTo = attachedTo _explosive;
@@ -37,4 +39,8 @@ missionNamespace setVariable ["TC_gt_"+(_explosive call BIS_fnc_netId), _tracker
 TC_GPSTrackers = TC_GPSTrackers - [objNull];
 TC_GPSTrackers pushBackUnique _explosive;
 publicVariable "TC_GPSTrackers";
+#if TC_OfflineMode
+call TC_main_fnc_GPS_onServerTracker;
+#else
 remoteExec ["TC_main_fnc_GPS_onServerTracker", 0];
+#endif
