@@ -1,6 +1,6 @@
 #include "script_component.hpp"
 
-if (is3DEN) exitWith {["ImgDir.DoExport", []] call TC_main_fnc_sendMessage;};
+if (is3DEN || {getClientStateNumber < 10/* During briefing map screen */}) exitWith {["ImgDir.DoExport", []] call TC_main_fnc_sendMessage;};
 
 [] spawn
 {
