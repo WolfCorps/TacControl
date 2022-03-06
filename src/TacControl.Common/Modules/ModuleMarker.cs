@@ -33,6 +33,13 @@ namespace TacControl.Common.Modules
             CultureInfo ci = (CultureInfo)CultureInfo.CurrentCulture.Clone();
             ci.NumberFormat.NumberDecimalSeparator = ".";
 
+            if (color == "Default")
+            {
+                // #TODO this is wrong, we need to get the default color from somewhere I think this should lookup in MarkerColors?
+                if (Debugger.IsAttached) Debugger.Break();
+                return SKColors.Black;
+            }
+
             var colorArr = color.Trim('[', ']').Split(',').Select(xy => float.Parse(xy, NumberStyles.Any, ci)).ToList();
             if (colorArr.Count != 4) return SKColors.White; //wat.. See AiO config "color_Civilian"
             return new SKColor((byte)(colorArr[0] * 255), (byte)(colorArr[1] * 255), (byte)(colorArr[2] * 255), (byte)(colorArr[3] * 255));
