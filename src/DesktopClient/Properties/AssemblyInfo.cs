@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -12,7 +12,7 @@ using System.Windows;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("TacControl")]
-[assembly: AssemblyCopyright("MIT License")]
+[assembly: AssemblyCopyright("All rights reserved - Dedmen Miller")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
