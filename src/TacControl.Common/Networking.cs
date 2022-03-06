@@ -521,7 +521,16 @@ namespace TacControl.Common
                 }
             }
 
-            _udpClient.ReceiveAsync().ContinueWith(UDPRecv, TaskScheduler.FromCurrentSynchronizationContext());
+            // Special boilerplate so we don't get UnobservedTaskException
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _udpClient.ReceiveAsync() .ContinueWith(UDPRecv, TaskScheduler.FromCurrentSynchronizationContext());
+                }
+                catch (System.ObjectDisposedException) { }
+            });
+
         }
 
         private async Task<UdpReceiveResult> DoUDPBroadcast()
