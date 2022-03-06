@@ -744,10 +744,18 @@ namespace TacControl.Misc
 
             if (!GLRunning)
             {
-                SkiaCanvas = CreateSkiaGLRenderElement();
                 GLRunning = true;
-
-                Children.Add(SkiaCanvas as SKGLWpfControl);
+                try
+                {
+                    SkiaCanvas = CreateSkiaGLRenderElement();
+                    Children.Add(SkiaCanvas as SKGLWpfControl);
+                }
+                catch (System.AccessViolationException)
+                {
+                    // Crash inside DxGL? Out of my control but we need to fallback instead of dying
+                    SkiaCanvas = CreateSkiaRenderElement();
+                    Children.Add(SkiaCanvas as SKElement);
+                }
             }
             else
             {
@@ -849,7 +857,6 @@ namespace TacControl.Misc
         private static int mVersion = 0;
         private static SKGLWpfControl CreateSkiaGLRenderElement()
         {
-
             return new SKGLWpfControl(mVersion++);
         }
 
