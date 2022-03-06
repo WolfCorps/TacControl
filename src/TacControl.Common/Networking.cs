@@ -312,73 +312,16 @@ namespace TacControl.Common
         /// </summary>
         /// <param name="IsServer"></param>
         /// <returns></returns>
-        public async Task Connect([CanBeNull] IPEndPoint targetEndpoint = null)
+        public async Task Connect(IPEndPoint targetEndpoint)
         {
-            Console.WriteLine($"Networking: Connect to {targetEndpoint}");
             Busy = true;
 
             // connect to specific host
-            if (targetEndpoint != null)
-            {
-                SentrySdk.AddBreadcrumb($"Direct connecting to {targetEndpoint}");
-                Console.WriteLine($"Networking: Direct connecting to {targetEndpoint}");
+            SentrySdk.AddBreadcrumb($"Direct connecting to {targetEndpoint}");
+            Console.WriteLine($"Networking: Direct connecting to {targetEndpoint}");
 
-                socket = new WebSocket($"ws://{targetEndpoint}/", "", null, null, UserName); // UserAgent==UserName only for TacControl.Server
-            }
-            else // find host in LAN
-            {
-                var udpBroadcastResult = DoUDPBroadcast();
-
-                if (System.Environment.OSVersion.Platform != PlatformID.Unix)
-                {// Not on android
-
-
-                    // try to connect to localhost first
-                    TaskCompletionSource<bool> localhostConnectSuccessful = new TaskCompletionSource<bool>();
-                    socket = new WebSocket($"ws://127.0.0.1:8082/");
-                    socket.Open();
-                    socket.MessageReceived += OnMessage;
-
-                    SentrySdk.AddBreadcrumb($"Trying localhost connect");
-                    Console.WriteLine($"Networking: Trying localhost connect");
-
-                    void OnSocketOnError(object sender, ErrorEventArgs e)
-                    {
-                        localhostConnectSuccessful.SetResult(false);
-                        socket = null;
-                    }
-
-                    socket.Error += OnSocketOnError;
-
-                    socket.Opened += (object sender, EventArgs e) =>
-                    {
-                        socket.Error -= OnSocketOnError;
-                        localhostConnectSuccessful.SetResult(true);
-                    };
-
-                    bool localHostSuccessful = await localhostConnectSuccessful.Task;
-
-                    Console.WriteLine($"Networking: localhost successful: {localHostSuccessful}");
-
-                    if (localHostSuccessful) return;
-                }
-
-                var serverResponseData = await udpBroadcastResult;
-
-                //timeout, no reply
-                if (serverResponseData.RemoteEndPoint == null)
-                {
-                    Console.WriteLine($"Networking: Connection failed, staying offline");
-                    Busy = false;
-                    return;
-                }
-                
-                SentrySdk.AddBreadcrumb($"Broadcast connecting to {serverResponseData.RemoteEndPoint}");
-                Console.WriteLine($"Networking: Broadcast connecting to {serverResponseData.RemoteEndPoint}");
-
-                socket = new WebSocket($"ws://{serverResponseData.RemoteEndPoint}/");
-            }
-  
+            socket = new WebSocket($"ws://{targetEndpoint}/", "", null, null, UserName); // UserAgent==UserName only for TacControl.Server
+            
             //socket.Opened += new EventHandler(websocket_Opened);
             //socket.Error += new EventHandler<ErrorEventArgs>(websocket_Error);
             //socket.Closed += new EventHandler(websocket_Closed);
@@ -531,44 +474,6 @@ namespace TacControl.Common
                 catch (System.ObjectDisposedException) { }
             });
 
-        }
-
-        private async Task<UdpReceiveResult> DoUDPBroadcast()
-        {
-            var Client = new UdpClient();//(8082, AddressFamily.InterNetworkV6
-            Client.EnableBroadcast = true;
-
-            //var m_GrpAddr = IPAddress.Parse("FF01::1");
-
-            // Use the overloaded JoinMulticastGroup method.
-            // Refer to the ClientOriginator method to see how to use the other
-            // methods.
-            //Client.JoinMulticastGroup(m_GrpAddr);
-
-            //Client.JoinMulticastGroup();
-            var RequestData = Encoding.ASCII.GetBytes("R");
-
-            Client.Send(RequestData, RequestData.Length, new IPEndPoint(IPAddress.Broadcast, 8082)); //IPAddress.Broadcast IPAddress.Parse("10.0.0.10")
-
-            Console.WriteLine($"Networking: Sent broadcast");
-            //ConfigureAwait(false) is needed on android
-
-            var ServerResponseData = await Task.WhenAny(Client.ReceiveAsync(), Task.Delay(2000)).ConfigureAwait(true);
-
-            //var ServerResponse = Encoding.ASCII.GetString(ServerResponseData.Buffer);
-            //Console.WriteLine("Recived {0} from {1}", ServerResponse, ServerResponseData.RemoteEndPoint);
-
-            Client.Close();
-
-            if (ServerResponseData is Task<UdpReceiveResult> task)
-            {
-                Console.WriteLine($"Networking: Broadcast result from {task.Result.RemoteEndPoint}");
-                return task.Result;
-            }
-
-            Console.WriteLine($"Networking: Broadcast timeout, connection failed");
-
-            return new UdpReceiveResult();
         }
 
         public static T DeserializeObject<T>(JToken value)
