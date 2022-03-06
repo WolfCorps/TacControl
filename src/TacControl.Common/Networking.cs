@@ -426,7 +426,7 @@ namespace TacControl.Common
             _beaconTimer = new Timer((x) =>
             {
                 SendUDPBeacon();
-            }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(1));
+            }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(5));
 
             _udpClient.ReceiveAsync().ContinueWith(UDPRecv, TaskScheduler.FromCurrentSynchronizationContext());
 
