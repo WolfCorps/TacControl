@@ -40,6 +40,7 @@ namespace TacControl.MediterranianWidgets
 
         private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (e.AddedItems.Count == 0) return;
             CurrentEndpoint = e.AddedItems[0] as TacControlEndpoint;
             ConnectButton.IsEnabled = true;
         }
