@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TacControl", "AndroidClient
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TacControl.Common", "TacControl.Common\TacControl.Common.csproj", "{72E9F5C0-C085-443C-9F7B-B04974DB1F72}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TacControl", "DesktopClient\TacControl.csproj", "{463E85A0-2713-4261-9977-4A14DC950F66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TacControl", "DesktopClient\TacControl.csproj", "{463E85A0-2713-4261-9977-4A14DC950F66}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TacControl.Server", "TacControl.Server\TacControl.Server.csproj", "{AD3CBAB0-FD0F-48B7-ADB3-61916101FFD1}"
 EndProject
@@ -65,8 +65,8 @@ Global
 		{463E85A0-2713-4261-9977-4A14DC950F66}.Debug|x64.Build.0 = Debug|x64
 		{463E85A0-2713-4261-9977-4A14DC950F66}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{463E85A0-2713-4261-9977-4A14DC950F66}.Release|Any CPU.Build.0 = Release|Any CPU
-		{463E85A0-2713-4261-9977-4A14DC950F66}.Release|x64.ActiveCfg = Release|x64
-		{463E85A0-2713-4261-9977-4A14DC950F66}.Release|x64.Build.0 = Release|x64
+		{463E85A0-2713-4261-9977-4A14DC950F66}.Release|x64.ActiveCfg = Release|Any CPU
+		{463E85A0-2713-4261-9977-4A14DC950F66}.Release|x64.Build.0 = Release|Any CPU
 		{AD3CBAB0-FD0F-48B7-ADB3-61916101FFD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AD3CBAB0-FD0F-48B7-ADB3-61916101FFD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD3CBAB0-FD0F-48B7-ADB3-61916101FFD1}.Debug|x64.ActiveCfg = Debug|Any CPU

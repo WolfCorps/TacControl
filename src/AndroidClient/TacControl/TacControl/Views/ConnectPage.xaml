@@ -5,32 +5,38 @@
              x:Class="TacControl.Views.ConnectPage"
              x:Name="ConnectPageCtrl"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="LightSlateGray"
-             >
+             BackgroundColor="DarkOliveGreen"
+>
     <ContentPage.Content>
         <StackLayout>
-            <Label Text="Please connect to Arma."
-                VerticalOptions="CenterAndExpand" 
-                HorizontalOptions="CenterAndExpand" />
+            <Label Text="Please choose your Arma instance below. Your phone is automatically searching on your local Network." VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand" />
 
             <ListView
                 ItemsSource="{Binding networking.AvailableEndpoints}"
                 BindingContext="{x:Reference Name=ConnectPageCtrl}"
                 SelectionMode="Single"
                 ItemSelected="ListView_OnItemSelected"
+                BackgroundColor="OliveDrab"
+                SeparatorColor="Red"
               >
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="common:TacControlEndpoint">
                         <ViewCell>
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
 
-                                <Label Grid.Column="0" Text="{Binding ClientID}"/>
-                                <Label Grid.Column="1" Text="{Binding Address, StringFormat='{0}'}"/>
+                                <Label Grid.Row="0" Grid.Column="0" Text="Client Name:"/>
+                                <Label Grid.Row="1" Grid.Column="0" Text="Client Address:"/>
 
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding ClientID}"/>
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Address, StringFormat='{0}'}"/>
                             </Grid>
                         </ViewCell>
                     </DataTemplate>

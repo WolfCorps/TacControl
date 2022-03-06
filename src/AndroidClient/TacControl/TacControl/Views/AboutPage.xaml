@@ -11,16 +11,16 @@
         <vm:AboutViewModel />
     </ContentPage.BindingContext>
 
-    <Grid>
+    <StackLayout>
         <CollectionView Margin="10,10,0,10" x:Name="RadiosBox"
                         ItemsSource="{Binding gsRef.radio.radios}"
                         SelectionMode="None">
             <CollectionView.ItemTemplate>
                 <!-- x:DataType="modules:TFARRadio" -->
                 <DataTemplate x:DataType="modules:TFARRadio">
-                    <StackLayout Orientation="Vertical">
+                    <StackLayout>
                         <Label Text="{Binding displayName, StringFormat='Radio {0}'}" TextColor="Black"/>
-                        <Grid  Margin="0,10,0,0">
+                        <Grid Margin="0,10,0,0">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="30" />
                                 <RowDefinition Height="*" />
@@ -29,12 +29,13 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Label Text="{Binding CurrentChannel, StringFormat='CH {0}'}" Grid.Row="0" Grid.Column="0" TextColor="Black"/>
-                            <Label Text="{Binding CurrentMainFreq, StringFormat='Freq {0}'}" Grid.Row="0" Grid.Column="1" TextColor="Black"/>
+                            <Label Text="{Binding CurrentChannel, StringFormat='CH {0}'}" Grid.Row="0" Grid.Column="1" TextColor="Black"/>
+                            <Label Text="{Binding CurrentMainFreq, StringFormat='Freq {0}'}" Grid.Row="0" Grid.Column="0" TextColor="Black"/>
                             <views:RadioTransmitButtons
                                 Grid.Row="1"
                                 Grid.Column="0"
                                 Grid.ColumnSpan="2"
+
                                 RadioRef="{Binding .}"
                                 Channel="{Binding currentChannel}"/>
                         </Grid>
@@ -48,8 +49,8 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Label Text="{Binding CurrentAltChannel, StringFormat='CH {0}'}" Grid.Row="0" Grid.Column="0" TextColor="Black"/>
-                            <Label Text="{Binding CurrentAltFreq, StringFormat='Freq {0}'}" Grid.Row="0" Grid.Column="1" TextColor="Black"/>
+                            <Label Text="{Binding CurrentAltChannel, StringFormat='CH {0}'}" Grid.Row="0" Grid.Column="1" TextColor="Black"/>
+                            <Label Text="{Binding CurrentAltFreq, StringFormat='Freq {0}'}" Grid.Row="0" Grid.Column="0" TextColor="Black"/>
                             <views:RadioTransmitButtons
                                 Grid.Row="1"
                                 Grid.Column="0"
@@ -62,5 +63,5 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-    </Grid>
+    </StackLayout>
 </ContentPage>

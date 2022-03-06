@@ -5,7 +5,7 @@
        Title="TacControl"
        x:Class="TacControl.AppShell"
        TabBarIsVisible="False"
->
+       >
 
     <!--
         The overall app visual hierarchy is defined here, along with navigation.
@@ -81,13 +81,13 @@
         FlyoutDisplayOptions="AsMultipleItems" will create a separate flyout item for each child element    
         https://docs.microsoft.com/dotnet/api/xamarin.forms.shellgroupitem.flyoutdisplayoptions?view=xamarin-forms
     -->
-    <FlyoutItem FlyoutDisplayOptions="AsMultipleItems">
-        <ShellContent Title="Radios" Icon="tab_about.png" Route="AboutPage" ContentTemplate="{DataTemplate local:AboutPage}" IsEnabled="{Binding Connected}" />
-        <ShellContent Title="Map" Route="MapPage"  Icon="tab_feed.png" ContentTemplate="{DataTemplate local:MapPage}" IsEnabled="{Binding Connected}"/>
-        <ShellContent Title="Explosives" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:ExplosivesList}" IsEnabled="{Binding Connected}"/>
+    <FlyoutItem FlyoutDisplayOptions="AsMultipleItems" >
 
+        <ShellContent Title="Connect" Route="ConnectPage" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:ConnectPage}" IsVisible="{Binding NotConnected}"/>
 
-        <ShellContent Title="Connect" Route="ConnectPage" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:ConnectPage}" IsVisible="False"/>
+        <ShellContent Title="Radios" Route="AboutPage" Icon="tab_about.png" ContentTemplate="{DataTemplate local:AboutPage}" IsVisible="{Binding Connected}" />
+        <ShellContent Title="Map" Route="MapPage" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:MapPage}" IsVisible="{Binding Connected}"/>
+        <ShellContent Title="Explosives"  Route="ExplosivesList" Icon="tab_feed.png" ContentTemplate="{DataTemplate local:ExplosivesList}" IsVisible="{Binding Connected}"/>
 
 
     </FlyoutItem>

@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Mapsui;
-using Mapsui.Geometries;
 using Mapsui.Layers;
+using Mapsui.Nts;
 using Mapsui.Providers;
 using Mapsui.Rendering;
 using Mapsui.Rendering.Skia;
@@ -38,7 +38,7 @@ namespace TacControl.Views
 
         private MemoryLayer GPSTrackerLayer = new Mapsui.Layers.MemoryLayer("GPS Trackers");
         private MemoryLayer MapMarkersLayer = new Mapsui.Layers.MemoryLayer("Map Markers");
-        public static BoundingBox currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, 0, 0);
+        public static MRect currentBounds = new Mapsui.MRect(0, 0, 0, 0);
         public readonly MarkerVisibilityManager MarkerVisibilityManager = new MarkerVisibilityManager();
 
 
@@ -118,10 +118,10 @@ namespace TacControl.Views
 
                 terrainWidth = svgLayer.width;
 
-                currentBounds = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
+                currentBounds = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
 
-                var features = new Features();
-                var feature = new Feature {Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name};
+                var features = new List<IFeature>();
+                var feature = new GeometryFeature() { Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name };
 
                 var x = new SvgStyle {image = new Svg.Skia.SKSvg()};
 
@@ -139,14 +139,14 @@ namespace TacControl.Views
                 features.Add(feature);
 
                 //
-                layer.DataSource = new MemoryProvider(features);
+                layer.DataSource = new MemoryProvider<IFeature>(features);
                 MapControl.Map.Layers.Add(renderLayer);
             }
 
             Task.WaitAll(layerLoadTasks.ToArray());
 
 
-            MapControl.Navigator.NavigateTo(new BoundingBox(new Mapsui.Geometries.Point(0, 0), new Mapsui.Geometries.Point(terrainWidth, terrainWidth)));
+            MapControl.Navigator.NavigateTo(new Mapsui.MRect(0, 0, terrainWidth, terrainWidth));
             MapControl.RefreshGraphics();
 
             //var layer = new Mapsui.Layers.ImageLayer("Base");
@@ -154,7 +154,7 @@ namespace TacControl.Views
             //MapControl.Map.Layers.Add(layer);
             
             MapControl.Map.Limiter = new ViewportLimiter();
-            MapControl.Map.Limiter.PanLimits = new Mapsui.Geometries.BoundingBox(0, 0, terrainWidth, terrainWidth);
+            MapControl.Map.Limiter.PanLimits = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
             MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 40); // bigger number == more zoomed out
 
             GPSTrackerLayer.IsMapInfoLayer = true;

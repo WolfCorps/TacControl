@@ -32,13 +32,19 @@ namespace TacControl
             DependencyService.Register<MockDataStore>();
 
             MainPage = new AppShell();
-            Routing.RegisterRoute("//ConnectPage", typeof(ConnectPage));
-            Shell.Current.GoToAsync("//ConnectPage");
 
-            Networking.Instance.OnConnected += () => MainThreadInvoke(() =>
+            //Routing.RegisterRoute("ConnectPage", typeof(ConnectPage));
+            //Routing.RegisterRoute("MapPage", typeof(MapPage));
+            //Routing.RegisterRoute("AboutPage", typeof(AboutPage));
+            //Shell.Current.GoToAsync("//ConnectPage");
+
+            Networking.Instance.OnConnected += () => Networking.Instance.MainThreadInvoke(() =>
             {
                 Networking.Instance.StopUDPSearch();
-                Shell.Current.GoToAsync("//MapPage", true);
+                // Prefixing with `//` switches to a different navigation stack instead of pushing to the active one
+                Shell.Current.GoToAsync($"//{nameof(MapPage)}", true);
+
+                MessagingCenter.Send<App>(this, "connected");
             });
 
         }

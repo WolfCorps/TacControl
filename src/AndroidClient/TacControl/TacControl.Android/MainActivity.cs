@@ -68,6 +68,7 @@ namespace TacControl.Droid
                 var info = conMgr.GetNetworkInfo(wifiNet);
 
                 var connInfo = wifiMgr.ConnectionInfo;
+                var ip = connInfo.IpAddress;
             }
     
 
