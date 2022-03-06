@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Numerics;
 using System.Reactive.Concurrency;
@@ -419,11 +420,13 @@ namespace TacControl.Common
 
             _udpClient = new UdpClient(0);//(8082, AddressFamily.InterNetworkV6
             _udpClient.EnableBroadcast = true;
+            _udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontRoute, 1);
+            _udpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.NoDelay, 1);
 
             _beaconTimer = new Timer((x) =>
             {
                 SendUDPBeacon();
-            }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(10));
+            }, null, TimeSpan.FromMilliseconds(0), TimeSpan.FromSeconds(1));
 
             _udpClient.ReceiveAsync().ContinueWith(UDPRecv, TaskScheduler.FromCurrentSynchronizationContext());
 
@@ -439,15 +442,38 @@ namespace TacControl.Common
 
         public void SendUDPBeacon()
         {
-            if (_udpClient == null)
-            {
-                StartUDPSearch();
-                return;
-            }
-                
-
             var RequestData = Encoding.ASCII.GetBytes("R");
-            _udpClient.Send(RequestData, RequestData.Length, _beaconTarget) ; //IPAddress.Broadcast IPAddress.Parse("10.0.0.10")
+
+            // For a device wwith multiple network adapters, a simple broadcast on _udpClient will only work on the network interface with the highest metric, not on others.
+            //_udpClient.Send(RequestData, RequestData.Length, _beaconTarget) ; //IPAddress.Broadcast IPAddress.Parse("10.0.0.10")
+
+            var localPort = ((IPEndPoint)_udpClient.Client.LocalEndPoint).Port;
+
+            // We have to specifically send a broadcast per network interface
+            foreach (NetworkInterface adapter in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+            {
+                // Only select interfaces that are Ethernet type and support IPv4 (important to minimize waiting time)
+                if (adapter.NetworkInterfaceType != NetworkInterfaceType.Ethernet && adapter.NetworkInterfaceType != NetworkInterfaceType.Wireless80211) continue;
+                if (adapter.OperationalStatus != OperationalStatus.Up) continue;
+                if (!adapter.Supports(NetworkInterfaceComponent.IPv4)) continue;
+                try
+                {
+                    IPInterfaceProperties adapterProperties = adapter.GetIPProperties();
+                    foreach (var ua in adapterProperties.UnicastAddresses)
+                    {
+                        if (ua.Address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork) continue;
+                        
+                        Socket bcSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                        bcSocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
+
+                        IPEndPoint myLocalEndPoint = new IPEndPoint(ua.Address, localPort); // reusing our port, because we need reply to target correct port
+                        bcSocket.Bind(myLocalEndPoint);
+                        bcSocket.SendTo(RequestData, _beaconTarget);
+                        bcSocket.Close();
+                    }
+                }
+                catch { }
+            }
 
             Console.WriteLine($"Networking: Sent broadcast Beacon");
         }
