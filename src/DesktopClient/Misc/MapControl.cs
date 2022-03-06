@@ -22,6 +22,7 @@ using Mapsui.Utilities;
 using Mapsui.Rendering;
 using Mapsui.UI.Wpf.Extensions;
 using Mapsui.Widgets;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using SkiaSharp.Views.Desktop;
 using SkiaSharp.Views.WPF;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
@@ -750,14 +751,11 @@ namespace TacControl.Misc
                     SkiaCanvas = CreateSkiaGLRenderElement();
                     Children.Add(SkiaCanvas as SKGLWpfControl);
                 }
-                catch (System.AccessViolationException)
-                {
-                    // Crash inside DxGL? Out of my control but we need to fallback instead of dying
-                    SkiaCanvas = CreateSkiaRenderElement();
-                    Children.Add(SkiaCanvas as SKElement);
-                }
+                catch (System.AccessViolationException) { }
+                catch (GLFWException) { }
             }
-            else
+
+            if (SkiaCanvas == null) // either GL didn't run or failed
             {
                 SkiaCanvas = CreateSkiaRenderElement();
 
