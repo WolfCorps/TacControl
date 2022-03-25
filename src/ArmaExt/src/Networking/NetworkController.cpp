@@ -53,21 +53,21 @@ void NetworkController::ModuleInit() {
 
 void NetworkController::SendStateUpdate() {
     AddTask([this]() {
-        JsonArchive state(currentState, false);
+        JsonArchive state(currentState, false); // We are serializing INTO currentState
 
         GGameManager.CollectGameState(state);
 
-        wsServer->state_->updateState(std::move(*state.getRaw()));
+        wsServer->state_->updateState(currentState);
     }); 
 }
 
 void NetworkController::SendStateUpdate(std::string_view subset) {
     AddTask([this, subset]() {
-        JsonArchive state(currentState, false);
+        JsonArchive state(currentState, false); // We are serializing INTO currentState
 
         GGameManager.CollectGameState(state, subset);
 
-        wsServer->state_->updateState(std::move(*state.getRaw()));
+        wsServer->state_->updateState(currentState);
     });
 }
 

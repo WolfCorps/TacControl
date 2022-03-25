@@ -64,7 +64,7 @@ leave(websocket_session* session)
 //            sp->send(ss);
 //}
 
-void shared_state::updateState(nlohmann::json&& newState)
+void shared_state::updateState(const nlohmann::json& newState)
 {
 
     // Make a local list of all the weak pointers representing
@@ -84,8 +84,7 @@ void shared_state::updateState(nlohmann::json&& newState)
     // pointer. If successful, then send the message on that session.
     for (auto const& wp : v)
         if (auto sp = wp.lock()) {
-
-            auto diff = nlohmann::json::diff(*sp->lastState, newState);
+            auto diff = nlohmann::json::diff(*sp->lastState, *currentState);
             if (diff.empty()) continue; //don't send empty diffs
             sp->lastState = currentState; 
 
