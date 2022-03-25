@@ -503,7 +503,7 @@ namespace TacControl.Common
             {
                 try
                 {
-                    await _udpClient.ReceiveAsync() .ContinueWith(UDPRecv, TaskScheduler.FromCurrentSynchronizationContext());
+                    await _udpClient.ReceiveAsync().ContinueWith(UDPRecv, TaskScheduler.Current);
                 }
                 catch (System.ObjectDisposedException) { }
             });
