@@ -66,7 +66,7 @@ public:
     void join(websocket_session* session);
     void leave(websocket_session* session);
     //void send(std::string message);
-    void updateState(const nlohmann::json&& newState);
+    void updateState(nlohmann::json&& newState);
 
 
     Signal<void(std::string, boost::shared_ptr<websocket_session>)> OnMessage;

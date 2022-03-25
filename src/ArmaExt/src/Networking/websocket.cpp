@@ -64,7 +64,7 @@ leave(websocket_session* session)
 //            sp->send(ss);
 //}
 
-void shared_state::updateState(const nlohmann::json&& newState)
+void shared_state::updateState(nlohmann::json&& newState)
 {
 
     // Make a local list of all the weak pointers representing
