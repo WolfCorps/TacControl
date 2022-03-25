@@ -292,7 +292,7 @@ void ModuleMarker::OnDoDeleteMarker(const nlohmann::json& arguments) {
     GGameManager.SendMessage("Marker.Cmd.DeleteMarker", arguments["id"]);
 }
 
-void ModuleMarker::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(ReplyMessageType)>& replyFunc) {
+void ModuleMarker::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const NetworkMessageContext& context) {
     if (function[0] == "CreateMarker") {
         OnDoCreateMarker(arguments);
     }

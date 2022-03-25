@@ -11,6 +11,7 @@
 
 #include "ModuleGameInfo.hpp"
 #include "Game/GameManager.hpp"
+#include "Networking/NetworkController.hpp"
 
 void ModuleImageDirectory::LoadPboPrefixes() {
 
@@ -258,7 +259,7 @@ nlohmann::json ModuleImageDirectory::generateMapfileMessage(std::string_view pat
     return msg;
 }
 
-void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(ReplyMessageType)>& replyFunc) {
+void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const NetworkMessageContext& context) {
 
     if (function[0] == "RequestTexture") {
         std::string_view path = arguments["path"];
@@ -273,17 +274,17 @@ void ModuleImageDirectory::OnNetMessage(std::span<std::string_view> function, co
         args["width"] = width;
         args["height"] = height;
 
-        replyFunc(std::reference_wrapper(msg));
+        context.Reply(std::reference_wrapper(msg));
     } else if (function[0] == "RequestMapfile") {
         std::string_view path = arguments["name"];
 
         nlohmann::json msg = generateMapfileMessage(path);
 
         if (msg.is_null()) {
-            waitingForMapExport.push_back(replyFunc);
+            waitingForMapExport.push_back([context](std::string_view res) {context.Reply(res); });
             return;
         }
 
-        replyFunc(std::reference_wrapper(msg));
+        context.Reply(std::reference_wrapper(msg));
     }
 }

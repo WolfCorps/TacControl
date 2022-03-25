@@ -10,15 +10,7 @@
 #include "Networking/Serialize.hpp"
 #include "Util/Logger.hpp"
 #include "Util/Util.hpp"
-#include "Modules/ModuleRadio.hpp"
-#include "Modules/ModuleLogitechG15.hpp"
-#include "Modules/ModuleGPS.hpp"
-#include "Modules/ModuleMarker.hpp"
-#include "Modules/ModuleImageDirectory.hpp"
-#include "Modules/ModuleGameInfo.hpp"
-#include "Modules/ModuleNote.hpp"
-#include "Modules/ModuleVehicle.hpp"
-#include "Modules/ModuleACE.hpp"
+#include "Util/AllModuleHeaders.hpp"
 
 int(*GameManager::extensionCallback)(char const* name, char const* function, char const* data);
 
@@ -204,7 +196,7 @@ void GameManager::SendMessageInternal(std::string_view function, const std::vect
     //IncomingMessage(function, arguments);
 }
 
-void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& function, nlohmann::json&& arguments, const std::function<void(ReplyMessageType)>& replyFunc) {
+void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& function, nlohmann::json&& arguments, const NetworkMessageContext& context) {
 
     //#TODO into task?
 
@@ -219,7 +211,7 @@ void GameManager::TransferNetworkMessage(std::vector<std::string_view>&& functio
     //remove root entry
     funcSpan = funcSpan.subspan(1);
     auto [msgRecv, threadQueue] = found->second;
-    msgRecv->OnNetMessage(funcSpan, arguments, replyFunc);
+    msgRecv->OnNetMessage(funcSpan, arguments, context);
 }
 
 void GameManager::CollectGameState(JsonArchive& ar) {

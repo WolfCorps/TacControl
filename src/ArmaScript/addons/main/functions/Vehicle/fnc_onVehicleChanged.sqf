@@ -22,8 +22,7 @@ EVENTHANDLERS;
 #undef XX
 };
 
-
-[TC_Vehicle_PFH] call CBA_fnc_removePerFrameHandler;
+["VehAnim", GVAR(VehAnimInterestHandle)] call TC_main_fnc_Core_unregisterOnInterest;
 
 TC_Vehicle_CurrentVec = _vehicle;
 
@@ -46,9 +45,23 @@ if !(_isDriver) exitWith {};
 EVENTHANDLERS;
 #undef XX
 
-TC_Vehicle_PFH = [{
-     TC_Vehicle_CurrentVec call TC_main_fnc_Vehicle_updateAnimSources;
-}, 0.2] call CBA_fnc_addPerFrameHandler;
+// We only want to update vehicle animations if there is actually interest for it.
+//#TODO also only do the eventhandlers on interest?
+GVAR(VehAnimInterestHandle) = ["VehAnim", 
+    { // Triggered when interest is gained or already present
+       
+        _this set [0,
+            [{
+                TC_Vehicle_CurrentVec call TC_main_fnc_Vehicle_updateAnimSources;
+            }, 0.2] call CBA_fnc_addPerFrameHandler
+        ];
+    }, 
+    { // Triggered when interest is lost or handler is removed
+        _this call CBA_fnc_removePerFrameHandler;
+    },
+    [0] // using our own args array to store the PFH handle
+] call TC_main_fnc_Core_registerOnInterest;
+
 
 private _vehicleCapabilities = [];
 

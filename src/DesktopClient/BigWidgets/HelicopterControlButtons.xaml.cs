@@ -37,16 +37,20 @@ namespace TacControl
         }
     }
 
-
     public partial class HelicopterControlButtons : UserControl
     {
-
-
         public ModuleVehicle VecRef { get; } = GameState.Instance.vehicle;
 
         public HelicopterControlButtons()
         {
             InitializeComponent();
+
+            GameState.Instance.core.UpdateInterest("VehAnim", true);
+        }
+
+        ~HelicopterControlButtons()
+        {
+            GameState.Instance.core.UpdateInterest("VehAnim", false);
         }
 
         private void GearButton_OnClick(object sender, RoutedEventArgs e)

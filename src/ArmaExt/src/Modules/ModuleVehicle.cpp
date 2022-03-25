@@ -96,7 +96,7 @@ void ModuleVehicle::OnGameMessage(const std::vector<std::string_view>& function,
 }
 
 void ModuleVehicle::OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments,
-    const std::function<void(ReplyMessageType)>& replyFunc) {
+    const NetworkMessageContext& context) {
 
     if (function[0] == "Do") {
         std::string_view type = arguments["type"];

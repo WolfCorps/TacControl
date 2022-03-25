@@ -66,7 +66,7 @@ public:
     void OnGameMessage(const std::vector<std::string_view>& function,
                        const std::vector<std::string_view>& arguments) override;
 
-    void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(ReplyMessageType)>& replyFunc) override;
+    void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const NetworkMessageContext& context) override;
 
     //IStateHolder
     std::string_view GetStateHolderName() const override { return "Radio"sv; }

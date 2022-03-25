@@ -9,6 +9,7 @@
 using namespace std::string_view_literals;
 
 class JsonArchive;
+struct NetworkMessageContext;
 
 using ReplyMessageType = std::variant<std::string_view, const std::reference_wrapper<nlohmann::json>>;
 
@@ -25,7 +26,7 @@ public:
     virtual ~IMessageReceiver() = default;
     virtual void OnGameMessage(const std::vector<std::string_view>& function, const std::vector<std::string_view>& arguments) {}
     virtual bool IsReceiveGameMessageAsync() const { return true; }
-    virtual void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const std::function<void(ReplyMessageType)>& replyFunc) {}
+    virtual void OnNetMessage(std::span<std::string_view> function, const nlohmann::json& arguments, const NetworkMessageContext& context) {}
     virtual std::string_view GetMessageReceiverName() = 0;
 };
 
@@ -59,3 +60,4 @@ public:
     X(ModuleNote) \
     X(ModuleVehicle) \
     X(ModuleACE) \
+    X(ModuleCore) \

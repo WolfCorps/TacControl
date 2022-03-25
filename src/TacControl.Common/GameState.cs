@@ -18,6 +18,7 @@ namespace TacControl.Common
         public ModuleNote note { get; private set; } = new ModuleNote();
         public ModuleVehicle vehicle { get; private set; } = new ModuleVehicle();
         public ModuleACE ace { get; private set; } = new ModuleACE();
+        public ModuleCore core { get; private set; } = new ModuleCore();
 
         public void test()
         {

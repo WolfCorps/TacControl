@@ -14,11 +14,5 @@ if (_function#0 == "Cmd") then {
 
              missionNamespace setVariable ["TC_gt_"+_netId, _newName, true];
         };
-
-
-
-
     };
-
-
 };

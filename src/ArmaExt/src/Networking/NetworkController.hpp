@@ -1,6 +1,7 @@
 #pragma once
 #include "Util/Thread.hpp"
 
+class websocket_session;
 class Server;
 using namespace std::string_view_literals;
 
@@ -16,5 +17,12 @@ public:
     void SendStateUpdate(std::string_view subset);
 };
 
+struct NetworkMessageContext {
+    std::shared_ptr<websocket_session> sender;
+
+    NetworkMessageContext(const std::shared_ptr<websocket_session>& snd) : sender(snd) {}
+
+    void Reply(ReplyMessageType reply) const;
+};
 
 inline NetworkController GNetworkController;

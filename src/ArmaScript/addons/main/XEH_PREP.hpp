@@ -2,6 +2,14 @@
 
 PREP(sendMessage); //TC_main_fnc_sendMessage
 PREP(exportTerrain); //TC_main_fnc_exportTerrain
+
+
+PREP_SUB(Core,preInit); //TC_main_fnc_Core_preInit
+PREP_SUB(Core,fireInterestHandlers); //TC_main_fnc_Core_fireInterestHandlers
+PREP_SUB(Core,onMessage); //TC_main_fnc_Core_onMessage
+PREP_SUB(Core,registerOnInterest); //TC_main_fnc_Core_registerOnInterest
+PREP_SUB(Core,unregisterOnInterest); //TC_main_fnc_Core_unregisterOnInterest
+
 PREP_SUB(Radio,preInit); //TC_main_fnc_Radio_preInit
 PREP_SUB(Radio,onMessage); //TC_main_fnc_Radio_onMessage
 PREP_SUB(Radio,TFARTransmit); //TC_main_fnc_Radio_TFARTransmit

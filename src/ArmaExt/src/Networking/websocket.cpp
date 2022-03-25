@@ -20,6 +20,8 @@ join(websocket_session* session)
     std::lock_guard<std::mutex> lock(mutex_);
     sessions_.insert(session);
 
+    OnClientJoined(session->shared_from_this());
+
     session->lastState = currentState;
 
     nlohmann::json stateUpdate;
@@ -33,6 +35,7 @@ void
 shared_state::
 leave(websocket_session* session)
 {
+    OnClientLeft(session->GetRemoteEndpoint());
     std::lock_guard<std::mutex> lock(mutex_);
     sessions_.erase(session);
 }
@@ -70,7 +73,7 @@ void shared_state::updateState(const nlohmann::json& newState)
     // Make a local list of all the weak pointers representing
     // the sessions, so we can do the actual sending without
     // holding the mutex:
-    std::vector<boost::weak_ptr<websocket_session>> v;
+    std::vector<std::weak_ptr<websocket_session>> v;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         v.reserve(sessions_.size());
@@ -273,7 +276,7 @@ template<
 http_session::
 http_session(
     tcp::socket&& socket,
-    boost::shared_ptr<shared_state> const& state)
+    std::shared_ptr<shared_state> const& state)
     : stream_(std::move(socket))
     , state_(state)
 {
@@ -342,7 +345,7 @@ on_read(beast::error_code ec, std::size_t)
     {
         // Create a websocket session, transferring ownership
         // of both the socket and the HTTP request.
-        boost::make_shared<websocket_session>(
+        std::make_shared<websocket_session>(
             stream_.release_socket(),
             state_)->run(parser_->release());
         return;
@@ -363,7 +366,7 @@ on_read(beast::error_code ec, std::size_t)
             // for the duration of the async operation so
             // we use a shared_ptr to manage it.
             using response_type = typename std::decay<decltype(response)>::type;
-            auto sp = boost::make_shared<response_type>(std::forward<decltype(response)>(response));
+            auto sp = std::make_shared<response_type>(std::forward<decltype(response)>(response));
 
             // Write the response
             auto self = shared_from_this();
@@ -400,7 +403,7 @@ on_write(beast::error_code ec, std::size_t, bool close)
 websocket_session::
 websocket_session(
     tcp::socket&& socket,
-    boost::shared_ptr<shared_state> const& state)
+    std::shared_ptr<shared_state> const& state)
     : ws_(std::move(socket))
     , state_(state)
 {
@@ -470,7 +473,7 @@ on_read(beast::error_code ec, std::size_t)
 
 void
 websocket_session::
-send(boost::shared_ptr<websocket_session::MessageType> const& ss)
+send(std::shared_ptr<websocket_session::MessageType> const& ss)
 {
     // Post our work to the strand, this ensures
     // that the members of `this` will not be
@@ -490,23 +493,23 @@ inline void websocket_session::send(const nlohmann::json& jsonMessage) {
     switch (jsonType) {
 
     case websocket_session::JsonType::plainText: {
-        auto const ss = boost::make_shared<websocket_session::MessageType>(jsonMessage.dump());
+        auto const ss = std::make_shared<websocket_session::MessageType>(jsonMessage.dump());
         send(ss);
     } break;
     case websocket_session::JsonType::BSON: {
-        auto const ss = boost::make_shared<websocket_session::MessageType>(nlohmann::json::to_bson(jsonMessage));
+        auto const ss = std::make_shared<websocket_session::MessageType>(nlohmann::json::to_bson(jsonMessage));
         send(ss);
     } break;
     case websocket_session::JsonType::CBOR: {
-        auto const ss = boost::make_shared<websocket_session::MessageType>(nlohmann::json::to_cbor(jsonMessage));
+        auto const ss = std::make_shared<websocket_session::MessageType>(nlohmann::json::to_cbor(jsonMessage));
         send(ss);
     } break;
     case websocket_session::JsonType::MsgPack: {
-        auto const ss = boost::make_shared<websocket_session::MessageType>(nlohmann::json::to_msgpack(jsonMessage));
+        auto const ss = std::make_shared<websocket_session::MessageType>(nlohmann::json::to_msgpack(jsonMessage));
         send(ss);
     } break;
     case websocket_session::JsonType::UBJSON: {
-        auto const ss = boost::make_shared<websocket_session::MessageType>(nlohmann::json::to_ubjson(jsonMessage));
+        auto const ss = std::make_shared<websocket_session::MessageType>(nlohmann::json::to_ubjson(jsonMessage));
         send(ss);
     } break;
     default:;
@@ -516,7 +519,7 @@ inline void websocket_session::send(const nlohmann::json& jsonMessage) {
 
 void
 websocket_session::
-on_send(boost::shared_ptr<websocket_session::MessageType> const& ss)
+on_send(std::shared_ptr<websocket_session::MessageType> const& ss)
 {
     // Always add to queue
     queue_.push_back(ss);
@@ -577,7 +580,7 @@ listener::
 listener(
     net::io_context& ioc,
     tcp::endpoint endpoint,
-    boost::shared_ptr<shared_state> const& state)
+    std::shared_ptr<shared_state> const& state)
     : ioc_(ioc)
     , acceptor_(ioc)
     , state_(state)
@@ -650,7 +653,7 @@ on_accept(beast::error_code ec, tcp::socket socket)
         return fail(ec, "accept");
     else
         // Launch a new session for this connection
-        boost::make_shared<http_session>(
+        std::make_shared<http_session>(
             std::move(socket),
             state_)->run();
 
@@ -707,12 +710,12 @@ Server::Server() {
 
     //https://github.com/boostorg/beast/blob/develop/example/websocket/server/chat-multi/main.cpp#L56
 
-    state_ = boost::make_shared<shared_state>(docroot);
+    state_ = std::make_shared<shared_state>(docroot);
 
 
     // Create and launch a listening port
     httpServ =
-        boost::make_shared<listener>(
+        std::make_shared<listener>(
             ioc,
             tcp::endpoint(tcp::v6(), 8082),
             //tcp::endpoint{ address, port },
@@ -723,7 +726,7 @@ Server::Server() {
 
     try {
         udpBroadcast_ =
-            boost::make_shared<UDPBroadcastHost>(
+            std::make_shared<UDPBroadcastHost>(
                 ioc,
                 udp::endpoint(udp::v6(), 8082));
     }

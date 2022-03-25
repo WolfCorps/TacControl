@@ -20,9 +20,8 @@ void JsonArchive::Serialize(const char* key, const std::string& value) {
 
 void JsonArchive::Serialize(const char* key, std::string& value) {
     if (isReading) {
-        value = (*pJson)[key].get<std::string>();
-    }
-    else {
+        (*pJson).at(key).get_to(value);
+    } else {
         (*pJson)[key] = value.data();
     }
 }

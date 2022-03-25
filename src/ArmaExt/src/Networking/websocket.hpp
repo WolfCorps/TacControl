@@ -1,3 +1,5 @@
+#pragma once
+
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <thread>
@@ -16,6 +18,8 @@
 #include <mutex>
 #include <unordered_set>
 #include <variant>
+
+#undef SendMessage // Windows.h garbage
 
 #include "Util/SignalSlot.hpp"
 
@@ -69,14 +73,16 @@ public:
     void updateState(const nlohmann::json& newState);
 
 
-    Signal<void(std::string, boost::shared_ptr<websocket_session>)> OnMessage;
+    Signal<void(std::string, std::shared_ptr<websocket_session>)> OnMessage;
+    Signal<void(std::shared_ptr<websocket_session>)> OnClientJoined;
+    Signal<void(boost::asio::basic_socket<tcp>::endpoint_type)> OnClientLeft;
 };
 
-class http_session : public boost::enable_shared_from_this<http_session>
+class http_session : public std::enable_shared_from_this<http_session>
 {
     beast::tcp_stream stream_;
     beast::flat_buffer buffer_;
-    boost::shared_ptr<shared_state> state_;
+    std::shared_ptr<shared_state> state_;
 
     // The parser is stored in an optional container so we can
     // construct it from scratch it at the beginning of each new message.
@@ -90,7 +96,7 @@ class http_session : public boost::enable_shared_from_this<http_session>
 public:
     http_session(
         tcp::socket&& socket,
-        boost::shared_ptr<shared_state> const& state);
+        std::shared_ptr<shared_state> const& state);
 
     void run();
 };
@@ -98,12 +104,12 @@ public:
 
 /** Represents an active WebSocket connection to the server
 */
-class websocket_session : public boost::enable_shared_from_this<websocket_session>
+class websocket_session : public std::enable_shared_from_this<websocket_session>
 {
     beast::flat_buffer buffer_;
     websocket::stream<beast::tcp_stream> ws_;
-    boost::shared_ptr<shared_state> state_;
-    std::vector<boost::shared_ptr<std::variant<const std::string, const std::vector<uint8_t>>>> queue_;
+    std::shared_ptr<shared_state> state_;
+    std::vector<std::shared_ptr<std::variant<const std::string, const std::vector<uint8_t>>>> queue_;
 
     void fail(beast::error_code ec, char const* what);
     void on_accept(beast::error_code ec);
@@ -117,7 +123,7 @@ public:
 
     websocket_session(
         tcp::socket&& socket,
-        boost::shared_ptr<shared_state> const& state);
+        std::shared_ptr<shared_state> const& state);
 
     ~websocket_session();
 
@@ -125,7 +131,7 @@ public:
     void run(http::request<Body, http::basic_fields<Allocator>> req);
 
     // Send a message
-    void send(boost::shared_ptr<MessageType> const& ss);
+    void send(std::shared_ptr<MessageType> const& ss);
     void send(const nlohmann::json& jsonMessage);
 
     std::shared_ptr<nlohmann::json> lastState;
@@ -140,9 +146,13 @@ public:
 
     JsonType jsonType = JsonType::plainText;
 
+    auto GetRemoteEndpoint() const
+    {
+        return ws_.next_layer().socket().remote_endpoint();
+    }
 
 private:
-    void on_send(boost::shared_ptr<MessageType> const& ss);
+    void on_send(std::shared_ptr<MessageType> const& ss);
 };
 
 template<class Body, class Allocator>
@@ -187,11 +197,11 @@ run(http::request<Body, http::basic_fields<Allocator>> req)
 //------------------------------------------------------------------------------
 
 // Accepts incoming connections and launches the sessions
-class listener : public boost::enable_shared_from_this<listener>
+class listener : public std::enable_shared_from_this<listener>
 {
     net::io_context& ioc_;
     tcp::acceptor acceptor_;
-    boost::shared_ptr<shared_state> state_;
+    std::shared_ptr<shared_state> state_;
 
     void fail(beast::error_code ec, char const* what);
     void on_accept(beast::error_code ec, tcp::socket socket);
@@ -200,14 +210,14 @@ public:
     listener(
         net::io_context& ioc,
         tcp::endpoint endpoint,
-        boost::shared_ptr<shared_state> const& state);
+        std::shared_ptr<shared_state> const& state);
 
     // Start accepting incoming connections
     void run();
 };
 
 // UDP broadcast receive and reply
-class UDPBroadcastHost : public boost::enable_shared_from_this<UDPBroadcastHost>
+class UDPBroadcastHost : public std::enable_shared_from_this<UDPBroadcastHost>
 {
     udp::socket socket_;
     udp::endpoint remote_endpoint_;
@@ -230,10 +240,18 @@ class Server {
 public:
     Server();
 
-    boost::shared_ptr<UDPBroadcastHost> udpBroadcast_;
+    std::shared_ptr<UDPBroadcastHost> udpBroadcast_;
 
-    boost::shared_ptr<shared_state> state_;
+    std::shared_ptr<shared_state> state_;
     boost::asio::io_context ioc{ 1 };
     std::vector<std::thread> iothreads;
-    boost::shared_ptr<listener> httpServ;
+    std::shared_ptr<listener> httpServ;
 };
+
+class INetworkingEventsReceiver {
+public:
+    virtual void OnNetClientJoined(std::shared_ptr<websocket_session>) = 0;
+    virtual void OnNetClientLeft(tcp::socket::endpoint_type) = 0;
+};
+
+

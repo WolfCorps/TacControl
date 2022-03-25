@@ -47,7 +47,7 @@ public:
     nlohmann::json* getRaw() const { return pJson; }
     std::string to_string();
 
-    bool HasKey(std::string_view name) {
+    bool HasKey(std::string_view name) const {
         return pJson->contains(name);
     }
 
@@ -149,7 +149,7 @@ public:
     template <HasNoSerializeMember Type>
     void Serialize(const char* key, Type& value) {
         if (isReading) {
-            value = (*pJson)[key].get<Type>();
+            (*pJson).at(key).get_to(value);
         } else {
             (*pJson)[key] = value;
         }
