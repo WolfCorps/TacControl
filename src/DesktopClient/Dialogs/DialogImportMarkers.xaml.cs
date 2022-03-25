@@ -54,7 +54,11 @@ namespace TacControl.Dialogs
             }
 
 
-            var xList = MarkerModule.markers.Values.GroupBy(x => x.channel).Select(grp => grp.ToList()).ToList();
+            var xList = MarkerModule.markers.Values
+                // Only import markers who's types we know (Export may have been done with mods that are not present now)
+                .Where(x => x.type == "" || GameState.Instance.marker.markerTypes.ContainsKey(x.type))
+                // group by channel
+                .GroupBy(x => x.channel).Select(grp => grp.ToList()).ToList();
             
             
             xList.ForEach(x =>
@@ -91,7 +95,13 @@ namespace TacControl.Dialogs
 
         private void OnDoImport(object sender, RoutedEventArgs e)
         {
-            var toRemove = MarkerModule.markers.Where(x => !_visibilityManager.IsVisible(x.Value) || GameState.Instance.marker.markers.ContainsKey(x.Key))
+            var toRemove = MarkerModule.markers
+                // Remove all markers that are no visible (disabled for import), already exist (by name), are unsupported (types from other mods)
+                .Where(x =>
+                    !_visibilityManager.IsVisible(x.Value) ||
+                    GameState.Instance.marker.markers.ContainsKey(x.Key) ||
+                    (x.Value.type != "" && !GameState.Instance.marker.markerTypes.ContainsKey(x.Value.type))
+                )
                 .Select(pair => pair.Key)
                 .ToList();
 
