@@ -74,6 +74,12 @@ namespace TacControl.TinyWidgets
         {
             MarkerOwner = "";
 
+            if (UnderCursor == null)
+            {
+                GridCoordinates = "";
+                return;
+            }
+
             var worldGrid = WorldPosToGrid(UnderCursor.WorldPosition);
             GridCoordinates = $"{worldGrid.Item1:0000} {worldGrid.Item2:0000}";
 
