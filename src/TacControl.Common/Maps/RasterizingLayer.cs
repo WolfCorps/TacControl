@@ -8,6 +8,7 @@ using Mapsui.Layers;
 using Mapsui.Logging;
 using Mapsui.Providers;
 using Mapsui.Rendering;
+using Mapsui.Styles;
 
 namespace TacControl.Common.Maps
 {
@@ -67,6 +68,7 @@ namespace TacControl.Common.Maps
             _layer.DataChanged += LayerOnDataChanged;
             Delayer.StartWithDelay = true;
             Delayer.MillisecondsToWait = delayBeforeRasterize;
+            Style = new RasterStyle(); // default raster style
         }
 
         public override MRect Extent => _layer.Extent;
@@ -76,6 +78,7 @@ namespace TacControl.Common.Maps
         private void LayerOnDataChanged(object sender, DataChangedEventArgs dataChangedEventArgs)
         {
             if (!Enabled) return;
+            if (_fetchInfo == null) return;
             if (MinVisible > _fetchInfo.Resolution) return;
             if (MaxVisible < _fetchInfo.Resolution) return;
             if (_busy) return;

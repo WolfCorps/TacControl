@@ -27,7 +27,7 @@ namespace TacControl.Common.Maps
             TextAlign = SKTextAlign.Left
         };
         public bool Draw(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IFeature feature, IStyle istyle,
-            ISymbolCache symbolCache)
+            ISymbolCache symbolCache, long iteration)
         {
             var style = ((MarkerIconStyle)istyle);
 

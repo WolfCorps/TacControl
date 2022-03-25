@@ -12,8 +12,8 @@ namespace TacControl.Common.Maps
 {
     public static class VisibleFeatureIterator
     {
-        public static void IterateLayers(IReadOnlyViewport viewport, IEnumerable<ILayer> layers,
-            Action<IReadOnlyViewport, ILayer, IStyle, IFeature, float> callback)
+        public static void IterateLayers(IReadOnlyViewport viewport, IEnumerable<ILayer> layers, long iteration,
+            Action<IReadOnlyViewport, ILayer, IStyle, IFeature, float, long> callback)
         {
             foreach (var layer in layers)
             {
@@ -21,12 +21,12 @@ namespace TacControl.Common.Maps
                 if (layer.MinVisible > viewport.Resolution) continue;
                 if (layer.MaxVisible < viewport.Resolution) continue;
 
-                IterateLayer(viewport, layer, callback);
+                IterateLayer(viewport, layer, iteration, callback);
             }
         }
 
-        private static void IterateLayer(IReadOnlyViewport viewport, ILayer layer,
-            Action<IReadOnlyViewport, ILayer, IStyle, IFeature, float> callback)
+        private static void IterateLayer(IReadOnlyViewport viewport, ILayer layer, long iteration,
+            Action<IReadOnlyViewport, ILayer, IStyle, IFeature, float, long> callback)
         {
             var features = layer.GetFeatures(viewport.Extent, viewport.Resolution).ToList();
 
@@ -45,12 +45,12 @@ namespace TacControl.Common.Maps
                         foreach (var s in styles)
                         {
                             if (ShouldNotBeApplied(s, viewport)) continue;
-                            callback(viewport, layer, s, feature, (float)layer.Opacity);
+                            callback(viewport, layer, s, feature, (float)layer.Opacity, iteration);
                         }
                     }
                     else
                     {
-                        callback(viewport, layer, style, feature, (float)layer.Opacity);
+                        callback(viewport, layer, style, feature, (float)layer.Opacity, iteration);
                     }
                 }
             }
@@ -62,7 +62,7 @@ namespace TacControl.Common.Maps
                 {
                     if (ShouldNotBeApplied(featureStyle, viewport)) continue;
 
-                    callback(viewport, layer, featureStyle, feature, (float)layer.Opacity);
+                    callback(viewport, layer, featureStyle, feature, (float)layer.Opacity, iteration);
 
                 }
             }

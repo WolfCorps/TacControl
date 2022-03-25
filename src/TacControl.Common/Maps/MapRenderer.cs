@@ -67,6 +67,14 @@ namespace TacControl.Common.Maps
             StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
             StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
             WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
+
+            // https://github.com/Mapsui/Mapsui/pull/1482/files#diff-2134ffb2ebcb3764845b9bef16171ef809edcfadd385b0f2101bb06f0fd33ec1R41
+            StyleRenderers[typeof(RasterStyle)] = new RasterStyleRenderer();
+            StyleRenderers[typeof(VectorStyle)] = new VectorStyleRenderer();
+            StyleRenderers[typeof(LabelStyle)] = new LabelStyleRenderer();
+            StyleRenderers[typeof(SymbolStyle)] = new SymbolStyleRenderer();
+            StyleRenderers[typeof(CalloutStyle)] = new CalloutStyleRenderer();
+
         }
 
         public void Render(object target, IReadOnlyViewport viewport, IEnumerable<ILayer> layers,
@@ -129,7 +137,7 @@ namespace TacControl.Common.Maps
             {
                 layers = layers.ToList();
 
-                VisibleFeatureIterator.IterateLayers(viewport, layers, (v, l, s, f, o) => { RenderFeature(canvas, v, l, s, f, o); });
+                VisibleFeatureIterator.IterateLayers(viewport, layers, _currentIteration, (v, l, s, f, o, i) => { RenderFeature(canvas, v, l, s, f, o, i); });
 
                 RemovedUnusedBitmapsFromCache();
 
@@ -166,7 +174,7 @@ namespace TacControl.Common.Maps
             }
         }
 
-        private void RenderFeature(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IStyle style, IFeature feature, float layerOpacity)
+        private void RenderFeature(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IStyle style, IFeature feature, float layerOpacity, long iteration)
         {
             // Check, if we have a special renderer for this style
             if (StyleRenderers.ContainsKey(style.GetType()))
@@ -174,7 +182,7 @@ namespace TacControl.Common.Maps
                 // Save canvas
                 canvas.Save();
                 // We have a special renderer, so try, if it could draw this
-                var result = ((ISkiaStyleRenderer)StyleRenderers[style.GetType()]).Draw(canvas, viewport, layer, feature, style, _symbolCache);
+                var result = ((ISkiaStyleRenderer)StyleRenderers[style.GetType()]).Draw(canvas, viewport, layer, feature, style, _symbolCache, iteration);
                 // Restore old canvas
                 canvas.Restore();
                 // Was it drawn?
@@ -185,22 +193,23 @@ namespace TacControl.Common.Maps
 
             // https://github.com/Mapsui/Mapsui/blob/a9c28e1f111605775881fa57382f7142b5c2ade9/Mapsui.Rendering.Skia/MapRenderer.cs#L147
 
-            if (feature is GeometryFeature geometryFeatureNts)
-            {
-                GeometryRenderer.Draw(canvas, viewport, style, layerOpacity, geometryFeatureNts, _symbolCache);
-                return;
-            }
-            else if (feature is RasterFeature rasterFeature)
-            {
-                RasterRenderer.Draw(canvas, viewport, style, rasterFeature, rasterFeature.Raster, layerOpacity * style.Opacity, _tileCache, _currentIteration);
-                return;
-            }
-            else if (feature is PointFeature pointFeature)
-            {
-                PointRenderer.Draw(canvas, viewport, style, pointFeature, pointFeature.Point.X, pointFeature.Point.Y, _symbolCache, layerOpacity * style.Opacity);
-                return;
-            }
-            else if (feature is GPSTrackerFeature gpsFeature) 
+            //if (feature is GeometryFeature geometryFeatureNts)
+            //{
+            //    GeometryRenderer.Draw(canvas, viewport, style, layerOpacity, geometryFeatureNts, _symbolCache);
+            //    return;
+            //}
+            //else if (feature is RasterFeature rasterFeature)
+            //{
+            //    RasterRenderer.Draw(canvas, viewport, style, rasterFeature, rasterFeature.Raster, layerOpacity * style.Opacity, _tileCache, _currentIteration);
+            //    return;
+            //}
+            //else if (feature is PointFeature pointFeature)
+            //{
+            //    PointRenderer.Draw(canvas, viewport, style, pointFeature, pointFeature.Point.X, pointFeature.Point.Y, _symbolCache, layerOpacity * style.Opacity);
+            //    return;
+            //}
+            //else
+            if (feature is GPSTrackerFeature gpsFeature) 
             {
                 // GPSTrackerFeature uses MarkerIconStyle to render itself
                 return;
@@ -258,12 +267,12 @@ namespace TacControl.Common.Maps
                     var pixmap = surface.PeekPixels();
                     var color = pixmap.GetPixelColor(intX, intY);
 
-                    VisibleFeatureIterator.IterateLayers(viewport, layers, (v, layer, style, feature, opacity) => {
+                    VisibleFeatureIterator.IterateLayers(viewport, layers, 0, (v, layer, style, feature, opacity, iteration) => {
                         surface.Canvas.Save();
                         // 1) Clear the entire bitmap
                         surface.Canvas.Clear(SKColors.Transparent);
                         // 2) Render the feature to the clean canvas
-                        RenderFeature(surface.Canvas, v, layer, style, feature, opacity);
+                        RenderFeature(surface.Canvas, v, layer, style, feature, opacity, 0);
                         // 3) Check if the pixel has changed.
                         if (color != pixmap.GetPixelColor(intX, intY))
                             // 4) Add feature and style to result

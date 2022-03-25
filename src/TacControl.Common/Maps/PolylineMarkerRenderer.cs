@@ -15,7 +15,7 @@ namespace TacControl.Common.Maps
     public class PolylineMarkerRenderer : ISkiaStyleRenderer
     {
         public bool Draw(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IFeature feature, IStyle istyle,
-            ISymbolCache symbolCache)
+            ISymbolCache symbolCache, long iteration)
         {
             var style = ((PolylineMarkerStyle)istyle);
 

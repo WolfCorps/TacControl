@@ -14,7 +14,7 @@ namespace TacControl.Common.Maps
     public class SvgStyleRenderer : ISkiaStyleRenderer
     {
         public bool Draw(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IFeature feature, IStyle style,
-            ISymbolCache symbolCache)
+            ISymbolCache symbolCache, long iteration)
         {
 
             var image = ((SvgStyle)style).GetImage();
