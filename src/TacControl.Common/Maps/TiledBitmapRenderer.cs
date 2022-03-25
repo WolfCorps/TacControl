@@ -19,7 +19,8 @@ namespace TacControl.Common.Maps
         {
             var style = ((TiledBitmapStyle) istyle);
 
-            if (style.image == null || style.Opacity == 0) return false;
+            if (style.image == null || style.Opacity == 0)
+                return true;
 
             var position = feature.Extent.Centroid;
             var dest = viewport.WorldToScreen(position);

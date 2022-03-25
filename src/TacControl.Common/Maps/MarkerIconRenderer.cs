@@ -31,10 +31,11 @@ namespace TacControl.Common.Maps
         {
             var style = ((MarkerIconStyle)istyle);
 
-            if (!viewport.Extent.Contains(feature.Extent))
-                return false;
+            if (!viewport.Extent.Intersects(feature.Extent))
+                return true; // We didn't render anything, but we still did so successfully
 
-            if (style.markerIcon == null) return false;
+            if (style.markerIcon == null)
+                return true;
 
             var position = feature.Extent as MRect;
             var dest = viewport.WorldToScreen(position.BottomLeft);
