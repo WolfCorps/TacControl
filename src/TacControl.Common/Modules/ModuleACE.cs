@@ -35,18 +35,6 @@ namespace TacControl.Common.Modules
             );
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
