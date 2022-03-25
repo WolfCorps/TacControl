@@ -6,6 +6,8 @@
 #include "Util/Logger.hpp"
 #include "websocket.hpp"
 
+template<class> inline constexpr bool always_false_v = false;
+
 void NetworkController::ModuleInit() {
 
     wsServer = new Server();
@@ -24,8 +26,9 @@ void NetworkController::ModuleInit() {
                 }
                 else if constexpr (std::is_same_v<T, std::reference_wrapper<nlohmann::json>>) {
                     sender->send(arg.get());
-                } else
-                    static_assert(std::false_type::value, "non-exhaustive visitor!");
+                }
+                else
+                    static_assert(always_false_v<T>, "non-exhaustive visitor!");
                 }, message);
         };
 
