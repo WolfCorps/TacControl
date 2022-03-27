@@ -105,9 +105,17 @@ std::future<void> ThreadQueue::AddTask(task<void()> task) {
 }
 
 void ThreadQueuePeriodic::Run() {
+    std::chrono::system_clock::time_point lastRun = std::chrono::system_clock::now();
     while (shouldRun) {
         std::unique_lock<std::mutex> lock(taskQueueMutex);
-        threadWorkCondition.wait_for(lock, periodicDuration, [this] {return !taskQueue.empty() || !shouldRun || !periodicTasks.empty(); });
+        threadWorkCondition.wait_for(lock, periodicDuration, [this, &lastRun]
+        {
+            if (!taskQueue.empty() || !shouldRun) return true;
+            if (periodicTasks.empty()) return false; // Nothing more to do
+
+            // Only if timeout actually ran out
+            return lastRun + periodicDuration < std::chrono::system_clock::now();
+        });
         if (!shouldRun) return;
 
         if (!taskQueue.empty()) {
@@ -119,7 +127,7 @@ void ThreadQueuePeriodic::Run() {
             taskQueueMutex.lock();
         }
 
-        auto currentTime = std::chrono::system_clock::now();
+        auto currentTime = lastRun = std::chrono::system_clock::now();
 
         std::unique_lock<std::recursive_mutex> lockPeriodic(periodicTasksMutex);
         for (PeriodicTask& it : periodicTasks) {
@@ -141,6 +149,16 @@ void ThreadQueuePeriodic::AddPeriodicTask(std::string_view taskName, std::chrono
     {
         std::unique_lock<std::recursive_mutex> lockPeriodic(periodicTasksMutex);
         periodicTasks.emplace_back(std::move(newTask));
+
+        //Recalculate minimum wait interval required to hit the fastest periodic task
+        auto minInterval = std::min_element(periodicTasks.begin(), periodicTasks.end(), [](const PeriodicTask& l, const PeriodicTask& r)
+            {
+                return l.interval < r.interval;
+            });
+
+        lockPeriodic.unlock();
+        std::unique_lock<std::mutex> lock(taskQueueMutex);
+        periodicDuration = minInterval->interval;
     }
 }
 
