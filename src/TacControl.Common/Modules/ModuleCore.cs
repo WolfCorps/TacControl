@@ -8,6 +8,24 @@ using Newtonsoft.Json;
 
 namespace TacControl.Common.Modules
 {
+
+    public class InterestUser : IDisposable
+    {
+        private readonly string name;
+
+        public InterestUser(string name)
+        {
+            this.name = name;
+            GameState.Instance.core.UpdateInterest(name, true);
+        }
+
+        public void Dispose()
+        {
+            GameState.Instance.core.UpdateInterest(name, false);
+            GC.SuppressFinalize(this);
+        }
+    }
+
     public class ModuleCore : INotifyPropertyChanged
     {
         public ObservableCollection<string> ActiveInterests { get; set; } = new ObservableCollection<string>();

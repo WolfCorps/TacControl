@@ -41,16 +41,12 @@ namespace TacControl
     {
         public ModuleVehicle VecRef { get; } = GameState.Instance.vehicle;
 
+        private InterestUser interestVehAnim = new InterestUser("VehAnim");
+
         public HelicopterControlButtons()
         {
             InitializeComponent();
-
-            GameState.Instance.core.UpdateInterest("VehAnim", true);
-        }
-
-        ~HelicopterControlButtons()
-        {
-            GameState.Instance.core.UpdateInterest("VehAnim", false);
+            Unloaded += (sender, args) => Dispose();
         }
 
         private void GearButton_OnClick(object sender, RoutedEventArgs e)
@@ -82,6 +78,11 @@ namespace TacControl
         private void CollisionLight_OnClick(object sender, RoutedEventArgs e)
         {
             VecRef.SetCollisionLight(!VecRef.props.CollisionLight);
+        }
+
+        public void Dispose()
+        {
+            interestVehAnim.Dispose();
         }
     }
 }
