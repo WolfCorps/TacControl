@@ -10,7 +10,7 @@ namespace TacControl.Common.Maps
 {
     public class MarkerLabelStyle : LabelStyle
     {
-        static Font markerFont = new Mapsui.Styles.Font { FontFamily = "Verdana", Size = 24, Bold = true };
+        static Font markerFont = new Mapsui.Styles.Font { FontFamily = "Roboto", Size = 24, Bold = true };
         public MarkerLabelStyle(string text, MarkerType type, MarkerColor color)
         {
             Text = text;

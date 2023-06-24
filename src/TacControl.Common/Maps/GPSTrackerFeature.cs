@@ -14,14 +14,12 @@ using TacControl.Common.Modules;
 namespace TacControl.Common.Maps
 {
     // Mapsui.Layers.PointFeature, but with editable point
-    public class GPSTrackerFeature : BaseFeature, IFeature
+    public class GPSTrackerFeature : PointFeature, IFeature
     {
         public GPSTracker Tracker { get; private set; }
         private MarkerIconStyle imgStyle;
-        private LabelStyle lblStyle;
-        private LabelStyle heightStyle;
         private VelocityIndicatorStyle velStyle;
-        public GPSTrackerFeature(GPSTracker tracker)
+        public GPSTrackerFeature(GPSTracker tracker) : base(new MPoint(tracker.pos[0], tracker.pos[1]))
         {
             Tracker = tracker;
             this["Label"] = tracker.displayName;
@@ -32,13 +30,12 @@ namespace TacControl.Common.Maps
                 size = new float[]{32,32},
                 typeSize = 1,
                 color = SKColors.Black,
-                shadow = false,
-                text = tracker.displayName
-
+                shadow = false
             };
 
 
             Styles.Add(imgStyle);
+            UpdateTextLabel();
 
             var markerType = GameState.Instance.marker.markerTypes["hd_join"];
             var markerColor = GameState.Instance.marker.markerColors["ColorBlack"];
@@ -50,16 +47,6 @@ namespace TacControl.Common.Maps
                         imgStyle.markerIcon = image.Result;
                     });
 
-
-
-            lblStyle = new MarkerLabelStyle(tracker.displayName, markerType, markerColor);
-            Styles.Add(lblStyle);
-
-            heightStyle = new MarkerLabelStyle(tracker.displayName, markerType, markerColor);
-            heightStyle.Offset = new Offset(0, markerType.size, false);
-            Styles.Add(heightStyle);
-
-
             velStyle = new VelocityIndicatorStyle {velocity = new Vector3(tracker.vel[0], tracker.vel[1], 0f) };
             Styles.Add(velStyle);
 
@@ -69,21 +56,27 @@ namespace TacControl.Common.Maps
 
         public void SetDisplayName(string newName)
         {
-            this["Label"] = newName;
-            lblStyle.Text = newName;
-            imgStyle.text = newName;
+            UpdateTextLabel();
         }
 
         public void SetPosition(MPoint newPos)
         {
             Point = newPos;
-            heightStyle.Text = $"({Tracker.pos[2]:F0}m)";
+            UpdateTextLabel();
         }
 
         public void UpdateVelocity()
         {
             velStyle.velocity.X = Tracker.vel[0];
             velStyle.velocity.Y = Tracker.vel[1];
+            UpdateTextLabel();
+        }
+
+        public void UpdateTextLabel()
+        {
+            imgStyle.text = $"{Tracker.displayName}\n" +
+                            $"({Tracker.pos[2]:F0}m)\n" +
+                            $"{Tracker.GetSpeedInKMH():F0}km/h";
         }
 
 

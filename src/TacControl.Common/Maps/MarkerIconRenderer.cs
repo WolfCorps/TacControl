@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Text;
 using Mapsui;
 using Mapsui.Extensions;
@@ -10,6 +11,9 @@ using Mapsui.Rendering;
 using Mapsui.Rendering.Skia.SkiaStyles;
 using Mapsui.Styles;
 using SkiaSharp;
+using SkiaTextRenderer;
+using TacControl.Common.Maps.Util;
+using FontStyle = SkiaTextRenderer.FontStyle;
 
 namespace TacControl.Common.Maps
 {
@@ -103,7 +107,12 @@ namespace TacControl.Common.Maps
                 if (style.SymbolRotation != 0) canvas.RotateDegrees(-style.SymbolRotation, 0.0f, 0.0f); //No rotation for text
                 renderPaint.Color = style.color.WithAlpha((byte)(style.Opacity * 255));
                 renderPaint.ColorFilter = null;
-                canvas.DrawText(style.text, textOffset, renderPaint);
+                //canvas.DrawText(style.text, textOffset, renderPaint);
+
+                // This is broken, it somehow adds a empty rectangle on first line and pushes everything to second
+                //canvas.Translate(textOffset);
+                //TextRendererSk.DrawText(canvas, style.text, new SkiaTextRenderer.Font(renderPaint.Typeface, renderPaint.TextSize), SKRect.Empty, renderPaint.Color, TextFormatFlags.Left | TextFormatFlags.NoClipping | TextFormatFlags.NoPadding | TextFormatFlags.SingleLine);
+                SkiaTextBox.Draw(style.text, textOffset, canvas, renderPaint);
             }
 
 

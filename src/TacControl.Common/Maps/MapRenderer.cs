@@ -70,6 +70,7 @@ namespace TacControl.Common.Maps
             StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
             StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
             StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
+            StyleRenderers[typeof(MarkerLabelStyle)] = new MarkerLabelRenderer();
             WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
 
             // https://github.com/Mapsui/Mapsui/pull/1482/files#diff-2134ffb2ebcb3764845b9bef16171ef809edcfadd385b0f2101bb06f0fd33ec1R41

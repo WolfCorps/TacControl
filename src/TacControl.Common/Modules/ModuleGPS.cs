@@ -43,7 +43,7 @@ namespace TacControl.Common.Modules
 
         public float GetSpeedInKMH()
         {
-            return new Vector3(vel[0], vel[1], vel[2]).Length();
+            return new Vector3(vel[0], vel[1], vel[2]).Length() * 3.6f; // m/s tp km/h
         }
     }
 
