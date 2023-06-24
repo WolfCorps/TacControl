@@ -8,14 +8,15 @@ using Mapsui.Providers;
 using Mapsui.Rendering;
 using Mapsui.Rendering.Skia.SkiaStyles;
 using Mapsui.Styles;
+using Mapsui.Extensions;
 using SkiaSharp;
 
 namespace TacControl.Common.Maps
 {
     public class TiledBitmapRenderer : ISkiaStyleRenderer
     {
-        public bool Draw(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IFeature feature, IStyle istyle,
-            ISymbolCache symbolCache, long iteration)
+        public bool Draw(SKCanvas canvas, Viewport viewport, ILayer layer, IFeature feature, IStyle istyle,
+            IRenderCache symbolCache, long iteration)
         {
             var style = ((TiledBitmapStyle) istyle);
 

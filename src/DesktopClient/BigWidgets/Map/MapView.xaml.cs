@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -26,8 +26,10 @@ using System.Xml;
 using System.Xml.Linq;
 using HarfBuzzSharp;
 using Mapsui;
+using Mapsui.Animations;
 using Mapsui.Extensions;
 using Mapsui.Layers;
+using Mapsui.Limiting;
 using Mapsui.Logging;
 using Mapsui.Nts;
 using Mapsui.Providers;
@@ -91,8 +93,8 @@ namespace TacControl
     public partial class MapView : UserControl, IDisposable, INotifyPropertyChanged
     {
 
-        private MemoryLayer GPSTrackerLayer = new Mapsui.Layers.MemoryLayer("GPS Trackers");
-        private MemoryLayer MapMarkersLayer = new Mapsui.Layers.MemoryLayer("Map Markers");
+        private Layer GPSTrackerLayer = new Mapsui.Layers.Layer("GPS Trackers");
+        private Layer MapMarkersLayer = new Mapsui.Layers.Layer("Map Markers");
         public static MRect currentBounds = new Mapsui.MRect(0, 0, 0, 0);
         public readonly MarkerVisibilityManager MarkerVisibilityManager = new MarkerVisibilityManager();
 
@@ -119,7 +121,7 @@ namespace TacControl
 
 
 
-            EventSystem.CenterMap += (position) => MapControl.Navigator.NavigateTo(position, 1, 500);
+            EventSystem.CenterMap += (MPoint position) => MapControl.Map.Navigator.CenterOn(position.X, position.Y, 1);
             //MapControl.Map.Resolutions;
 
             GameState.Instance.gameInfo.PropertyChanged += (a, b) =>
@@ -131,23 +133,20 @@ namespace TacControl
 
             var gridWidget = new GridWidget();
             MapControl.Map.Widgets.Add(gridWidget);
-
-
-            MapControl.Map.Limiter = new ViewportLimiter();
-            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 40);
+            MapControl.Map.Navigator.OverrideZoomBounds = new MMinMax(0.01, 40);
 
             MapMarkersLayer.IsMapInfoLayer = true;
             MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds, MarkerVisibilityManager);
             MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
-            //MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
+            MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
             // ^ without this create/delete only updates when screen is moved
 
             GPSTrackerLayer.IsMapInfoLayer = true;
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
             GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(GPSTrackerLayer);
-            //GPSTrackerLayer.DataChanged += (a, b) => MapControl.RefreshData();
+            GPSTrackerLayer.DataChanged += (a, b) => MapControl.RefreshData();
             // ^ without this create/delete only updates when screen is moved
 
             LayerList.AddWidget("Grid", gridWidget);
@@ -252,15 +251,9 @@ namespace TacControl
 
         private void MapControlMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (MapControl.Map.ZoomLock) return;
-            if (!MapControl.Viewport.HasSize) return;
-
+            var mouseWheelDelta = e.Delta;
             var _currentMousePosition = e.GetPosition(this).ToMapsui();
-
-            resolution = Math.Exp((e.Delta/120) * -0.1f) * resolution;
-            // Limit target resolution before animation to avoid an animation that is stuck on the max resolution, which would cause a needless delay
-            resolution = MapControl.Map.Limiter.LimitResolution(resolution, MapControl.Viewport.Width, MapControl.Viewport.Height, MapControl.Map.Resolutions, MapControl.Map.Extent);
-            MapControl.Navigator.ZoomTo(resolution, _currentMousePosition, MapControl.MouseWheelAnimation.Duration, MapControl.MouseWheelAnimation.Easing);
+            MapControl.Map.Navigator.MouseWheelZoom(mouseWheelDelta, _currentMousePosition);
         }
 
 
@@ -287,8 +280,8 @@ namespace TacControl
 
 
 
-                var layer = new MemoryLayer(svgLayer.name);
-                var renderLayer = new RasterizingLayer(layer, 100, 1D, MapControl.Renderer);
+                var layer = new Layer(svgLayer.name);
+                var renderLayer = new RasterizingLayer(layer, 100, MapControl.Renderer, 1F);
 
                 if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" ||
                     svgLayer.name == "grid")
@@ -344,13 +337,13 @@ namespace TacControl
                 features.Add(feature);
 
 
-                layer.DataSource = new MemoryProvider<IFeature>(features);
+                layer.DataSource = new MemoryProvider(features);
                 layer.MinVisible = 0;
                 layer.MaxVisible = double.MaxValue;
                 MapControl.Map.Layers.Insert(index++, renderLayer);
             }
 
-            MapControl.Map.Limiter.PanLimits = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
+            MapControl.Map.Navigator.OverridePanBounds = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
 
 
             Task.WhenAll(layerLoadTasks.Select(x => x.Item2).ToArray()).ContinueWith(x =>
@@ -366,7 +359,7 @@ namespace TacControl
 
                     LayerList.Initialize(MapControl.Map.Layers);
 
-                    MapControl.Navigator.NavigateTo(new MRect(0, 0, terrainWidth, terrainWidth));
+                    MapControl.Map.Navigator.ZoomToBox(new MRect(0, 0, terrainWidth, terrainWidth));
                     MapControl.RefreshGraphics();
                 });
             });

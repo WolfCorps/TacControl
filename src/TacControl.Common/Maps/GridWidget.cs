@@ -8,7 +8,7 @@ namespace TacControl.Common.Maps
 {
     public class GridWidget : IWidget
     {
-        public bool HandleWidgetTouched(INavigator navigator, MPoint position)
+        public bool HandleWidgetTouched(Navigator navigator, MPoint position)
         {
             return false;
         }

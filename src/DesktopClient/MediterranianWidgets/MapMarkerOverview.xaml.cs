@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,7 +30,7 @@ namespace TacControl.MediterranianWidgets
     /// </summary>
     public partial class MapMarkerOverview : UserControl
     {
-        private MemoryLayer MapMarkersLayer = new Mapsui.Layers.MemoryLayer("Map Markers");
+        private Layer MapMarkersLayer = new Mapsui.Layers.Layer("Map Markers");
         public MRect currentBounds = new Mapsui.MRect(0, 0, 0, 0);
 
         public ModuleMarker ModuleMarkerRef
@@ -55,7 +55,7 @@ namespace TacControl.MediterranianWidgets
 
         private void MapMarkerOverview_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            MapControl.Navigator.NavigateTo(new MRect(0, 0, terrainWidth, terrainWidth));
+            MapControl.Map.Navigator.ZoomToBox(new MRect(0, 0, terrainWidth, terrainWidth));
         }
 
         private void MapMarkerOverview_OnLoaded(object sender, RoutedEventArgs e)
@@ -71,11 +71,7 @@ namespace TacControl.MediterranianWidgets
             MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
             MapControl.Renderer.WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
 
-
-
-
-            MapControl.Map.Limiter = new ViewportLimiter();
-            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 40);
+            MapControl.Map.Navigator.OverrideZoomBounds = new MMinMax(0.01, 40);
 
             MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds, VisibilityManager, ModuleMarkerRef);
             MapMarkersLayer.IsMapInfoLayer = true;
@@ -103,7 +99,7 @@ namespace TacControl.MediterranianWidgets
 
 
                 var layer = new MemoryLayer(svgLayer.name);
-                var renderLayer = new RasterizingLayer(layer, 100, 1D, MapControl.Renderer);
+                var renderLayer = new RasterizingLayer(layer, 100, MapControl.Renderer, 1F);
 
                 terrainWidth = svgLayer.width;
 
@@ -127,7 +123,7 @@ namespace TacControl.MediterranianWidgets
                 features.Add(feature);
 
                 layer.Enabled = true;
-                layer.DataSource = new MemoryProvider<IFeature>(features);
+                layer.Features = features;
                 layer.MinVisible = 0;
                 layer.MaxVisible = double.MaxValue;
                 MapControl.Map.Layers.Insert(index++, renderLayer);
@@ -135,7 +131,7 @@ namespace TacControl.MediterranianWidgets
 
             MapControl.RefreshGraphics();
 
-            MapControl.Navigator.NavigateTo(new MRect(0, 0, terrainWidth, terrainWidth));
+            MapControl.Map.Navigator.ZoomToBox(new MRect(0, 0, terrainWidth, terrainWidth));
         }
 
     }

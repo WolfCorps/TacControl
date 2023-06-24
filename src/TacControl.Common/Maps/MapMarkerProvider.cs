@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Mapsui;
 using Mapsui.Fetcher;
 using Mapsui.Layers;
@@ -348,7 +349,7 @@ namespace TacControl.Common.Maps
 
 
     // Example MemoryPorvider https://github.com/Mapsui/Mapsui/blob/e348df64afcb1030dbec1d31c4f5d2dbdbe24148/Mapsui.Core/Providers/MemoryProvider.cs#L51
-    public class MapMarkerProvider : IProvider<IFeature>, IDisposable
+    public class MapMarkerProvider : IProvider, IDisposable
     {
         public ILayer MapMarkerLayer { get; private set; }
         private MRect _boundingBox;
@@ -530,6 +531,11 @@ namespace TacControl.Common.Maps
         public void Dispose()
         {
 
+        }
+
+        public Task<IEnumerable<IFeature>> GetFeaturesAsync(FetchInfo fetchInfo)
+        {
+            return Task.FromResult(GetFeatures(fetchInfo)); //#TODO async?
         }
     }
 

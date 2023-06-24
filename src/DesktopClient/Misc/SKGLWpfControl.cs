@@ -1,12 +1,10 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Interop;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Platform;
-using OpenTK.Platform.Windows;
 using OpenTK.Wpf;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;

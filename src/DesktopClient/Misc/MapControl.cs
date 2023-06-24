@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -29,6 +29,9 @@ using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using Point = System.Windows.Point;
 using VerticalAlignment = System.Windows.VerticalAlignment;
 using XamlVector = System.Windows.Vector;
+using Mapsui.Extensions;
+using System.Linq;
+using Mapsui.Animations;
 
 namespace TacControl.Misc
 {
@@ -48,7 +51,7 @@ namespace TacControl.Misc
         [Category("Appearance")]
         event EventHandler<SKPaintGLSurfaceEventArgs> PaintSurfaceGL;
 
-        Visibility Visibility{ get; set; }
+        Visibility Visibility { get; set; }
 
         void InvalidateVisual();
 
@@ -57,24 +60,34 @@ namespace TacControl.Misc
 
     public partial class MapControl : Grid, IMapControl
     {
-        //https://github.com/Mapsui/Mapsui/blob/af2bf64d3f45c0a3a7b91d2d58cc2a4fff3d13d3/Mapsui.UI.Shared/MapControl.cs with Renderer swapped out
+        //https://github.com/Mapsui/Mapsui/blob/31b9099c758f93daa5aded630e4ac45ec4308cab/Mapsui.UI.Shared/MapControl.cs with Renderer swapped out
 
-        private Map _map;
+
         private double _unSnapRotationDegrees;
         // Flag indicating if a drawing process is running
         private bool _drawing = false;
+        // Flag indicating if the control has to be redrawn
+        private bool _invalidated;
         // Flag indicating if a new drawing process should start
         private bool _refresh = false;
         // Action to call for a redraw of the control
-        private Action _invalidate;
+        private protected Action? _invalidate;
         // Timer for loop to invalidating the control
-        private System.Threading.Timer _invalidateTimer;
+        private System.Threading.Timer? _invalidateTimer;
         // Interval between two calls of the invalidate function in ms
         private int _updateInterval = 16;
         // Stopwatch for measuring drawing times
-        private System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+        private readonly System.Diagnostics.Stopwatch _stopwatch = new System.Diagnostics.Stopwatch();
+        // saving list of extended Widgets
+        private List<IWidgetExtended>? _extendedWidgets;
+        // saving list of touchable Widgets
+        private List<IWidget>? _touchableWidgets;
+        // keeps track of the widgets count to see if i need to recalculate the extended widgets.
+        private int _updateWidget = 0;
+        // keeps track of the widgets count to see if i need to recalculate the touchable widgets.
+        private int _updateTouchableWidget;
 
-        void CommonInitialize()
+        private protected void CommonInitialize()
         {
             // Create map
             Map = new Map();
@@ -85,16 +98,12 @@ namespace TacControl.Misc
             StartUpdates(false);
         }
 
-        void CommonDrawControl(object canvas)
+        private protected void CommonDrawControl(object canvas)
         {
-            if (_drawing)
-                return;
-            if (Renderer == null)
-                return;
-            if (_map == null)
-                return;
-            if (!Viewport.HasSize)
-                return;
+            if (_drawing) return;
+            if (Renderer is null) return;
+            if (Map is null) return;
+            if (!Map.Navigator.Viewport.HasSize()) return;
 
             // Start drawing
             _drawing = true;
@@ -104,7 +113,7 @@ namespace TacControl.Misc
 
             // All requested updates up to this point will be handled by this redraw
             _refresh = false;
-            Renderer.Render(canvas, new Viewport(Viewport), _map.Layers, _map.Widgets, _map.BackColor);
+            Renderer.Render(canvas, Map.Navigator.Viewport, Map.Layers, Map.Widgets, Map.BackColor);
 
             // Stop stopwatch after drawing control
             _stopwatch.Stop();
@@ -112,21 +121,24 @@ namespace TacControl.Misc
             // If we are interested in performance measurements, we save the new drawing time
             _performance?.Add(_stopwatch.Elapsed.TotalMilliseconds);
 
-            // Log drawing time
-            Logger.Log(LogLevel.Information, $"Time for drawing control [ms]: {_stopwatch.Elapsed.TotalMilliseconds}");
-
             // End drawing
             _drawing = false;
+            _invalidated = false;
         }
 
-        void InvalidateTimerCallback(object state)
+        private void InvalidateTimerCallback(object? state)
         {
+            // In MAUI if you use binding there is an event where the new value is null even though
+            // the current value en the value you are binding to are not null. Perhaps this should be
+            // considered a bug.
+            if (Map is null) return;
+
             // Check, if we have to redraw the screen
 
-            if (_map?.UpdateAnimations() == true)
+            if (Map.UpdateAnimations() == true)
                 _refresh = true;
 
-            if (_viewport.UpdateAnimations())
+            if (Map.Navigator.UpdateAnimations())
                 _refresh = true;
 
             if (!_refresh)
@@ -140,6 +152,12 @@ namespace TacControl.Misc
                 return;
             }
 
+            if (_invalidated)
+            {
+                return;
+            }
+
+            _invalidated = true;
             _invalidate?.Invoke();
         }
 
@@ -175,6 +193,7 @@ namespace TacControl.Misc
         /// </remarks>
         public void ForceUpdate()
         {
+            _invalidated = true;
             _invalidate?.Invoke();
         }
 
@@ -187,7 +206,7 @@ namespace TacControl.Misc
             set
             {
                 if (value <= 0)
-                    throw new ArgumentOutOfRangeException("UpdateInterval must be greater than 0");
+                    throw new ArgumentOutOfRangeException($"{nameof(UpdateInterval)} must be greater than 0");
 
                 if (_updateInterval != value)
                 {
@@ -197,7 +216,7 @@ namespace TacControl.Misc
             }
         }
 
-        private Performance _performance;
+        private Performance? _performance;
 
         /// <summary>
         /// Object to save performance information about the drawing of the map
@@ -205,9 +224,9 @@ namespace TacControl.Misc
         /// <remarks>
         /// If this is null, no performance information is saved.
         /// </remarks>
-        public Performance Performance
+        public Performance? Performance
         {
-            get { return _performance; }
+            get => _performance;
             set
             {
                 if (_performance != value)
@@ -223,7 +242,7 @@ namespace TacControl.Misc
         /// </summary>
         public double UnSnapRotationDegrees
         {
-            get { return _unSnapRotationDegrees; }
+            get => _unSnapRotationDegrees;
             set
             {
                 if (_unSnapRotationDegrees != value)
@@ -241,7 +260,7 @@ namespace TacControl.Misc
         /// </summary>
         public double ReSnapRotationDegrees
         {
-            get { return _reSnapRotationDegrees; }
+            get => _reSnapRotationDegrees;
             set
             {
                 if (_reSnapRotationDegrees != value)
@@ -261,53 +280,16 @@ namespace TacControl.Misc
         /// </summary>
         public IRenderer Renderer
         {
-            get { return _renderer; }
+            get => _renderer;
             set
             {
+                if (value is null) throw new NullReferenceException(nameof(Renderer));
                 if (_renderer != value)
                 {
                     _renderer = value;
                     OnPropertyChanged();
                 }
             }
-        }
-
-        private readonly LimitedViewport _viewport = new LimitedViewport();
-        private INavigator _navigator;
-
-        /// <summary>
-        /// Viewport holding information about visible part of the map. Viewport can never be null.
-        /// </summary>
-        public IReadOnlyViewport Viewport => _viewport;
-
-        /// <summary>
-        /// Handles all manipulations of the map viewport
-        /// </summary>
-        public INavigator Navigator
-        {
-            get => _navigator;
-            set
-            {
-                if (_navigator != null)
-                {
-                    _navigator.Navigated -= Navigated;
-#pragma warning disable IDISP007 // Don't dispose injected
-                    _navigator.Dispose();
-#pragma warning restore IDISP007 // Don't dispose injected
-                }
-                _navigator = value ?? throw new ArgumentException($"{nameof(Navigator)} can not be null");
-                _navigator.Navigated += Navigated;
-            }
-        }
-
-        private void Navigated(object sender, ChangeType changeType)
-        {
-            if (_map != null)
-            {
-                _map.Initialized = true;
-            }
-
-            Refresh(changeType);
         }
 
         /// <summary>
@@ -346,7 +328,7 @@ namespace TacControl.Misc
         /// </summary>
         public void Unsubscribe()
         {
-            UnsubscribeFromMapEvents(_map);
+            UnsubscribeFromMapEvents(Map);
         }
 
         /// <summary>
@@ -355,32 +337,32 @@ namespace TacControl.Misc
         /// <param name="map">Map, to which events to subscribe</param>
         private void SubscribeToMapEvents(Map map)
         {
-            map.DataChanged += MapDataChanged;
-            map.PropertyChanged += MapPropertyChanged;
+            map.DataChanged += Map_DataChanged;
+            map.PropertyChanged += Map_PropertyChanged;
+            map.RefreshGraphicsRequest += Map_RefreshGraphicsRequest;
+        }
+
+        private void Map_RefreshGraphicsRequest(object? sender, EventArgs e)
+        {
+            RefreshGraphics();
         }
 
         /// <summary>
-        /// Unsubcribe from map events
+        /// Unsubscribe from map events
         /// </summary>
         /// <param name="map">Map, to which events to unsubscribe</param>
         private void UnsubscribeFromMapEvents(Map map)
         {
-            var temp = map;
-            if (temp != null)
-            {
-                temp.DataChanged -= MapDataChanged;
-                temp.PropertyChanged -= MapPropertyChanged;
-                temp.AbortFetch();
-            }
+            var localMap = map;
+            localMap.DataChanged -= Map_DataChanged;
+            localMap.PropertyChanged -= Map_PropertyChanged;
+            localMap.RefreshGraphicsRequest -= Map_RefreshGraphicsRequest;
+            localMap.AbortFetch();
         }
 
-        /// <summary>
-        /// Refresh data of the map and than repaint it
-        /// </summary>
         public void Refresh(ChangeType changeType = ChangeType.Discrete)
         {
-            RefreshData(changeType);
-            RefreshGraphics();
+            Map.Refresh(changeType);
         }
 
         public void RefreshGraphics()
@@ -388,42 +370,39 @@ namespace TacControl.Misc
             _refresh = true;
         }
 
-        private void MapDataChanged(object sender, DataChangedEventArgs e)
+        private void Map_DataChanged(object? sender, DataChangedEventArgs? e)
         {
-            RunOnUIThread(() =>
+            try
             {
-                try
+                if (e == null)
                 {
-                    if (e == null)
-                    {
-                        Logger.Log(LogLevel.Warning, "Unexpected error: DataChangedEventArgs can not be null");
-                    }
-                    else if (e.Cancelled)
-                    {
-                        Logger.Log(LogLevel.Warning, "Fetching data was cancelled", e.Error);
-                    }
-                    else if (e.Error is WebException)
-                    {
-                        Logger.Log(LogLevel.Warning, "A WebException occurred. Do you have internet?", e.Error);
-                    }
-                    else if (e.Error != null)
-                    {
-                        Logger.Log(LogLevel.Warning, "An error occurred while fetching data", e.Error);
-                    }
-                    else // no problems
-                    {
-                        RefreshGraphics();
-                    }
+                    Logger.Log(LogLevel.Warning, "Unexpected error: DataChangedEventArgs can not be null");
                 }
-                catch (Exception exception)
+                else if (e.Cancelled)
                 {
-                    Logger.Log(LogLevel.Warning, $"Unexpected exception in {nameof(MapDataChanged)}", exception);
+                    Logger.Log(LogLevel.Warning, "Fetching data was cancelled.");
                 }
-            });
+                else if (e.Error is WebException)
+                {
+                    Logger.Log(LogLevel.Warning, $"A WebException occurred. Do you have internet? Exception: {e.Error?.Message}", e.Error);
+                }
+                else if (e.Error != null)
+                {
+                    Logger.Log(LogLevel.Warning, $"An error occurred while fetching data. Exception: {e.Error?.Message}", e.Error);
+                }
+                else // no problems
+                {
+                    RefreshGraphics();
+                }
+            }
+            catch (Exception exception)
+            {
+                Logger.Log(LogLevel.Warning, $"Unexpected exception in {nameof(Map_DataChanged)}", exception);
+            }
         }
         // ReSharper disable RedundantNameQualifier - needed for iOS for disambiguation
 
-        private void MapPropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void Map_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(Mapsui.Layers.Layer.Enabled))
             {
@@ -451,21 +430,23 @@ namespace TacControl.Misc
                 CallHomeIfNeeded();
                 Refresh();
             }
-            if (e.PropertyName == nameof(Map.Limiter))
-            {
-                _viewport.Limiter = Map?.Limiter;
-            }
+            //if (e.PropertyName == nameof(Map.Limiter))
+            //{
+            //    _viewport.Limiter = Map?.Limiter;
+            //}
         }
         // ReSharper restore RedundantNameQualifier
 
         public void CallHomeIfNeeded()
         {
-            if (_map != null && !_map.Initialized && _viewport.HasSize && _map?.Extent != null)
+            if (!Map.HomeIsCalledOnce && Map.Navigator.Viewport.HasSize() && Map?.Extent is not null)
             {
-                _map.Home?.Invoke(Navigator);
-                _map.Initialized = true;
+                Map.Home?.Invoke(Map.Navigator);
+                Map.HomeIsCalledOnce = true;
             }
         }
+
+        private Map _map = new Map();
 
         /// <summary>
         /// Map holding data for which is shown in this MapControl
@@ -475,26 +456,30 @@ namespace TacControl.Misc
             get => _map;
             set
             {
-                if (_map != null)
-                {
-                    UnsubscribeFromMapEvents(_map);
-                    _map = null;
-                }
+                if (value is null) throw new ArgumentNullException(nameof(value));
 
+                BeforeSetMap();
                 _map = value;
-
-                if (_map != null)
-                {
-                    SubscribeToMapEvents(_map);
-                    Navigator = new Navigator(_map, _viewport);
-                    _viewport.Map = _map;
-                    _viewport.Limiter = _map.Limiter;
-                    CallHomeIfNeeded();
-                }
-
-                Refresh();
+                AfterSetMap(_map);
                 OnPropertyChanged();
             }
+        }
+
+        private void BeforeSetMap()
+        {
+            if (Map is null) return; // Although the Map property can not null the map argument can null during initializing and binding.
+
+            UnsubscribeFromMapEvents(Map);
+        }
+
+        private void AfterSetMap(Map? map)
+        {
+            if (map is null) return; // Although the Map property can not null the map argument can null during initializing and binding.
+
+            map.Navigator.SetSize(ViewportWidth, ViewportHeight);
+            SubscribeToMapEvents(map);
+            CallHomeIfNeeded();
+            Refresh();
         }
 
         /// <inheritdoc />
@@ -511,26 +496,17 @@ namespace TacControl.Misc
             return new Mapsui.MPoint(coordinateInPixels.X / PixelDensity, coordinateInPixels.Y / PixelDensity);
         }
 
-        private void OnViewportSizeInitialized()
-        {
-            ViewportInitialized?.Invoke(this, EventArgs.Empty);
-        }
-
         /// <summary>
         /// Refresh data of Map, but don't paint it
         /// </summary>
         public void RefreshData(ChangeType changeType = ChangeType.Discrete)
         {
-            if (Viewport.Extent != null)
-            {
-                if (Viewport.Extent == null)
-                    return;
-                var fetchInfo = new FetchInfo(Viewport.Extent, Viewport.Resolution, Map?.CRS, changeType);
-                _map?.RefreshData(fetchInfo);
-            }
+            Map.RefreshData(changeType);
         }
 
-        private void OnInfo(MapInfoEventArgs mapInfoEventArgs)
+
+
+        private protected void OnInfo(MapInfoEventArgs? mapInfoEventArgs)
         {
             if (mapInfoEventArgs == null) return;
 
@@ -538,18 +514,16 @@ namespace TacControl.Misc
             Info?.Invoke(this, mapInfoEventArgs);
         }
 
-        private bool WidgetTouched(IWidget widget, Mapsui.MPoint screenPosition)
+        private bool WidgetTouched(IWidget widget, MPoint screenPosition)
         {
-            var result = widget.HandleWidgetTouched(Navigator, screenPosition);
+            var result = widget.HandleWidgetTouched(Map.Navigator, screenPosition);
 
             if (!result && widget is Hyperlink hyperlink && !string.IsNullOrWhiteSpace(hyperlink.Url))
             {
-                OpenBrowser(hyperlink.Url);
-
-                return true;
+                OpenBrowser(hyperlink.Url!);
             }
 
-            return false;
+            return result;
         }
 
         /// <inheritdoc />
@@ -558,21 +532,14 @@ namespace TacControl.Misc
             if (screenPosition == null)
                 return null;
 
-            return Renderer?.GetMapInfo(screenPosition.X, screenPosition.Y, Viewport, Map?.Layers ?? new LayerCollection(), margin);
+            return Renderer?.GetMapInfo(screenPosition.X, screenPosition.Y, Map.Navigator.Viewport, Map?.Layers ?? new LayerCollection(), margin);
         }
 
         /// <inheritdoc />
-        public byte[] GetSnapshot(IEnumerable<ILayer> layers = null)
+        public byte[] GetSnapshot(IEnumerable<ILayer>? layers = null)
         {
-            byte[] result = null;
-
-            using (var stream = Renderer.RenderToBitmapStream(Viewport, layers ?? Map.Layers, pixelDensity: PixelDensity))
-            {
-                if (stream != null)
-                    result = stream.ToArray();
-            }
-
-            return result;
+            using var stream = Renderer.RenderToBitmapStream(Map.Navigator.Viewport, layers ?? Map?.Layers ?? new LayerCollection(), pixelDensity: PixelDensity);
+            return stream.ToArray();
         }
 
         /// <summary>
@@ -582,14 +549,14 @@ namespace TacControl.Misc
         /// <param name="startScreenPosition">Screen position of Viewport/MapControl</param>
         /// <param name="numTaps">Number of clickes/taps</param>
         /// <returns>True, if something done </returns>
-        private MapInfoEventArgs InvokeInfo(Mapsui.MPoint screenPosition, Mapsui.MPoint startScreenPosition, int numTaps)
+        private protected MapInfoEventArgs? CreateMapInfoEventArgs(MPoint? screenPosition, MPoint? startScreenPosition, int numTaps)
         {
-            return InvokeInfo(
-                Map?.GetWidgetsOfMapAndLayers() ?? new List<IWidget>(),
-                screenPosition,
-                startScreenPosition,
-                WidgetTouched,
-                numTaps);
+            return CreateMapInfoEventArgs(
+                    Map?.GetWidgetsOfMapAndLayers() ?? new List<IWidget>(),
+                    screenPosition,
+                    startScreenPosition,
+                    WidgetTouched,
+                    numTaps);
         }
 
         /// <summary>
@@ -601,8 +568,8 @@ namespace TacControl.Misc
         /// <param name="widgetCallback">Callback, which is called when Widget is hit</param>
         /// <param name="numTaps">Number of clickes/taps</param>
         /// <returns>True, if something done </returns>
-        private MapInfoEventArgs InvokeInfo(IEnumerable<IWidget> widgets, Mapsui.MPoint screenPosition,
-            Mapsui.MPoint startScreenPosition, Func<IWidget, Mapsui.MPoint, bool> widgetCallback, int numTaps)
+        private MapInfoEventArgs? CreateMapInfoEventArgs(IEnumerable<IWidget> widgets, MPoint? screenPosition,
+            MPoint? startScreenPosition, Func<IWidget, MPoint, bool> widgetCallback, int numTaps)
         {
             if (screenPosition == null || startScreenPosition == null)
                 return null;
@@ -624,7 +591,7 @@ namespace TacControl.Misc
             }
 
             // Check which features in the map were tapped.
-            var mapInfo = Renderer?.GetMapInfo(screenPosition.X, screenPosition.Y, Viewport, Map?.Layers ?? new LayerCollection());
+            var mapInfo = Renderer?.GetMapInfo(screenPosition.X, screenPosition.Y, Map.Navigator.Viewport, Map?.Layers ?? new LayerCollection());
 
             if (mapInfo != null)
             {
@@ -639,39 +606,143 @@ namespace TacControl.Misc
             return null;
         }
 
-        private void SetViewportSize()
+        private protected void SetViewportSize()
         {
-            var hadSize = Viewport.HasSize;
-            _viewport.SetSize(ViewportWidth, ViewportHeight);
-            if (!hadSize && Viewport.HasSize) OnViewportSizeInitialized();
+            var hadSize = Map.Navigator.Viewport.HasSize();
+            Map.Navigator.SetSize(ViewportWidth, ViewportHeight);
+            if (!hadSize && Map.Navigator.Viewport.HasSize()) Map.OnViewportSizeInitialized();
             CallHomeIfNeeded();
             Refresh();
         }
 
-        /// <summary>
-        /// Clear cache and repaint map
-        /// </summary>
-        public void Clear()
-        {
-            // not sure if we need this method
-            _map?.ClearCache();
-            RefreshGraphics();
-        }
-
-        private void CommonDispose(bool disposing)
+        private protected void CommonDispose(bool disposing)
         {
             if (disposing)
             {
                 Unsubscribe();
-#pragma warning disable IDISP007 // Don't dispose injected
-                _navigator?.Dispose();
-#pragma warning restore IDISP007
                 StopUpdates();
                 _invalidateTimer?.Dispose();
             }
             _invalidateTimer = null;
         }
 
+        private bool HandleMoving(MPoint position, bool leftButton, int clickCount, bool shift)
+        {
+            var extendedWidgets = GetExtendedWidgets();
+            if (extendedWidgets.Count == 0)
+                return false;
+
+            var widgetArgs = new WidgetArgs(clickCount, leftButton, shift);
+            foreach (var extendedWidget in extendedWidgets)
+            {
+                if (extendedWidget.HandleWidgetMoving(Map.Navigator, position, widgetArgs))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool HandleTouchingTouched(MPoint position, bool leftButton, int clickCount, bool shift)
+        {
+            if (HandleTouching(position, leftButton, clickCount, shift))
+            {
+                return true;
+            }
+
+            if (HandleTouched(position, leftButton, clickCount, shift))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+
+        private bool HandleTouching(MPoint position, bool leftButton, int clickCount, bool shift)
+        {
+            var extendedWidgets = GetExtendedWidgets();
+            if (extendedWidgets.Count == 0)
+                return false;
+
+            // Exit on Touchable Widgets or else the Button Handling for example does not work
+            // TODO: In the Next Mapsui Major Version handle Touch Events here
+            var touchableWidgets = GetTouchableWidgets();
+            var touchedWidgets = WidgetTouch.GetTouchedWidget(position, position, touchableWidgets);
+            if (touchedWidgets.Any())
+                return false;
+
+            var widgetArgs = new WidgetArgs(clickCount, leftButton, shift);
+            foreach (var extendedWidget in extendedWidgets)
+            {
+                if (extendedWidget.HandleWidgetTouching(Map.Navigator, position, widgetArgs))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool HandleTouched(MPoint position, bool leftButton, int clickCount, bool shift)
+        {
+            var extendedWidgets = GetExtendedWidgets();
+            if (extendedWidgets.Count == 0)
+                return false;
+
+            // Exit on Touchable Widgets or else the Button Handling for example does not work
+            // TODO: In the Next Mapsui Major Version handle Touch Events here
+            var touchableWidgets = GetTouchableWidgets();
+            var touchedWidgets = WidgetTouch.GetTouchedWidget(position, position, touchableWidgets);
+            if (touchedWidgets.Any())
+                return false;
+
+            var widgetArgs = new WidgetArgs(clickCount, leftButton, shift);
+            foreach (var extendedWidget in extendedWidgets)
+            {
+                if (extendedWidget.HandleWidgetTouched(Map.Navigator, position, widgetArgs))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private List<IWidgetExtended> GetExtendedWidgets()
+        {
+            if (_updateWidget != Map.Widgets.Count || _extendedWidgets == null)
+            {
+                _updateWidget = Map.Widgets.Count;
+                _extendedWidgets = new List<IWidgetExtended>();
+                var widgetsOfMapAndLayers = Map.GetWidgetsOfMapAndLayers().ToList();
+                foreach (var widget in widgetsOfMapAndLayers)
+                {
+                    if (widget is IWidgetExtended extendedWidget)
+                    {
+                        _extendedWidgets.Add(extendedWidget);
+                    }
+                }
+            }
+
+            return _extendedWidgets;
+        }
+
+        private List<IWidget> GetTouchableWidgets()
+        {
+            if (_updateTouchableWidget != Map.Widgets.Count || _touchableWidgets == null)
+            {
+                _updateTouchableWidget = Map.Widgets.Count;
+                _touchableWidgets = new List<IWidget>();
+                var touchableWidgets = Map.GetWidgetsOfMapAndLayers().ToList();
+                foreach (var widget in touchableWidgets)
+                {
+                    if (widget is IWidgetExtended)
+                        continue;
+
+                    if (widget is IWidgetTouchable { Touchable: false }) continue;
+
+                    _touchableWidgets.Add(widget);
+                }
+            }
+
+            return _touchableWidgets;
+        }
 
 
 
@@ -702,28 +773,32 @@ namespace TacControl.Misc
 
 
 
-        // https://github.com/Mapsui/Mapsui/blob/af2bf64d3f45c0a3a7b91d2d58cc2a4fff3d13d3/Mapsui.UI.Wpf/MapControl.cs
+
+
+
+        // https://github.com/Mapsui/Mapsui/blob/31b9099c758f93daa5aded630e4ac45ec4308cab/Mapsui.UI.Wpf/MapControl.cs
 
 
 
 
 
         private readonly Rectangle _selectRectangle = CreateSelectRectangle();
-        private Mapsui.MPoint _currentMousePosition;
-        private Mapsui.MPoint _downMousePosition;
+        private Mapsui.MPoint? _downMousePosition;
         private bool _mouseDown;
-        private Mapsui.MPoint _previousMousePosition;
+        private Mapsui.MPoint? _previousMousePosition;
         private RenderMode _renderMode;
         private bool _hasBeenManipulated;
+        private double _virtualRotation;
         private double _innerRotation;
-        //private readonly FlingTracker _flingTracker = new FlingTracker();
+        private readonly FlingTracker _flingTracker = new();
+        private MPoint? _currentMousePosition;
 
         public MouseWheelAnimation MouseWheelAnimation { get; } = new MouseWheelAnimation();
 
         /// <summary>
         /// Fling is called, when user release mouse button or lift finger while moving with a certain speed, higher than speed of swipe 
         /// </summary>
-        public event EventHandler<SwipedEventArgs> Fling;
+        public event EventHandler<SwipedEventArgs>? Fling;
 
         static private bool GLRunning = false; // true == GL rendering completely disabled, false == one GL window allowed
 
@@ -734,9 +809,10 @@ namespace TacControl.Misc
             Initialize();
         }
 
-        void Initialize()
+        private void Initialize()
         {
-            _invalidate = () => {
+            _invalidate = () =>
+            {
                 if (Dispatcher.CheckAccess()) InvalidateCanvas();
                 else RunOnUIThread(InvalidateCanvas);
             };
@@ -789,7 +865,12 @@ namespace TacControl.Misc
 
             IsManipulationEnabled = true;
 
+            WpfCanvas.Visibility = Visibility.Collapsed;
+            SkiaCanvas.Visibility = Visibility.Visible;
+
+
             RenderMode = RenderMode.Skia;
+            RefreshGraphics();
         }
 
         protected override void OnRender(DrawingContext dc)
@@ -867,7 +948,7 @@ namespace TacControl.Misc
             };
         }
 
-        public event EventHandler<FeatureInfoEventArgs> FeatureInfo; // todo: Remove and add sample for alternative
+        public event EventHandler<FeatureInfoEventArgs>? FeatureInfo; // todo: Remove and add sample for alternative
 
         internal void InvalidateCanvas()
         {
@@ -884,15 +965,9 @@ namespace TacControl.Misc
 
         private void MapControlMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (_map?.ZoomLock ?? true) return;
-            if (!Viewport.HasSize) return;
-
+            var mouseWheelDelta = e.Delta;
             _currentMousePosition = e.GetPosition(this).ToMapsui();
-
-            var resolution = MouseWheelAnimation.GetResolution(e.Delta, _viewport, _map);
-            // Limit target resolution before animation to avoid an animation that is stuck on the max resolution, which would cause a needless delay
-            resolution = _map.Limiter.LimitResolution(resolution, Viewport.Width, Viewport.Height, _map.Resolutions, _map.Extent);
-            Navigator.ZoomTo(resolution, _currentMousePosition, MouseWheelAnimation.Duration, MouseWheelAnimation.Easing);
+            Map.Navigator.MouseWheelZoom(mouseWheelDelta, _currentMousePosition);
         }
 
         private void MapControlSizeChanged(object sender, SizeChangedEventArgs e)
@@ -921,12 +996,16 @@ namespace TacControl.Misc
 
         private void MapControlMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (HandleTouching(e.GetPosition(this).ToMapsui(), true, e.ClickCount, ShiftPressed))
+                return;
+
             var touchPosition = e.GetPosition(this).ToMapsui();
             _previousMousePosition = touchPosition;
             _downMousePosition = touchPosition;
             _mouseDown = true;
-            //_flingTracker.Clear();
+            _flingTracker.Clear();
             CaptureMouse();
+
         }
 
         private static bool IsInBoxZoomMode()
@@ -937,19 +1016,21 @@ namespace TacControl.Misc
         private void MapControlMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             var mousePosition = e.GetPosition(this).ToMapsui();
+            if (HandleTouched(mousePosition, true, e.ClickCount, ShiftPressed))
+                return;
 
             if (_previousMousePosition != null)
             {
                 if (IsInBoxZoomMode())
                 {
-                    var previous = Viewport.ScreenToWorld(_previousMousePosition.X, _previousMousePosition.Y);
-                    var current = Viewport.ScreenToWorld(mousePosition.X, mousePosition.Y);
+                    var previous = Map.Navigator.Viewport.ScreenToWorld(_previousMousePosition.X, _previousMousePosition.Y);
+                    var current = Map.Navigator.Viewport.ScreenToWorld(mousePosition.X, mousePosition.Y);
                     ZoomToBox(previous, current);
                 }
                 else if (_downMousePosition != null && IsClick(mousePosition, _downMousePosition))
                 {
                     HandleFeatureInfo(e);
-                    OnInfo(InvokeInfo(mousePosition, _downMousePosition, e.ClickCount));
+                    OnInfo(CreateMapInfoEventArgs(mousePosition, _downMousePosition, e.ClickCount));
                 }
             }
 
@@ -987,7 +1068,7 @@ namespace TacControl.Misc
             if (args.Handled)
                 return true;
 
-            Navigator.FlingWith(velocityX, velocityY, 1000);
+            Map.Navigator.Fling(velocityX, velocityY, 1000);
 
             return true;
         }
@@ -999,7 +1080,7 @@ namespace TacControl.Misc
                 Math.Abs(currentPosition.Y - previousPosition.Y) < SystemParameters.MinimumVerticalDragDistance;
         }
 
-        private void MapControlTouchUp(object sender, TouchEventArgs e)
+        private void MapControlTouchUp(object? sender, TouchEventArgs e)
         {
             if (!_hasBeenManipulated)
             {
@@ -1007,13 +1088,18 @@ namespace TacControl.Misc
                 // todo: Pass the touchDown position. It needs to be set at touch down.
 
                 // todo: Figure out how to do a number of taps for WPF
-                OnInfo(InvokeInfo(touchPosition, touchPosition, 1));
+                OnInfo(CreateMapInfoEventArgs(touchPosition, touchPosition, 1));
             }
         }
 
         public void OpenBrowser(string url)
         {
-            Process.Start(url);
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = url,
+                // The default for this has changed in .net core, you have to explicitly set if to true for it to work.
+                UseShellExecute = true
+            });
         }
 
         private void HandleFeatureInfo(MouseButtonEventArgs e)
@@ -1021,15 +1107,13 @@ namespace TacControl.Misc
             if (FeatureInfo == null) return; // don't fetch if you the call back is not set.
 
             if (_downMousePosition == e.GetPosition(this).ToMapsui())
-                if (this.Map != null)
+                foreach (var layer in Map.Layers)
                 {
-                    foreach (var layer in Map.Layers)
-                    {
-                        // ReSharper disable once SuspiciousTypeConversion.Global
-                        (layer as IFeatureInfo)?.GetFeatureInfo(Viewport, _downMousePosition.X, _downMousePosition.Y,
-                            OnFeatureInfo);
-                    }
+                    // ReSharper disable once SuspiciousTypeConversion.Global
+                    (layer as IFeatureInfo)?.GetFeatureInfo(Map.Navigator.Viewport, _downMousePosition.X, _downMousePosition.Y,
+                                OnFeatureInfo);
                 }
+
         }
 
         private void OnFeatureInfo(IDictionary<string, IEnumerable<IFeature>> features)
@@ -1039,13 +1123,16 @@ namespace TacControl.Misc
 
         private void MapControlMouseMove(object sender, MouseEventArgs e)
         {
+            if (HandleMoving(e.GetPosition(this).ToMapsui(), e.LeftButton == MouseButtonState.Pressed, 0, ShiftPressed))
+                return;
+
             if (IsInBoxZoomMode())
             {
                 DrawBbox(e.GetPosition(this));
                 return;
             }
 
-            _currentMousePosition = e.GetPosition(this).ToMapsui(); //Needed for both MouseMove and MouseWheel event
+            _currentMousePosition = e.GetPosition(this).ToMapsui();
 
             if (_mouseDown)
             {
@@ -1057,37 +1144,16 @@ namespace TacControl.Misc
                     return;
                 }
 
-                //_flingTracker.AddEvent(1, _currentMousePosition, DateTime.Now.Ticks);
-
-                _viewport.Transform(_currentMousePosition, _previousMousePosition);
-                RefreshGraphics();
+                _flingTracker.AddEvent(1, _currentMousePosition, DateTime.Now.Ticks);
+                Map.Navigator.Drag(_currentMousePosition, _previousMousePosition);
                 _previousMousePosition = _currentMousePosition;
-            }
-            else
-            {
-                if (MouseWheelAnimation.IsAnimating())
-                {
-                    // Disabled because not performing:
-                    // Navigator.ZoomTo(_toResolution, _currentMousePosition, _mouseWheelAnimationDuration, Easing.QuarticOut);
-                }
-
             }
         }
 
-        public void ZoomToBox(Mapsui.MPoint beginPoint, Mapsui.MPoint endPoint)
+        public void ZoomToBox(MPoint beginPoint, MPoint endPoint)
         {
-            var width = Math.Abs(endPoint.X - beginPoint.X);
-            var height = Math.Abs(endPoint.Y - beginPoint.Y);
-            if (width <= 0) return;
-            if (height <= 0) return;
-
-            ZoomHelper.ZoomToBoudingbox(beginPoint.X, beginPoint.Y, endPoint.X, endPoint.Y,
-                ActualWidth, ActualHeight, out var x, out var y, out var resolution);
-
-            Navigator.NavigateTo(new Mapsui.MPoint(x, y), resolution, 384);
-
-            RefreshData();
-            RefreshGraphics();
+            var box = new MRect(beginPoint.X, beginPoint.Y, endPoint.X, endPoint.Y);
+            Map.Navigator.ZoomToBox(box, duration: 300); ;
             ClearBBoxDrawing();
         }
 
@@ -1129,18 +1195,18 @@ namespace TacControl.Misc
         private float ViewportWidth => (float)ActualWidth;
         private float ViewportHeight => (float)ActualHeight;
 
-        private static void OnManipulationInertiaStarting(object sender, ManipulationInertiaStartingEventArgs e)
+        private static void OnManipulationInertiaStarting(object? sender, ManipulationInertiaStartingEventArgs e)
         {
             e.TranslationBehavior.DesiredDeceleration = 25 * 96.0 / (1000.0 * 1000.0);
         }
 
-        private void OnManipulationStarted(object sender, ManipulationStartedEventArgs e)
+        private void OnManipulationStarted(object? sender, ManipulationStartedEventArgs e)
         {
             _hasBeenManipulated = false;
-            _innerRotation = _viewport.Rotation;
+            _virtualRotation = Map.Navigator.Viewport.Rotation;
         }
 
-        private void OnManipulationDelta(object sender, ManipulationDeltaEventArgs e)
+        private void OnManipulationDelta(object? sender, ManipulationDeltaEventArgs e)
         {
             var translation = e.DeltaManipulation.Translation;
             var center = e.ManipulationOrigin.ToMapsui().Offset(translation.X, translation.Y);
@@ -1155,35 +1221,21 @@ namespace TacControl.Misc
 
             double rotationDelta = 0;
 
-            if (!(_map?.RotationLock ?? false))
+            if (Map.Navigator.RotationLock == false)
             {
-                _innerRotation += angle - prevAngle;
-                _innerRotation %= 360;
+                _virtualRotation += angle - prevAngle;
 
-                if (_innerRotation > 180)
-                    _innerRotation -= 360;
-                else if (_innerRotation < -180)
-                    _innerRotation += 360;
-
-                if (Viewport.Rotation == 0 && Math.Abs(_innerRotation) >= Math.Abs(UnSnapRotationDegrees))
-                    rotationDelta = _innerRotation;
-                else if (Viewport.Rotation != 0)
-                {
-                    if (Math.Abs(_innerRotation) <= Math.Abs(ReSnapRotationDegrees))
-                        rotationDelta = -Viewport.Rotation;
-                    else
-                        rotationDelta = _innerRotation - Viewport.Rotation;
-                }
+                rotationDelta = RotationCalculations.CalculateRotationDeltaWithSnapping(
+                    _virtualRotation, Map.Navigator.Viewport.Rotation, _unSnapRotationDegrees, _reSnapRotationDegrees);
             }
 
-            _viewport.Transform(center, previousCenter, radius / previousRadius, rotationDelta);
-            RefreshGraphics();
+            Map.Navigator.Pinch(center, previousCenter, radius / previousRadius, rotationDelta);
             e.Handled = true;
         }
 
         private double GetDeltaScale(XamlVector scale)
         {
-            if (_map?.ZoomLock ?? true) return 1;
+            if (Map.Navigator.ZoomLock) return 1;
             var deltaScale = (scale.X + scale.Y) / 2;
             if (Math.Abs(deltaScale) < Constants.Epsilon)
                 return 1; // If there is no scaling the deltaScale will be 0.0 in Windows Phone (while it is 1.0 in wpf)
@@ -1191,12 +1243,12 @@ namespace TacControl.Misc
             return deltaScale;
         }
 
-        private void OnManipulationCompleted(object sender, ManipulationCompletedEventArgs e)
+        private void OnManipulationCompleted(object? sender, ManipulationCompletedEventArgs e)
         {
             Refresh();
         }
 
-        private void SKElementOnPaintSurface(object sender, SKPaintSurfaceEventArgs args)
+        private void SKElementOnPaintSurface(object? sender, SKPaintSurfaceEventArgs args)
         {
             if (PixelDensity <= 0)
                 return;
@@ -1259,5 +1311,7 @@ namespace TacControl.Misc
             GC.SuppressFinalize(this);
         }
 
+        public bool ShiftPressed => Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
     }
+
 }

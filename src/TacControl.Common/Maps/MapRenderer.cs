@@ -19,8 +19,10 @@ using Mapsui.UI;
 using Mapsui.Widgets;
 using Mapsui.Widgets.ScaleBar;
 using Mapsui.Widgets.Zoom;
+using Mapsui.Extensions;
 using NetTopologySuite.Geometries;
 using SkiaSharp;
+using Mapsui.Rendering.Skia.Cache;
 
 namespace TacControl.Common.Maps
 {
@@ -28,6 +30,8 @@ namespace TacControl.Common.Maps
     {
         private const int TilesToKeepMultiplier = 3;
         private const int MinimumTilesToKeep = 32;
+        private readonly IRenderCache _renderCache = new RenderCache();
+        public IRenderCache RenderCache => _renderCache;
         private readonly SymbolCache _symbolCache = new SymbolCache();
         private readonly IDictionary<object, BitmapInfo> _tileCache =
             new Dictionary<object, BitmapInfo>(new IdentityComparer<object>());
@@ -77,7 +81,7 @@ namespace TacControl.Common.Maps
 
         }
 
-        public void Render(object target, IReadOnlyViewport viewport, IEnumerable<ILayer> layers,
+        public void Render(object target, Viewport viewport, IEnumerable<ILayer> layers,
             IEnumerable<IWidget> widgets, Color background = null)
         {
             var attributions = layers.Where(l => l.Enabled).Select(l => l.Attribution).Where(w => w != null).ToList();
@@ -87,17 +91,17 @@ namespace TacControl.Common.Maps
             RenderTypeSave((SKCanvas)target, viewport, layers, allWidgets, background);
         }
 
-        private void RenderTypeSave(SKCanvas canvas, IReadOnlyViewport viewport, IEnumerable<ILayer> layers,
+        private void RenderTypeSave(SKCanvas canvas, Viewport viewport, IEnumerable<ILayer> layers,
             IEnumerable<IWidget> widgets, Color background = null)
         {
-            if (!viewport.HasSize) return;
+            if (!viewport.HasSize()) return;
 
             if (background != null) canvas.Clear(background.ToSkia(1));
             Render(canvas, viewport, layers);
             Render(canvas, viewport, widgets, 1);
         }
 
-        public MemoryStream RenderToBitmapStream(IReadOnlyViewport viewport, IEnumerable<ILayer> layers, Color background = null, float pixelDensity = 1)
+        public MemoryStream RenderToBitmapStream(Viewport viewport, IEnumerable<ILayer> layers, Color background = null, float pixelDensity = 1)
         {
             try
             {
@@ -131,7 +135,7 @@ namespace TacControl.Common.Maps
             }
         }
 
-        private void Render(SKCanvas canvas, IReadOnlyViewport viewport, IEnumerable<ILayer> layers)
+        private void Render(SKCanvas canvas, Viewport viewport, IEnumerable<ILayer> layers)
         {
             try
             {
@@ -174,7 +178,7 @@ namespace TacControl.Common.Maps
             }
         }
 
-        private void RenderFeature(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IStyle style, IFeature feature, float layerOpacity, long iteration)
+        private void RenderFeature(SKCanvas canvas, Viewport viewport, ILayer layer, IStyle style, IFeature feature, float layerOpacity, long iteration)
         {
             // Check, if we have a special renderer for this style
             if (StyleRenderers.ContainsKey(style.GetType()))
@@ -182,7 +186,11 @@ namespace TacControl.Common.Maps
                 // Save canvas
                 canvas.Save();
                 // We have a special renderer, so try, if it could draw this
-                var result = ((ISkiaStyleRenderer)StyleRenderers[style.GetType()]).Draw(canvas, viewport, layer, feature, style, _symbolCache, iteration);
+                bool result = false;
+                lock (_renderCache)
+                {
+                    result = ((ISkiaStyleRenderer)StyleRenderers[style.GetType()]).Draw(canvas, viewport, layer, feature, style, _renderCache, iteration);
+                }
                 // Restore old canvas
                 canvas.Restore();
                 // Was it drawn?
@@ -222,18 +230,18 @@ namespace TacControl.Common.Maps
 #endif
         }
 
-        private void Render(object canvas, IReadOnlyViewport viewport, IEnumerable<IWidget> widgets, float layerOpacity)
+        private void Render(object canvas, Viewport viewport, IEnumerable<IWidget> widgets, float layerOpacity)
         {
             WidgetRenderer.Render(canvas, viewport, widgets, WidgetRenders, layerOpacity);
         }
 
-        public MapInfo GetMapInfo(double x, double y, IReadOnlyViewport viewport, IEnumerable<ILayer> layers, int margin = 0)
+        public MapInfo GetMapInfo(double x, double y, Viewport viewport, IEnumerable<ILayer> layers, int margin = 0)
         {
             // todo: use margin to increase the pixel area
             // todo: We will need to select on style instead of layer
 
             layers = layers
-                .Select(l => (l is RasterizingLayer rl) ? rl.ChildLayer : l)
+                .Select(l => (l is RasterizingLayer rl) ? rl.SourceLayer : l)
                 .Where(l => l.IsMapInfoLayer);
 
             var list = new List<MapInfoRecord>();
@@ -301,9 +309,79 @@ namespace TacControl.Common.Maps
             return result;
         }
 
-        public MapInfo GetMapInfo(MPoint screenPosition, IReadOnlyViewport viewport, IEnumerable<ILayer> layers, int margin = 0)
+        public MapInfo GetMapInfo(MPoint screenPosition, Viewport viewport, IEnumerable<ILayer> layers, int margin = 0)
         {
             return GetMapInfo(screenPosition.X, screenPosition.Y, viewport, layers, margin);
+        }
+
+        public MemoryStream RenderToBitmapStream(Viewport viewport, IEnumerable<ILayer> layers, Color background = null, float pixelDensity = 1, IEnumerable<IWidget> widgets = null, RenderFormat renderFormat = RenderFormat.Png)
+        {
+            // https://github.com/Mapsui/Mapsui/blob/master/Mapsui.Rendering.Skia/MapRenderer.cs
+            try
+            {
+                var width = viewport.Width;
+                var height = viewport.Height;
+
+                var imageInfo = new SKImageInfo((int)Math.Round(width * pixelDensity), (int)Math.Round(height * pixelDensity),
+                    SKImageInfo.PlatformColorType, SKAlphaType.Unpremul);
+
+                MemoryStream memoryStream = new MemoryStream();
+
+                switch (renderFormat)
+                {
+                    case RenderFormat.Skp:
+                        {
+                            using var pictureRecorder = new SKPictureRecorder();
+                            using var skCanvas = pictureRecorder.BeginRecording(new SKRect(0, 0, Convert.ToSingle(width), Convert.ToSingle(height)));
+                            RenderTo(viewport, layers, background, pixelDensity, widgets, skCanvas);
+                            using var skPicture = pictureRecorder.EndRecording();
+                            skPicture?.Serialize(memoryStream);
+                            break;
+                        }
+                    case RenderFormat.Png:
+                        {
+                            using var surface = SKSurface.Create(imageInfo);
+                            using var skCanvas = surface.Canvas;
+                            RenderTo(viewport, layers, background, pixelDensity, widgets, skCanvas);
+                            using var image = surface.Snapshot();
+                            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+                            data.SaveTo(memoryStream);
+                            break;
+                        }
+                    case RenderFormat.WebP:
+                        {
+                            using var surface = SKSurface.Create(imageInfo);
+                            using var skCanvas = surface.Canvas;
+                            RenderTo(viewport, layers, background, pixelDensity, widgets, skCanvas);
+                            using var image = surface.Snapshot();
+                            var options = new SKWebpEncoderOptions(SKWebpEncoderCompression.Lossless, 100);
+                            using var peekPixels = image.PeekPixels();
+                            using var data = peekPixels.Encode(options);
+                            data.SaveTo(memoryStream);
+                            break;
+                        }
+                }
+
+                return memoryStream;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error, ex.Message);
+                throw;
+            }
+        }
+
+        private void RenderTo(Viewport viewport, IEnumerable<ILayer> layers, Color? background, float pixelDensity,
+    IEnumerable<IWidget>? widgets, SKCanvas skCanvas)
+        {
+            if (skCanvas == null) throw new ArgumentNullException(nameof(viewport));
+
+            // Not sure if this is needed here:
+            if (background != null) skCanvas.Clear(background.ToSkia());
+            skCanvas.Scale(pixelDensity, pixelDensity);
+            Render(skCanvas, viewport, layers);
+            if (widgets != null)
+                Render(skCanvas, viewport, widgets, 1);
         }
 
         public class IdentityComparer<T> : IEqualityComparer<T> where T : class

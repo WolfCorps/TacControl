@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using Mapsui;
+using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Rendering;
@@ -26,12 +27,12 @@ namespace TacControl.Common.Maps
             TextSize = 24,
             TextAlign = SKTextAlign.Left
         };
-        public bool Draw(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IFeature feature, IStyle istyle,
-            ISymbolCache symbolCache, long iteration)
+        public bool Draw(SKCanvas canvas, Viewport viewport, ILayer layer, IFeature feature, IStyle istyle,
+            IRenderCache symbolCache, long iteration)
         {
             var style = ((MarkerIconStyle)istyle);
 
-            if (!viewport.Extent.Intersects(feature.Extent))
+            if (!viewport.ToExtent().Intersects(feature.Extent))
                 return true; // We didn't render anything, but we still did so successfully
 
             if (style.markerIcon == null)

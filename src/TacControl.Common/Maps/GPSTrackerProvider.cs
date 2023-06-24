@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Providers;
@@ -9,7 +10,7 @@ using TacControl.Common.Modules;
 
 namespace TacControl.Common.Maps
 {
-    public class GPSTrackerProvider : IProvider<IFeature>, IDisposable
+    public class GPSTrackerProvider : IProvider, IDisposable
     {
         public ILayer GpsTrackerLayer { get; private set; }
         private MRect _boundingBox;
@@ -101,6 +102,12 @@ namespace TacControl.Common.Maps
             var biggerBox = fetchInfo.Extent?.Grow(fetchInfo.Resolution * SymbolSize * 0.5);
 
             return features.Values.Where(f => f != null && ((f.Extent?.Intersects(biggerBox)) ?? false)).ToList();
+        }
+
+
+        public Task<IEnumerable<IFeature>> GetFeaturesAsync(FetchInfo fetchInfo)
+        {
+            return Task.FromResult(GetFeatures(fetchInfo));
         }
 
         public MRect? GetExtent()

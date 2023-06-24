@@ -6,6 +6,7 @@ using Mapsui;
 using Mapsui.Rendering.Skia.SkiaWidgets;
 using Mapsui.Styles;
 using Mapsui.Widgets;
+using Mapsui.Extensions;
 using SkiaSharp;
 
 namespace TacControl.Common.Maps
@@ -28,7 +29,7 @@ namespace TacControl.Common.Maps
 
         static SKFont markerFont = new SKFont {Typeface = SKTypeface.FromFamilyName("Verdana"), Size = 16 }; 
 
-        public void Draw(SKCanvas canvas, IReadOnlyViewport viewport, IWidget widget, float layerOpacity)
+        public void Draw(SKCanvas canvas, Viewport viewport, IWidget widget, float layerOpacity)
         {
             canvas.RotateDegrees((float)viewport.Rotation, 0.0f, 0.0f);
 
@@ -36,8 +37,8 @@ namespace TacControl.Common.Maps
             var TL = viewport.ScreenToWorld(canvas.LocalClipBounds.Left, canvas.LocalClipBounds.Top);
             var BR = viewport.ScreenToWorld(canvas.LocalClipBounds.Right, canvas.LocalClipBounds.Bottom);
 
-            var width = viewport.Extent.Width;
-            var height = viewport.Extent.Height;
+            var width = viewport.ToExtent().Width;
+            var height = viewport.ToExtent().Height;
 
             var usedLineOffset = lineOffset;
             uint usedLineOffsetInt = (uint)usedLineOffset;

@@ -9,61 +9,52 @@ using Mapsui.Logging;
 using Mapsui.Providers;
 using Mapsui.Rendering;
 using Mapsui.Styles;
+using Mapsui.Extensions;
 
 namespace TacControl.Common.Maps
 {
-    // https://github.com/Mapsui/Mapsui/blob/7ce9087a1cfb3dcfb6550ace05a33db4021c2443/Mapsui/Layers/RasterizingLayer.cs#L11
+    // https://github.com/Mapsui/Mapsui/blob/31b9099c758f93daa5aded630e4ac45ec4308cab/Mapsui/Layers/RasterizingLayer.cs
     public class RasterizingLayer : BaseLayer, IAsyncDataFetcher
     {
         private readonly ConcurrentStack<RasterFeature> _cache;
         private readonly ILayer _layer;
-        private readonly bool _onlyRerasterizeIfOutsideOverscan;
-        private readonly double _overscan;
-        private readonly double _renderResolutionMultiplier;
         private readonly float _pixelDensity;
         private readonly object _syncLock = new object();
         private bool _busy;
-        private Viewport _currentViewport;
-        private MRect _extent;
+        private MSection? _currentSection;
         private bool _modified;
-        private IEnumerable<IFeature> _previousFeatures;
+        private IEnumerable<IFeature>? _previousFeatures;
         private readonly IRenderer _rasterizer = DefaultRendererFactory.Create();
         private FetchInfo? _fetchInfo;
         public Delayer Delayer { get; } = new Delayer();
-        private Delayer _rasterizeDelayer = new Delayer();
+        private readonly Delayer _rasterizeDelayer = new Delayer();
+        private readonly RenderFormat _renderFormat;
 
         /// <summary>
         ///     Creates a RasterizingLayer which rasterizes a layer for performance
         /// </summary>
         /// <param name="layer">The Layer to be rasterized</param>
-        /// <param name="delayBeforeRasterize">Delay after viewport change to start rerasterising</param>
-        /// <param name="renderResolutionMultiplier"></param>
+        /// <param name="delayBeforeRasterize">Delay after viewport change to start re-rasterizing</param>
         /// <param name="rasterizer">Rasterizer to use. null will use the default</param>
-        /// <param name="overscanRatio">The ratio of the size of the rasterized output to the current viewport</param>
-        /// <param name="onlyRerasterizeIfOutsideOverscan">
-        ///     Set the rasterization policy. false will trigger a Rasterization on
-        ///     every viewport change. true will trigger a Rerasterization only if the viewport moves outside the existing
+        ///     Set the rasterization policy. false will trigger a rasterization on
+        ///     every viewport change. true will trigger a re-rasterization only if the viewport moves outside the existing
         ///     rasterization.
         /// </param>
+        /// <param name="pixelDensity"></param>
+        /// <param name="renderFormat">render Format png is default and skp is skia picture</param>
         public RasterizingLayer(
             ILayer layer,
             int delayBeforeRasterize = 1000,
-            double renderResolutionMultiplier = 1,
-            IRenderer rasterizer = null,
-            double overscanRatio = 1,
-            bool onlyRerasterizeIfOutsideOverscan = false,
-            float pixelDensity = 1)
+        IRenderer? rasterizer = null,
+        float pixelDensity = 1,
+        RenderFormat renderFormat = RenderFormat.Png)
         {
-            if (overscanRatio < 1)
-                throw new ArgumentException($"{nameof(overscanRatio)} must be >= 1", nameof(overscanRatio));
-
+            _renderFormat = renderFormat;
+            _renderFormat = renderFormat;
             _layer = layer;
             Name = layer.Name;
-            _renderResolutionMultiplier = renderResolutionMultiplier;
-            _rasterizer = (rasterizer is Common.Maps.MapRenderer) ? rasterizer : new Common.Maps.MapRenderer(); //rasterizer;
+            _rasterizer = (rasterizer is Common.Maps.MapRenderer) ? rasterizer : new Common.Maps.MapRenderer(); //rasterizer; //#CHANGE
             _cache = new ConcurrentStack<RasterFeature>();
-            _overscan = overscanRatio;
-            _onlyRerasterizeIfOutsideOverscan = onlyRerasterizeIfOutsideOverscan;
             _pixelDensity = pixelDensity;
             _layer.DataChanged += LayerOnDataChanged;
             Delayer.StartWithDelay = true;
@@ -71,9 +62,9 @@ namespace TacControl.Common.Maps
             Style = new RasterStyle(); // default raster style
         }
 
-        public override MRect Extent => _layer.Extent;
+        public override MRect? Extent => _layer.Extent;
 
-        public ILayer ChildLayer => _layer;
+        public ILayer SourceLayer => _layer;
 
         private void LayerOnDataChanged(object sender, DataChangedEventArgs dataChangedEventArgs)
         {
@@ -103,27 +94,25 @@ namespace TacControl.Common.Maps
                     if (_fetchInfo == null) return;
                     if (double.IsNaN(_fetchInfo.Resolution) || _fetchInfo.Resolution <= 0) return;
                     if (_fetchInfo.Extent == null || _fetchInfo.Extent?.Width <= 0 || _fetchInfo.Extent?.Height <= 0) return;
-                    var viewport = CreateViewport(_fetchInfo.Extent!, _fetchInfo.Resolution, _renderResolutionMultiplier, _overscan);
 
-                    _currentViewport = viewport;
+                    _currentSection = _fetchInfo.Section;
 
-                    var bitmapStream = _rasterizer.RenderToBitmapStream(viewport, new[] { _layer }, pixelDensity: _pixelDensity);
+                    using var bitmapStream = _rasterizer.RenderToBitmapStream(ToViewport(_currentSection),
+                        new[] { _layer }, pixelDensity: _pixelDensity, renderFormat: _renderFormat);
+
                     RemoveExistingFeatures();
 
-                    if (bitmapStream != null)
-                    {
-                        _cache.Clear();
-                        var features = new RasterFeature[1];
-                        features[0] = new RasterFeature(new MRaster(bitmapStream.ToArray(), viewport.Extent));
-                        _cache.PushRange(features);
+                    _cache.Clear();
+                    var features = new RasterFeature[1];
+                    features[0] = new RasterFeature(new MRaster(bitmapStream.ToArray(), _currentSection.Extent));
+                    _cache.PushRange(features);
 #if DEBUG
-                        Logger.Log(LogLevel.Debug, $"Memory after rasterizing layer {GC.GetTotalMemory(true):N0}");
+                    Logger.Log(LogLevel.Debug, $"Memory after rasterizing layer {GC.GetTotalMemory(true):N0}");
 #endif
+                    OnDataChanged(new DataChangedEventArgs());
 
-                        OnDataChanged(new DataChangedEventArgs());
-                    }
-
-                    if (_modified) Delayer.ExecuteDelayed(() => _layer.RefreshData(_fetchInfo));
+                    if (_modified && _layer is IAsyncDataFetcher asyncDataFetcher)
+                        Delayer.ExecuteDelayed(() => asyncDataFetcher.RefreshData(_fetchInfo));
                 }
                 finally
                 {
@@ -173,25 +162,23 @@ namespace TacControl.Common.Maps
             if (_layer is IAsyncDataFetcher asyncLayer) asyncLayer.AbortFetch();
         }
 
-        public override void RefreshData(FetchInfo fetchInfo)
+        public void RefreshData(FetchInfo fetchInfo)
         {
             if (fetchInfo.Extent == null)
                 return;
-            var newViewport = CreateViewport(fetchInfo.Extent, fetchInfo.Resolution, _renderResolutionMultiplier, 1);
 
             if (!Enabled) return;
             if (MinVisible > fetchInfo.Resolution) return;
             if (MaxVisible < fetchInfo.Resolution) return;
 
-            if (!_onlyRerasterizeIfOutsideOverscan ||
-                (_currentViewport == null) ||
-                (_currentViewport.Resolution != newViewport.Resolution) ||
-                !_currentViewport.Extent.Contains(newViewport.Extent))
+            if ((_currentSection == null) ||
+                (_currentSection.Resolution != fetchInfo.Section.Resolution) ||
+                !_currentSection.Extent.Contains(fetchInfo.Section.Extent))
             {
                 // Explicitly set the change type to discrete for rasterization
-                _fetchInfo = new FetchInfo(fetchInfo.Extent, fetchInfo.Resolution, fetchInfo.CRS);
-                if (_layer is IAsyncDataFetcher)
-                    Delayer.ExecuteDelayed(() => _layer.RefreshData(_fetchInfo));
+                _fetchInfo = new FetchInfo(fetchInfo.Section, fetchInfo.CRS);
+                if (_layer is IAsyncDataFetcher asyncDataFetcher)
+                    Delayer.ExecuteDelayed(() => asyncDataFetcher.RefreshData(_fetchInfo));
                 else
                     Delayer.ExecuteDelayed(Rasterize);
             }
@@ -202,18 +189,15 @@ namespace TacControl.Common.Maps
             if (_layer is IAsyncDataFetcher asyncLayer) asyncLayer.ClearCache();
         }
 
-        private static Viewport CreateViewport(MRect extent, double resolution, double renderResolutionMultiplier,
-            double overscan)
+        public static Viewport ToViewport(MSection section)
         {
-            var renderResolution = resolution / renderResolutionMultiplier;
-            return new Viewport
-            {
-                Resolution = renderResolution,
-                CenterX = extent.Centroid.X,
-                CenterY = extent.Centroid.Y,
-                Width = extent.Width * overscan / renderResolution,
-                Height = extent.Height * overscan / renderResolution
-            };
+            return new Viewport(
+                section.Extent.Centroid.X,
+                section.Extent.Centroid.Y,
+                section.Resolution,
+                0,
+                section.ScreenWidth,
+                section.ScreenHeight);
         }
     }
 }

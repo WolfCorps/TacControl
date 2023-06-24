@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -27,7 +27,7 @@ namespace TacControl.TinyWidgets
     /// </summary>
     public partial class MapCursor : UserControl, INotifyPropertyChanged
     {
-        public Mapsui.UI.MapInfo UnderCursor { get; set; }
+        public Mapsui.MapInfo UnderCursor { get; set; }
 
 
 

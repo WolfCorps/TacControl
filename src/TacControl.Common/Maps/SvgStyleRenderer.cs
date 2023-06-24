@@ -7,20 +7,19 @@ using Mapsui.Providers;
 using Mapsui.Rendering;
 using Mapsui.Rendering.Skia.SkiaStyles;
 using Mapsui.Styles;
+using Mapsui.Extensions;
 using SkiaSharp;
 
 namespace TacControl.Common.Maps
 {
     public class SvgStyleRenderer : ISkiaStyleRenderer
     {
-        public bool Draw(SKCanvas canvas, IReadOnlyViewport viewport, ILayer layer, IFeature feature, IStyle style,
-            ISymbolCache symbolCache, long iteration)
+        public bool Draw(SKCanvas canvas, Viewport viewport, ILayer layer, IFeature feature, IStyle style,
+            IRenderCache symbolCache, long iteration)
         {
 
             var image = ((SvgStyle)style).GetImage();
             if (image == null) return true;
-            var center = viewport.Center;
-
             //SvgRenderer.Draw(canvas, image, -(float)viewport.Center.X, (float)viewport.Center.Y, (float)viewport.Rotation, 0,0,default, default, default, (float)viewport.Resolution);
 
             canvas.Save();
@@ -45,7 +44,7 @@ namespace TacControl.Common.Maps
             float num2 = (-height) * zoom;
             canvas.Translate(canvasCenterX, num2 + canvasCenterY);
 
-            canvas.Translate(-(float)viewport.Center.X * zoom, (float)viewport.Center.Y * zoom);
+            canvas.Translate(-(float)viewport.CenterX * zoom, (float)viewport.CenterY * zoom);
 
             canvas.Scale(zoom, zoom);
 

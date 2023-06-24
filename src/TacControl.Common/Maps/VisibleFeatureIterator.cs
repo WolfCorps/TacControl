@@ -7,13 +7,14 @@ using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Styles;
 using Mapsui.Styles.Thematics;
+using Mapsui.Extensions;
 
 namespace TacControl.Common.Maps
 {
     public static class VisibleFeatureIterator
     {
-        public static void IterateLayers(IReadOnlyViewport viewport, IEnumerable<ILayer> layers, long iteration,
-            Action<IReadOnlyViewport, ILayer, IStyle, IFeature, float, long> callback)
+        public static void IterateLayers(Viewport viewport, IEnumerable<ILayer> layers, long iteration,
+            Action<Viewport, ILayer, IStyle, IFeature, float, long> callback)
         {
             foreach (var layer in layers)
             {
@@ -25,10 +26,10 @@ namespace TacControl.Common.Maps
             }
         }
 
-        private static void IterateLayer(IReadOnlyViewport viewport, ILayer layer, long iteration,
-            Action<IReadOnlyViewport, ILayer, IStyle, IFeature, float, long> callback)
+        private static void IterateLayer(Viewport viewport, ILayer layer, long iteration,
+            Action<Viewport, ILayer, IStyle, IFeature, float, long> callback)
         {
-            var features = layer.GetFeatures(viewport.Extent, viewport.Resolution).ToList();
+            var features = layer.GetFeatures(viewport.ToExtent(), viewport.Resolution).ToList();
 
             var layerStyles = ToArray(layer);
             foreach (var layerStyle in layerStyles)
@@ -42,7 +43,7 @@ namespace TacControl.Common.Maps
 
                     if (style is StyleCollection styles) // The ThemeStyle can again return a StyleCollection
                     {
-                        foreach (var s in styles)
+                        foreach (var s in styles.Styles)
                         {
                             if (ShouldNotBeApplied(s, viewport)) continue;
                             callback(viewport, layer, s, feature, (float)layer.Opacity, iteration);
@@ -68,14 +69,14 @@ namespace TacControl.Common.Maps
             }
         }
 
-        private static bool ShouldNotBeApplied(IStyle style, IReadOnlyViewport viewport)
+        private static bool ShouldNotBeApplied(IStyle style, Viewport viewport)
         {
             return style == null || !style.Enabled || style.MinVisible > viewport.Resolution || style.MaxVisible < viewport.Resolution;
         }
 
         private static IStyle[] ToArray(ILayer layer)
         {
-            return (layer.Style as StyleCollection)?.ToArray() ?? new[] { layer.Style };
+            return (layer.Style as StyleCollection)?.Styles.ToArray() ?? new[] { layer.Style };
         }
     }
 }

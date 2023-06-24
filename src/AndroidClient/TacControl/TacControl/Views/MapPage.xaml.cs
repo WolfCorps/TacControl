@@ -36,8 +36,8 @@ namespace TacControl.Views
     {
         public Func<MapControl, MapClickedEventArgs, bool> Clicker { get; set; }
 
-        private MemoryLayer GPSTrackerLayer = new Mapsui.Layers.MemoryLayer("GPS Trackers");
-        private MemoryLayer MapMarkersLayer = new Mapsui.Layers.MemoryLayer("Map Markers");
+        private Layer GPSTrackerLayer = new Mapsui.Layers.Layer("GPS Trackers");
+        private Layer MapMarkersLayer = new Mapsui.Layers.Layer("Map Markers");
         public static MRect currentBounds = new Mapsui.MRect(0, 0, 0, 0);
         public readonly MarkerVisibilityManager MarkerVisibilityManager = new MarkerVisibilityManager();
 
@@ -73,7 +73,7 @@ namespace TacControl.Views
             MapControl.Refresh();
         }
 
-        private void MapControl_Info(object sender, Mapsui.UI.MapInfoEventArgs e)
+        private void MapControl_Info(object sender, Mapsui.MapInfoEventArgs e)
         {
             if (e?.MapInfo?.Feature != null)
             {
@@ -102,7 +102,7 @@ namespace TacControl.Views
             foreach (var svgLayer in layers)
             {
                 var layer = new Mapsui.Layers.MemoryLayer(svgLayer.name);
-                var renderLayer = new Common.Maps.RasterizingLayer(layer, 100, 1D, MapControl.Renderer);
+                var renderLayer = new Common.Maps.RasterizingLayer(layer, 100, MapControl.Renderer, 1F);
 
                 if (
                     svgLayer.name == "forests" ||
@@ -139,23 +139,22 @@ namespace TacControl.Views
                 features.Add(feature);
 
                 //
-                layer.DataSource = new MemoryProvider<IFeature>(features);
+                layer.Features = features;
                 MapControl.Map.Layers.Add(renderLayer);
             }
 
             Task.WaitAll(layerLoadTasks.ToArray());
 
 
-            MapControl.Navigator.NavigateTo(new Mapsui.MRect(0, 0, terrainWidth, terrainWidth));
+            MapControl.Map.Navigator.ZoomToBox(new Mapsui.MRect(0, 0, terrainWidth, terrainWidth));
             MapControl.RefreshGraphics();
 
             //var layer = new Mapsui.Layers.ImageLayer("Base");
             //layer.DataSource = CreateMemoryProviderWithDiverseSymbols();
             //MapControl.Map.Layers.Add(layer);
             
-            MapControl.Map.Limiter = new ViewportLimiter();
-            MapControl.Map.Limiter.PanLimits = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
-            MapControl.Map.Limiter.ZoomLimits = new MinMax(0.01, 40); // bigger number == more zoomed out
+            MapControl.Map.Navigator.OverridePanBounds = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
+            MapControl.Map.Navigator.OverrideZoomBounds = new MMinMax(0.01, 40); // bigger number == more zoomed out
 
             GPSTrackerLayer.IsMapInfoLayer = true;
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
