@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -72,7 +72,7 @@ namespace TacControl
             }))
             {
                 SentrySdk.ConfigureScope((scope) => {
-                    scope.User = new User
+                    scope.User = new SentryUser
                     {
                         Username = username
                     };

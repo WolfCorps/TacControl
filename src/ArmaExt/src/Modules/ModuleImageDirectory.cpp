@@ -216,6 +216,8 @@ void ModuleImageDirectory::OnGameMessage(const std::vector<std::string_view>& fu
             )>(exportPtr);
 
         auto myDirectory = Util::GetCurrentDLLPath().parent_path();
+        if (!std::filesystem::exists(myDirectory / "Maps"))
+            std::filesystem::create_directory(myDirectory / "Maps");
         auto svgPath = myDirectory / "Maps" / std::filesystem::path(GModuleGameInfo.worldName + ".svg").replace_extension(".svg");
         exportFunc(svgPath.string().data(), true, true, true, false, false, true);
 
@@ -256,6 +258,7 @@ nlohmann::json ModuleImageDirectory::generateMapfileMessage(std::string_view pat
 
         args["data"] = base64_encode(std::string_view(buffer.data(), buffer.size()));
     } else {
+        // It didn't work? try again?
         GGameManager.SendMessage("ImgDir.ReqExport", "");
         return {};
     }

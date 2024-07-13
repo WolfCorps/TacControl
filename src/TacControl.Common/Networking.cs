@@ -584,7 +584,7 @@ namespace TacControl.Common
                 return;
             }
 
-            if (msg == "null")
+            if (msg == "null") // Could happen if for example terrain SVG export fails, if it cannot read a file it'll return "null"
             {
                 return;
             }
