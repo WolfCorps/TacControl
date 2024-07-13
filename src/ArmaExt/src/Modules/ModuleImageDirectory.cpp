@@ -139,6 +139,9 @@ std::tuple<std::vector<char>, int, int> ModuleImageDirectory::LoadRGBATexture(st
     std::istream is(&databuf);
     texFile.readFromStream(is);
 
+    if (texFile.mipmaps.empty())
+        return {}; // ??? Happened once, probably corrupted mod. paaData was 26k of null bytes
+
     //Find biggest UNCOMPRESSED Mip
     auto biggestMip = *std::max_element(texFile.mipmaps.begin(), texFile.mipmaps.end(), [](const std::shared_ptr<MipMap>& l, const std::shared_ptr<MipMap>& r)
         {

@@ -579,6 +579,15 @@ namespace TacControl.Common
         private async void OnMessage(Object _, MessageReceivedEventArgs args)
         {
             var msg = args.Message;
+            if (msg == null)
+            {
+                return;
+            }
+
+            if (msg == "null")
+            {
+                return;
+            }
             
             try
             {

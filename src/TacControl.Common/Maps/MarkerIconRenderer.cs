@@ -11,9 +11,7 @@ using Mapsui.Rendering;
 using Mapsui.Rendering.Skia.SkiaStyles;
 using Mapsui.Styles;
 using SkiaSharp;
-using SkiaTextRenderer;
 using TacControl.Common.Maps.Util;
-using FontStyle = SkiaTextRenderer.FontStyle;
 
 namespace TacControl.Common.Maps
 {
