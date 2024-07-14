@@ -25,9 +25,11 @@ if (!isServer) exitWith {
 if (_trackerName == "") then {
     private _attachedTo = attachedTo _explosive;
     if (!isNull _attachedTo) then {
-        _trackerName = format["GPS %1-%2", if (isPlayer _attachedTo) then {name _attachedTo} else {getText (configOf _attachedTo >> "displayName")}, GVAR(TrackerCounter)];
+        private _displayName = if (isPlayer _attachedTo) then {name _attachedTo} else {getText (configOf _attachedTo >> "displayName")};
+        _displayName = _attachedTo getVariable ["ace_cargo_customName", _displayName]; // If this object (really only boxes) has a custom name, use that
+        _trackerName = format["GPS %1-%2", _displayName, GVAR(TrackerCounter)];
     } else {
-    _trackerName = format["GPS %1-%2", name player, GVAR(TrackerCounter)];
+        _trackerName = format["GPS %1-%2", name player, GVAR(TrackerCounter)];
     };
     GVAR(TrackerCounter) = GVAR(TrackerCounter) + 1;
 };
