@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using TacControl.Common;
 using TacControl.Common.Modules;
+using TacControl.Common.Modules.Streams;
 
 namespace TacControl
 {
@@ -40,8 +41,10 @@ namespace TacControl
     public partial class HelicopterControlButtons : UserControl
     {
         public ModuleVehicle VecRef { get; } = GameState.Instance.vehicle;
+        public StreamAircraftState AirStateRef { get; } = GameState.Instance.streamManager.S_AirState;
 
         private InterestUser interestVehAnim = new InterestUser("VehAnim");
+        private InterestUser interestVehAnim2 = new InterestUser("S_AirState");
 
         public HelicopterControlButtons()
         {

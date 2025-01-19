@@ -23,6 +23,7 @@ EVENTHANDLERS;
 };
 
 ["VehAnim", GVAR(VehAnimInterestHandle)] call TC_main_fnc_Core_unregisterOnInterest;
+["VehAnim", GVAR(VehAnimInterestHandle2)] call TC_main_fnc_Core_unregisterOnInterest;
 
 TC_Vehicle_CurrentVec = _vehicle;
 
@@ -62,6 +63,34 @@ GVAR(VehAnimInterestHandle) = ["VehAnim",
     [0] // using our own args array to store the PFH handle
 ] call TC_main_fnc_Core_registerOnInterest;
 
+
+GVAR(VehAnimInterestHandle2) = ["S_AirState", 
+    { // Triggered when interest is gained or already present
+        _this set [0,
+            [{
+                private _state = createHashMap;
+                _state set ["rpm", TC_Vehicle_CurrentVec animationSourcePhase "Rpm"];
+                _state set ["altBaro", TC_Vehicle_CurrentVec animationSourcePhase "altBaro"];
+                _state set ["altRadar", TC_Vehicle_CurrentVec animationSourcePhase "altRadar"];
+                _state set ["aoa", TC_Vehicle_CurrentVec animationSourcePhase "aoa"];
+                _state set ["fuel", TC_Vehicle_CurrentVec animationSourcePhase "fuel"];
+                _state set ["speed", TC_Vehicle_CurrentVec animationSourcePhase "speed"];
+                _state set ["vertSpeed", TC_Vehicle_CurrentVec animationSourcePhase "vertSpeed"];
+                _state set ["horizonBank", TC_Vehicle_CurrentVec animationSourcePhase "horizonBank"];
+                _state set ["horizonDive", TC_Vehicle_CurrentVec animationSourcePhase "horizonDive"];
+                _state set ["velocityMS", velocityModelSpace TC_Vehicle_CurrentVec];
+                _state set ["vecDir", vectorDirVisual TC_Vehicle_CurrentVec];
+                _state set ["dir", getDirVisual TC_Vehicle_CurrentVec];
+
+                ["StreamMng.StreamUpdate.S_AirState", [parseText toJSON _state]] call TC_main_fnc_sendMessage;
+            }, 0.05] call CBA_fnc_addPerFrameHandler
+        ];
+    }, 
+    { // Triggered when interest is lost or handler is removed
+        _this call CBA_fnc_removePerFrameHandler;
+    },
+    [0] // using our own args array to store the PFH handle
+] call TC_main_fnc_Core_registerOnInterest;
 
 private _vehicleCapabilities = [];
 

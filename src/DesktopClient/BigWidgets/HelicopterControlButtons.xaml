@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:TacControl"
+             xmlns:local="clr-namespace:TacControl" 
+             xmlns:bigWidgets="clr-namespace:TacControl.BigWidgets"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="HelicopterControlButtonsCtrl">
@@ -33,6 +34,40 @@
         <Button Name="DoHookButton" Content="Hook Slingload" Click="DoHookButton_OnClick" Background="{Binding VecRef.props.SlingLoaded, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource BoolToButtonColorRedGreen}}" />
         <Button Name="LightButton" Content="LightButton" Click="LightButton_OnClick" Background="{Binding VecRef.props.LightOn, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource BoolToButtonColorRedGreen}}" />
         <Button Name="CollisionLightButton" Content="CollisionLight" Click="CollisionLight_OnClick" Background="{Binding VecRef.props.CollisionLight, ElementName=HelicopterControlButtonsCtrl, Converter={StaticResource BoolToButtonColorRedGreen}}" />
+
+        <ProgressBar Height="20" HorizontalAlignment="Stretch" Minimum="0" Maximum="10" Value="{Binding AirStateRef.rpm, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"></ProgressBar>
+
+
+<Rectangle Fill="Red" RadiusX="5" RadiusY="5" Height="16" Width="50" RenderTransformOrigin="0.5,0.5" >
+            <Rectangle.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="{Binding AirStateRef.horizonBankDeg, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Rectangle.RenderTransform>
+        </Rectangle>
+
+
+
+        <bigWidgets:AirHUDWidget Height="600px" Width="600px"
+            RollAngle="{Binding AirStateRef.RollAngle, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            PitchAngle="{Binding AirStateRef.PitchAngle, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            YawAngle="{Binding AirStateRef.YawAngle, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            ClimbRate="{Binding AirStateRef.vertSpeed, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            MaxClimbRateArrowMag="{Binding AirStateRef.ClimbRateArrowMag, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            SpeedMs="{Binding AirStateRef.speed, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            Mach="{Binding AirStateRef.altBaro, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            G_Load="{Binding AirStateRef.altBaro, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            Alpha="{Binding AirStateRef.Alpha, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            Beta="{Binding AirStateRef.Beta, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            AltRadar="{Binding AirStateRef.altRadar, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+            AltBarometric="{Binding AirStateRef.altBaro, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
+        />
+
+        <ProgressBar Height="20" HorizontalAlignment="Stretch" Minimum="-10" Maximum="10" Value="{Binding AirStateRef.SlipBallX, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"></ProgressBar>
+        <ProgressBar Height="20" HorizontalAlignment="Stretch" Minimum="-10" Maximum="10" Value="{Binding AirStateRef.SlipBallY, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"></ProgressBar>
 
 
 
