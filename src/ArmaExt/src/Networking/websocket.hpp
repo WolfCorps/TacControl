@@ -71,6 +71,7 @@ public:
     void leave(websocket_session* session);
     //void send(std::string message);
     void updateState(const nlohmann::json& newState);
+    void sendStreamUpdate(std::string_view streamName, const nlohmann::json& streamData);
 
 
     Signal<void(std::string, std::shared_ptr<websocket_session>)> OnMessage;
@@ -154,6 +155,9 @@ public:
 private:
     void on_send(std::shared_ptr<MessageType> const& ss);
 };
+
+using WebsocketSessionWeak = std::weak_ptr<websocket_session>;
+
 
 template<class Body, class Allocator>
 void

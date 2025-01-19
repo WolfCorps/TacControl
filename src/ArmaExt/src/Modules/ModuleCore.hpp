@@ -43,6 +43,9 @@ public:
 
     //IPostInitReceiver
     void OnGamePostInit() override;
+
+    // interest name, session, isNowInterested
+    Signal<void(std::string_view, std::shared_ptr<websocket_session>, bool)> OnInterestChanged;
 };
 
 inline ModuleCore GModuleCore;

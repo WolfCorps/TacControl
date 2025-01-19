@@ -59,6 +59,8 @@ void ModuleVehicle::OnGameMessage(const std::vector<std::string_view>& function,
 
     bool stateHasChanged = false;
 
+    std::unique_lock stateLock(stateMtx);
+
     if (function[0] == "Update") {
         for (size_t i = 0; i < arguments.size(); i+=2) {
             auto propName = arguments[i];
@@ -107,6 +109,8 @@ void ModuleVehicle::OnNetMessage(std::span<std::string_view> function, const nlo
 }
 
 void ModuleVehicle::SerializeState(JsonArchive& ar) {
+    std::unique_lock stateLock(stateMtx); //#TODO this could be a RW lock, shared lock
+
     JsonArchive properties;
     for (auto& it : vehicleProperties) {
         it->Serialize(properties);

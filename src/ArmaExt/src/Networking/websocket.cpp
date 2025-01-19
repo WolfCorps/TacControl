@@ -95,7 +95,34 @@ void shared_state::updateState(const nlohmann::json& newState)
             stateUpdate["cmd"] = "StateUpdate";
             stateUpdate["data"] = std::move(diff);
 
-            sp->send(stateUpdate);           
+            sp->send(stateUpdate);
+        }
+
+}
+
+void shared_state::sendStreamUpdate(std::string_view streamName, const nlohmann::json& streamData)
+{
+    // Make a local list of all the weak pointers representing
+    // the sessions, so we can do the actual sending without
+    // holding the mutex:
+    std::vector<std::weak_ptr<websocket_session>> v;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        v.reserve(sessions_.size());
+        for (auto p : sessions_)
+            v.emplace_back(p->weak_from_this());
+    }
+
+    // For each session in our local list, try to acquire a strong
+    // pointer. If successful, then send the message on that session.
+    for (auto const& wp : v)
+        if (auto sp = wp.lock()) {
+            nlohmann::json stateUpdate;
+            stateUpdate["cmd"] = "StreamUpdate";
+            stateUpdate["s"] = streamName;
+            stateUpdate["d"] = streamData; //#TODO does this copy?
+
+            sp->send(stateUpdate);
         }
 
 }
@@ -490,6 +517,8 @@ send(std::shared_ptr<websocket_session::MessageType> const& ss)
 
 inline void websocket_session::send(const nlohmann::json& jsonMessage) {
 
+    //#TODO this is inefficient if we send many times the same message, like on streams
+    // If we send the same message to many clients, we should cache the encoded content. But this is only relevant with many clients and currently we are mostly one or two clients
     switch (jsonType) {
 
     case websocket_session::JsonType::plainText: {

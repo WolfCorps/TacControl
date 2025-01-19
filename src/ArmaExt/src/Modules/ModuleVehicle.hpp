@@ -96,6 +96,8 @@ class ModuleVehicle : public ThreadQueuePeriodic, public IMessageReceiver, publi
     std::vector<VehicleCrewMember> vehicleCrew;
     bool isInVehicle = false;
 
+    std::mutex stateMtx; //#TODO this is actually a bigger problem, SerializeState is async, meaning it could currently be serializing state, while a new game update comes in that modifies the state
+
     void UpdateProperty(std::string_view name, std::string_view value);
 
 public:

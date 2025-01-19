@@ -34,7 +34,28 @@ set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-add_subdirectory(lib/boost-cmake EXCLUDE_FROM_ALL)
+#add_subdirectory(lib/boost-cmake EXCLUDE_FROM_ALL)
+
+set(BOOST_INCLUDE_LIBRARIES asio beast)
+set(BOOST_ENABLE_CMAKE ON)
+
+include(FetchContent)
+FetchContent_Declare(
+  Boost
+  GIT_REPOSITORY https://github.com/boostorg/boost.git
+  GIT_TAG boost-1.80.0
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(Boost)
+
+
+
+
+
+
+
+
+
 set(FMT_OS OFF) # Don't want windows.h include splattered everywhere
 add_subdirectory(lib/fmt EXCLUDE_FROM_ALL)
 

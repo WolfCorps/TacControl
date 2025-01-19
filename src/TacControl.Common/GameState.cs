@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using TacControl.Common.Modules;
@@ -19,6 +20,8 @@ namespace TacControl.Common
         public ModuleVehicle vehicle { get; private set; } = new ModuleVehicle();
         public ModuleACE ace { get; private set; } = new ModuleACE();
         public ModuleCore core { get; private set; } = new ModuleCore();
+
+        public ModuleStreamManager streamManager { get; private set; } = new ModuleStreamManager();
 
         public void test()
         {

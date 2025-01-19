@@ -10,5 +10,6 @@
 #include "Modules/ModuleNote.hpp"
 #include "Modules/ModuleRadio.hpp"
 #include "Modules/ModuleVehicle.hpp"
+#include "Modules/ModuleStreamManager.hpp"
 
 

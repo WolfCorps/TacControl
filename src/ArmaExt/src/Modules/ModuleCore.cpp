@@ -44,6 +44,7 @@ void ModuleCore::OnNetMessage(std::span<std::string_view> function, const nlohma
                 OnInterestGained(it); // Won't be empty after this
 
             subscriberList.emplace_back(context.sender->GetRemoteEndpoint());
+            OnInterestChanged(it, context.sender, true);
             //std::ranges::sort(subscriberList); // For binary find, but not worth it now
         }
     } else if (function[0] == "Unregister") {
@@ -54,6 +55,7 @@ void ModuleCore::OnNetMessage(std::span<std::string_view> function, const nlohma
 
             if (subscriberList.empty())
                 OnInterestLost(it);
+            OnInterestChanged(it, context.sender, false);
         }
     }
     SendStateUpdate(); //#TODO optimize, only if Gained/Lost happened

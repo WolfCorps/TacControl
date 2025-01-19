@@ -61,3 +61,4 @@ public:
     X(ModuleVehicle) \
     X(ModuleACE) \
     X(ModuleCore) \
+    X(ModuleStreamManager) \
