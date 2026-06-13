@@ -37,20 +37,6 @@
 
         <ProgressBar Height="20" HorizontalAlignment="Stretch" Minimum="0" Maximum="10" Value="{Binding AirStateRef.rpm, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"></ProgressBar>
 
-
-<Rectangle Fill="Red" RadiusX="5" RadiusY="5" Height="16" Width="50" RenderTransformOrigin="0.5,0.5" >
-            <Rectangle.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform/>
-                    <SkewTransform/>
-                    <RotateTransform Angle="{Binding AirStateRef.horizonBankDeg, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"/>
-                    <TranslateTransform/>
-                </TransformGroup>
-            </Rectangle.RenderTransform>
-        </Rectangle>
-
-
-
         <bigWidgets:AirHUDWidget Height="600px" Width="600px"
             RollAngle="{Binding AirStateRef.RollAngle, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"
             PitchAngle="{Binding AirStateRef.PitchAngle, ElementName=HelicopterControlButtonsCtrl, Mode=OneWay}"

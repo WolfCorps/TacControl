@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,13 +24,14 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Sentry;
+using SuperSocket.Client;
+using SuperSocket.Connection;
+using SuperSocket.WebSocket;
 using TacControl.Common.Annotations;
 using TacControl.Common.Config;
 using TacControl.Common.Modules;
 using WebSocket4Net;
 using static System.Net.Mime.MediaTypeNames;
-using DataReceivedEventArgs = WebSocket4Net.DataReceivedEventArgs;
-using ErrorEventArgs = SuperSocket.ClientEngine.ErrorEventArgs;
 
 namespace TacControl.Common.Modules
 {
@@ -318,17 +320,64 @@ namespace TacControl.Common
             SentrySdk.AddBreadcrumb($"Direct connecting to {targetEndpoint}");
             Console.WriteLine($"Networking: Direct connecting to {targetEndpoint}");
 
-            socket = new WebSocket($"ws://{targetEndpoint}/", "", null, null, UserName); // UserAgent==UserName only for TacControl.Server
-            
+            socket = new WebSocket($"ws://{targetEndpoint}/", new ConnectionOptions() {
+                MaxPackageLength = 1024*1024*64, // A 512x512 texture is 1MB
+                ReceiveBufferSize = 1024 * 1024 * 64
+            }); // , "", null, null, UserName UserAgent==UserName only for TacControl.Server
+
             //socket.Opened += new EventHandler(websocket_Opened);
             //socket.Error += new EventHandler<ErrorEventArgs>(websocket_Error);
             //socket.Closed += new EventHandler(websocket_Closed);
-            socket.MessageReceived += OnMessage;
-            socket.Open();
+            socket.PackageHandler += OnWSPacket;
+            await socket.OpenAsync();
+            socket.StartReceive();
             // Assuming specific host == TacControl.Server
             Busy = false;
         }
 
+        private async ValueTask OnWSPacket(EasyClient<WebSocketPackage> sender, WebSocketPackage package)
+        {
+            if (package.OpCode == OpCode.Text)
+            {
+                if (package.Message == "null") // Could happen if for example terrain SVG export fails, if it cannot read a file it'll return "null"
+                {
+                    return;
+                }
+
+                try
+                {
+                    JObject parsedMsg = JObject.Parse(package.Message);
+                    OnMessage(parsedMsg);
+                }
+                catch (Exception ex)
+                {
+                    SentrySdk.AddBreadcrumb(package.Message);
+                    SentrySdk.CaptureException(ex);
+                    throw;
+                }
+            }
+            else if (package.OpCode == OpCode.Binary)
+            {
+                try
+                {
+                    using (var stringReader = new MemoryStream(package.Data.ToArray<byte>())) //#TODO don't copy
+                    using (var reader = new Newtonsoft.Json.Cbor.CborDataReader(stringReader))
+                    {
+                        JsonSerializer serializer = new JsonSerializer();
+                        var parsedMsg = serializer.Deserialize<JObject>(reader);
+                        OnMessage(parsedMsg);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SentrySdk.CaptureException(ex);
+                    throw;
+                }
+
+            }
+
+
+        }
 
         public void Connect(TacControlEndpoint targetEndpoint)
         {
@@ -336,14 +385,27 @@ namespace TacControl.Common
             Console.WriteLine($"Networking: Direct connecting to {targetEndpoint.Address}");
             Busy = true;
 
-            socket = new WebSocket($"ws://{targetEndpoint.Address}/", "", null, new List<KeyValuePair<string,string>>{new KeyValuePair<string,string>("accept-encoding", "CBOR")}, UserName); // UserAgent==UserName only for TacControl.Server)
+            //#TODO , "", null, new List<KeyValuePair<string,string>>{new KeyValuePair<string,string>("accept-encoding", "CBOR")}, UserName
+            socket = new WebSocket($"ws://{targetEndpoint.Address}/", new ConnectionOptions()
+            {
+                MaxPackageLength = 1024 * 1024 * 64, // A 512x512 texture is 1MB
+                ReceiveBufferSize = 1024 * 1024 * 64
+            }); // UserAgent==UserName only for TacControl.Server)
 
             //socket.Opened += new EventHandler(websocket_Opened);
             //socket.Error += new EventHandler<ErrorEventArgs>(websocket_Error);
             //socket.Closed += new EventHandler(websocket_Closed);
-            socket.MessageReceived += OnMessage;
-            socket.DataReceived += OnBinaryMessage;
-            socket.Open(); //#TODO Assert.True(await websocket.OpenAsync(), "Failed to connect");
+            //socket.MessageReceived += OnMessage;
+            //socket.DataReceived += OnBinaryMessage;
+            //socket.Open(); //#TODO Assert.True(await websocket.OpenAsync(), "Failed to connect");
+
+            socket.PackageHandler += OnWSPacket;
+            socket.Closed += (x,y) =>
+            {
+                Debug.Assert(false);
+            };
+            socket.OpenAsync().AsTask().ContinueWith(x => socket.StartReceive());
+            
             // Assuming specific host == TacControl.Server
             Busy = false;
         }
@@ -425,7 +487,7 @@ namespace TacControl.Common
             //GameState.Instance.radio.OnPropertyChanged("radios"); //#TODO remove
         }
 
-
+        /*
         private async void OnMessage(Object _, MessageReceivedEventArgs args)
         {
             var msg = args.Message;
@@ -433,7 +495,7 @@ namespace TacControl.Common
             {
                 return;
             }
-
+        
             if (msg == "null") // Could happen if for example terrain SVG export fails, if it cannot read a file it'll return "null"
             {
                 return;
@@ -452,11 +514,10 @@ namespace TacControl.Common
             }
         }
 
-
         private void OnBinaryMessage(object sender, DataReceivedEventArgs args)
         {
             var msg = args.Data;
-
+        
             try
             {
                 using (var stringReader = new MemoryStream(msg))
@@ -473,7 +534,7 @@ namespace TacControl.Common
                 throw;
             }
         }
-
+        */
 
 
 
@@ -481,7 +542,10 @@ namespace TacControl.Common
         {
             Console.WriteLine($"Networking: MSG:\n{message}");
 
-            socket?.Send(message);
+            lock (socket)
+            {
+                socket?.SendAsync(message);
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
