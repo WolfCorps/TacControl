@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media.Media3D;
 using Sentry;
 using Sentry.Protocol;
 
@@ -28,33 +29,46 @@ namespace TacControl
         [System.Diagnostics.DebuggerNonUserCodeAttribute()]
         public static void Main()
         {
-            int width = 0;
-            try
-            {
-                
-                while (width < 160)
-                {
-                    System.Console.SetWindowSize(++width, 1);
-                }
-            } catch (System.ArgumentOutOfRangeException)
-            {
-                width--;
-            }
+
+
 
             try
             {
-                int height = 0;
-                while (height < 80)
-                {
-                    System.Console.SetWindowSize(width, ++height);
-                }
+                System.Console.SetWindowSize(Math.Min(System.Console.LargestWindowWidth, 160), Math.Min(System.Console.LargestWindowHeight, 80));
             }
             catch (System.ArgumentOutOfRangeException)
             {
+                // Okey then.. try finding what we actually can
 
+                int width = 0;
+                try
+                {
+
+                    while (width < 160)
+                    {
+                        System.Console.SetWindowSize(++width, 1);
+                    }
+                }
+                catch (System.ArgumentOutOfRangeException)
+                {
+                    width--;
+                }
+
+                try
+                {
+                    int height = 0;
+                    while (height < 80)
+                    {
+                        System.Console.SetWindowSize(width, ++height);
+                    }
+                }
+                catch (System.ArgumentOutOfRangeException)
+                {
+
+                }
             }
 
-            System.Console.SetBufferSize(width, Int16.MaxValue-1);
+            System.Console.SetBufferSize(System.Console.WindowWidth, Int16.MaxValue-1);
 
             //https://stackoverflow.com/questions/1600962/displaying-the-build-date
             
