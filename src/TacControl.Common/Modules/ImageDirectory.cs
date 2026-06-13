@@ -1,3 +1,6 @@
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,10 +11,8 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SkiaSharp;
 using TacControl.Common;
+using TacControl.Common.Config;
 
 namespace TacControl.Common.Modules
 {
@@ -36,8 +37,8 @@ namespace TacControl.Common.Modules
         {
             lock (imageCache)
             {
-                if (imageCache.ContainsKey(path))
-                    return Task.FromResult(imageCache[path]);
+                if (imageCache.ContainsKey(path.ToLower()))
+                    return Task.FromResult(imageCache[path.ToLower()]);
 
                 if (pendingRequests.ContainsKey(path))
                     return pendingRequests[path].completionSource.Task;
@@ -151,7 +152,7 @@ namespace TacControl.Common.Modules
 
                 lock (imageCache)
                 {
-                    imageCache[path] = bmp;
+                    imageCache[path.ToLower()] = bmp;
                     pendingRequests.Remove(path);
                 }
             } else if (cmd.First() == "MapFile") {
