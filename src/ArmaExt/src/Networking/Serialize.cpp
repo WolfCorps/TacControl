@@ -22,6 +22,6 @@ void JsonArchive::Serialize(const char* key, std::string& value) {
     if (isReading) {
         (*pJson).at(key).get_to(value);
     } else {
-        (*pJson)[key] = value.data();
+        (*pJson)[key] = value.is_empty() ? "" : value.data(); // Don't pass a nullptr when empty? There was one crash report here with empty string where data was nullptr
     }
 }
