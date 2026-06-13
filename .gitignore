@@ -77,3 +77,5 @@ src/TacControl.Server/bin/
 src/TacControl.Server/obj/
 
 *.user
+
+src/AndroidClient/TacControl/TacControl/FodyWeavers.xsd

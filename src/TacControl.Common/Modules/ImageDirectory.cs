@@ -21,6 +21,11 @@ namespace TacControl.Common.Modules
         public static ImageDirectory Instance = new ImageDirectory();
 
 
+        ImageDirectory()
+        {
+            ImportImagesFromZip(Path.Combine(AppConfig.Instance.ConfigDirectory, "ImgDirCache.zip"));
+        }
+
         public Dictionary<string, SKImage> imageCache = new Dictionary<string, SKImage>(StringComparer.InvariantCultureIgnoreCase);
 
 
@@ -145,17 +150,20 @@ namespace TacControl.Common.Modules
                 //        data2.SaveTo(stream);
                 //    }
                 //}
-                
-
-
-
 
                 lock (imageCache)
                 {
                     imageCache[path.ToLower()] = bmp;
                     pendingRequests.Remove(path);
                 }
-            } else if (cmd.First() == "MapFile") {
+
+                if (pendingRequests.Count == 0)
+                {
+                    ExportImagesToZip(Path.Combine(AppConfig.Instance.ConfigDirectory, "ImgDirCache.zip"));
+                }
+            }
+            else if (cmd.First() == "MapFile")
+            {
                 var path = args["name"].Value<string>();
                 var data = args["data"].Value<string>();
 
@@ -197,27 +205,57 @@ namespace TacControl.Common.Modules
             }
         }
 
-        public unsafe void ExportImagesToZip(string zipFilePath)
+        public void ExportImagesToZip(string zipFilePath)
         {
             if (File.Exists(zipFilePath))
-                File.Delete(zipFilePath);
+            {
+                // Only add new
+                using (var zip = ZipFile.Open(zipFilePath, ZipArchiveMode.Update))
+                {
+                    foreach (var image in imageCache)
+                    {
+                        if (image.Value == null)
+                            continue;
+
+                        if (zip.Entries.Any(x => x.FullName == image.Key))
+                            continue; // Already in
+
+                        var entry = zip.CreateEntry(image.Key, CompressionLevel.Fastest);
+
+                        using (Stream destination1 = entry.Open())
+                        using (var binWriter = new BinaryWriter(destination1))
+                        using (var pixmap = image.Value.PeekPixels())
+                        {
+                            //binWriter.Write(image.Value.Width);
+                            //binWriter.Write(image.Value.Height);
+                            //binWriter.Write(image.Key);
+
+                            var data = pixmap.Encode(SKEncodedImageFormat.Webp, 8);
+
+                            binWriter.Write(data.AsSpan());
+                        }
+                    }
+                }
+                return;
+            }
+
             using (var zip = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
             {
                 foreach (var image in imageCache)
                 {
                     if (image.Value == null)
                         continue;
-                    var entry = zip.CreateEntry(new System.IO.FileInfo(image.Key).Name, CompressionLevel.Optimal);
+                    var entry = zip.CreateEntry(image.Key, CompressionLevel.Fastest);
 
                     using (Stream destination1 = entry.Open())
                     using (var binWriter = new BinaryWriter(destination1))
                     using (var pixmap = image.Value.PeekPixels())
                     {
-                        binWriter.Write(image.Value.Width);
-                        binWriter.Write(image.Value.Height);
-                        binWriter.Write(image.Key);
-              
+                        //binWriter.Write(image.Value.Width);
+                        //binWriter.Write(image.Value.Height);
+                        //binWriter.Write(image.Key);
 
+                        /*
                         var buffer = new byte[pixmap.BytesSize];
 
                         if (pixmap.BytesSize != pixmap.Width * pixmap.Height * 4)
@@ -250,11 +288,45 @@ namespace TacControl.Common.Modules
 
 
                         binWriter.Write(buffer, 0, pixmap.BytesSize);
+                        */
+
+                        var data = pixmap.Encode(SKEncodedImageFormat.Webp, 8);
+
+                        binWriter.Write(data.AsSpan());
                     }
                 }
             }
         }
 
+        private void ImportImagesFromZip(string zipFilePath)
+        {
+            if (!File.Exists(zipFilePath))
+                return;
+
+            using (var zip = ZipFile.Open(zipFilePath, ZipArchiveMode.Read))
+            {
+
+                foreach (var entry in zip.Entries)
+                {
+                    if (imageCache.ContainsKey(entry.FullName))
+                        continue; // Already in
+
+                    // New one, read it
+
+                    using Stream source1 = entry.Open();
+                    using var binWriter = new BinaryReader(source1);
+
+                    //var width = binWriter.ReadInt32();
+                    //var height = binWriter.ReadInt32();
+                    //var key = binWriter.ReadString();
+                    //Debug.Assert(key == entry.FullName);
+
+                    var image = SKImage.FromEncodedData(binWriter.BaseStream); // Failed ones should never have been saved to the zip
+                    Debug.Assert(image != null);
+                    imageCache[entry.FullName] = image;
+                }
+            }
+        }
 
         public bool HasPendingRequests()
         {
