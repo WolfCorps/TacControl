@@ -14,5 +14,12 @@ namespace TacControl.Common.Maps
         public double MaxVisible { get; set; } = double.MaxValue;
         public bool Enabled { get; set; } = true;
         public float Opacity { get; set; } = 1f;
+
+        public long GenerationId => throw new NotImplementedException();
+
+        public void Modified()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

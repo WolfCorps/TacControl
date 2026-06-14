@@ -1,17 +1,17 @@
+using Mapsui;
+using Mapsui.Extensions;
+using Mapsui.Rendering;
+using Mapsui.Styles;
+using Mapsui.Widgets;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Mapsui;
-using Mapsui.Rendering.Skia.SkiaWidgets;
-using Mapsui.Styles;
-using Mapsui.Widgets;
-using Mapsui.Extensions;
-using SkiaSharp;
 
 namespace TacControl.Common.Maps
 {
-    public class GridWidgetRenderer : ISkiaWidgetRenderer
+    public class GridWidgetRenderer : Mapsui.Experimental.Rendering.Skia.SkiaWidgets.ISkiaWidgetRenderer
     {
 
         static SKPaint paint10m = new SKPaint { Color = SKColors.Gray.WithAlpha(127) };
@@ -29,7 +29,7 @@ namespace TacControl.Common.Maps
 
         static SKFont markerFont = new SKFont {Typeface = SKTypeface.FromFamilyName("Verdana"), Size = 16 }; 
 
-        public void Draw(SKCanvas canvas, Viewport viewport, IWidget widget, float layerOpacity)
+        public void Draw(SKCanvas canvas, Viewport viewport, IWidget widget, RenderService renderService, float layerOpacity, SKRect? dirtyScreenRect)
         {
             canvas.RotateDegrees((float)viewport.Rotation, 0.0f, 0.0f);
 
@@ -181,5 +181,6 @@ namespace TacControl.Common.Maps
 
 
         }
+
     }
 }

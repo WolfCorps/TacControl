@@ -5,18 +5,16 @@ using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Rendering;
-using Mapsui.Rendering.Skia;
-using Mapsui.Rendering.Skia.SkiaStyles;
 using Mapsui.Styles;
 using Mapsui.Extensions;
 using SkiaSharp;
 
 namespace TacControl.Common.Maps
 {
-    public class PolylineMarkerRenderer : ISkiaStyleRenderer
+    public class PolylineMarkerRenderer : Mapsui.Experimental.Rendering.Skia.SkiaStyles.ISkiaStyleRenderer
     {
         public bool Draw(SKCanvas canvas, Viewport viewport, ILayer layer, IFeature feature, IStyle istyle,
-            IRenderCache symbolCache, long iteration)
+            RenderService renderService, long iteration)
         {
             var style = ((PolylineMarkerStyle)istyle);
 

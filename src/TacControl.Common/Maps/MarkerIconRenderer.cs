@@ -8,14 +8,13 @@ using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Rendering;
-using Mapsui.Rendering.Skia.SkiaStyles;
 using Mapsui.Styles;
 using SkiaSharp;
 using TacControl.Common.Maps.Util;
 
 namespace TacControl.Common.Maps
 {
-    public class MarkerIconRenderer : ISkiaStyleRenderer
+    public class MarkerIconRenderer : Mapsui.Experimental.Rendering.Skia.SkiaStyles.ISkiaStyleRenderer
     {
         private static SKPaint renderPaint = new SKPaint
         {
@@ -30,7 +29,7 @@ namespace TacControl.Common.Maps
             TextAlign = SKTextAlign.Left
         };
         public bool Draw(SKCanvas canvas, Viewport viewport, ILayer layer, IFeature feature, IStyle istyle,
-            IRenderCache symbolCache, long iteration)
+            RenderService renderService, long iteration)
         {
             var style = ((MarkerIconStyle)istyle);
 
@@ -41,7 +40,7 @@ namespace TacControl.Common.Maps
                 return true;
 
             var position = feature.Extent as MRect;
-            var dest = viewport.WorldToScreen(position.BottomLeft);
+            var dest = viewport.WorldToScreen(position.GetBottomLeft());
 
 
             var zoom = 1 / (float)viewport.Resolution;

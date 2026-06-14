@@ -11,7 +11,7 @@ namespace TacControl.Common.Maps
     public class BoundBox : NetTopologySuite.Geometries.LinearRing
     {
         //#TODO remove
-        public BoundBox(Mapsui.MRect x) : base( x.Vertices.Select(x => x.ToCoordinate()).Append(x.BottomLeft.ToCoordinate()).ToArray())
+        public BoundBox(Mapsui.MRect x) : base( x.Vertices.Select(x => x.ToCoordinate()).Append(x.GetBottomLeft().ToCoordinate()).ToArray())
         {
             //BoundingBox = x;
         }
@@ -41,7 +41,7 @@ namespace TacControl.Common.Maps
                 boundingBox.Max.Y = Y > boundingBox.Max.Y ? Y : boundingBox.Max.Y;
             }
 
-            return boundingBox.Vertices.Select(x => x.ToCoordinate()).Append(boundingBox.BottomLeft.ToCoordinate()).ToArray();
+            return boundingBox.Vertices.Select(x => x.ToCoordinate()).Append(boundingBox.GetBottomLeft().ToCoordinate()).ToArray();
         }
 
         /*

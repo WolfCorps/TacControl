@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
     <UserSecretsId>c1f4b666-7436-4178-8666-78e8659203c4</UserSecretsId>
   </PropertyGroup>
 
@@ -19,19 +19,20 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Mapsui" Version="4.1.7" />
-    <PackageReference Include="Mapsui.Nts" Version="4.1.7" />
-    <PackageReference Include="Mapsui.Rendering.Skia" Version="4.1.7" />
+    <PackageReference Include="Mapsui" Version="5.1.0" />
+    <PackageReference Include="Mapsui.Experimental.Rendering.Skia" Version="5.1.0" />
+    <PackageReference Include="Mapsui.Nts" Version="5.1.0" />
+    <PackageReference Include="Mapsui.Rendering.Skia" Version="5.1.0" />
     <PackageReference Include="Marvin.JsonPatch" Version="2.2.1" />
     <PackageReference Include="Newtonsoft.Json.Cbor" Version="0.3.4-alpha" />
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
-    <PackageReference Include="Sentry" Version="4.9.0" />
+    <PackageReference Include="Sentry" Version="6.6.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.4" />
-    <PackageReference Include="Svg.Skia" Version="4.1.0" />
+    <PackageReference Include="Svg.Skia" Version="5.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
-    <PackageReference Include="System.Reactive" Version="6.0.1" />
+    <PackageReference Include="System.Reactive" Version="6.1.0" />
     <PackageReference Include="WebSocket4Net" Version="1.0.0-beta.5" />
-    <PackageReference Include="zlib.net-mutliplatform" Version="1.0.7" />
+    <PackageReference Include="zlib.net-mutliplatform" Version="1.1.0" />
   </ItemGroup>
 
 </Project>

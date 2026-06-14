@@ -25,6 +25,7 @@ using System.Windows.Shapes;
 using System.Xml;
 using System.Xml.Linq;
 using HarfBuzzSharp;
+using HarmonyLib;
 using Mapsui;
 using Mapsui.Animations;
 using Mapsui.Extensions;
@@ -32,25 +33,27 @@ using Mapsui.Layers;
 using Mapsui.Limiting;
 using Mapsui.Logging;
 using Mapsui.Nts;
+using Mapsui.Nts.Extensions;
 using Mapsui.Providers;
 using Mapsui.Rendering;
-using Mapsui.Rendering.Skia;
-using Mapsui.Rendering.Skia.SkiaStyles;
-using Mapsui.Rendering.Skia.SkiaWidgets;
 using Mapsui.Styles;
+using Mapsui.Tiling.Layers;
 using Mapsui.UI;
 using Mapsui.UI.Wpf;
 using Mapsui.UI.Wpf.Extensions;
 using Mapsui.Utilities;
 using Mapsui.Widgets;
+using Mapsui.Widgets.InfoWidgets;
 using Mapsui.Widgets.ScaleBar;
-using Mapsui.Widgets.Zoom;
 using SkiaSharp;
 using SkiaSharp.Views.Desktop;
 using TacControl.Annotations;
 using TacControl.Common;
+using TacControl.Common.Config.Section;
 using TacControl.Common.Maps;
 using TacControl.Common.Modules;
+using VexTile.Renderer.Mvt.AliFlux.Drawing;
+using static HarmonyLib.AccessTools;
 using static TacControl.Common.Modules.ModuleMarker;
 using Brush = Mapsui.Styles.Brush;
 using Color = Mapsui.Styles.Color;
@@ -59,8 +62,6 @@ using Math = System.Math;
 using Path = System.IO.Path;
 using Point = Mapsui.MPoint;
 using Polygon = NetTopologySuite.Geometries.Polygon;
-using RasterizingLayer = TacControl.Common.Maps.RasterizingLayer;
-using SymbolCache = Mapsui.Rendering.Skia.SymbolCache;
 
 namespace TacControl
 {
@@ -90,17 +91,99 @@ namespace TacControl
         }
     }
 
+
+    [HarmonyPatch(typeof(MapControl), "IsHovering")] // https://github.com/Mapsui/Mapsui/blob/3df38358202f42334cff68ee87cb283dcb1db02b/Mapsui.UI.Wpf/MapControl.cs#L236
+    class Patch01
+    {
+        static bool Prefix(MouseEventArgs e, MapControl __instance, ref bool __result)
+        {
+            __result = e.RightButton != MouseButtonState.Pressed; // Check right instead of left
+            return false; // Don't run original
+        }
+    }
+
     public partial class MapView : UserControl, IDisposable, INotifyPropertyChanged
     {
 
-        private Layer GPSTrackerLayer = new Mapsui.Layers.Layer("GPS Trackers");
-        private Layer MapMarkersLayer = new Mapsui.Layers.Layer("Map Markers");
+        private Mapsui.Layers.Layer GPSTrackerLayer = new Mapsui.Layers.Layer("GPS Trackers");
+        private Mapsui.Layers.Layer MapMarkersLayer = new Mapsui.Layers.Layer("Map Markers");
+        private List<ILayer> MapInfoLayers = new List<ILayer>();
         public static MRect currentBounds = new Mapsui.MRect(0, 0, 0, 0);
         public readonly MarkerVisibilityManager MarkerVisibilityManager = new MarkerVisibilityManager();
 
         public MapView()
         {
+            var harmony = new Harmony("com.dedmen.taccontrol");
+            var assembly = Assembly.GetExecutingAssembly();
+            harmony.PatchAll(assembly);
+
+
             InitializeComponent();
+
+            // HACK to swap the moving map mouse button from left to right button
+
+            {
+
+                FieldInfo leftDownType = typeof(System.Windows.UIElement).GetEventField("MouseLeftButtonDownEvent");
+                RoutedEvent leftDownRE = (RoutedEvent)leftDownType.GetValue(MapControl);
+                FieldInfo leftUpType = typeof(System.Windows.UIElement).GetEventField("MouseLeftButtonUpEvent");
+                RoutedEvent leftUpRE = (RoutedEvent)leftUpType.GetValue(MapControl);
+
+                FieldInfo rightDownType = typeof(System.Windows.UIElement).GetEventField("MouseRightButtonDownEvent");
+                RoutedEvent rightDownRE = (RoutedEvent)rightDownType.GetValue(MapControl);
+                FieldInfo rightUpType = typeof(System.Windows.UIElement).GetEventField("MouseRightButtonUpEvent");
+                RoutedEvent rightUpRE = (RoutedEvent)rightUpType.GetValue(MapControl);
+
+                var xp = MapControl.GetType().GetProperties();
+
+
+
+                PropertyInfo EventHandlersStoreType = MapControl.GetType().GetProperty("EventHandlersStore", BindingFlags.Instance | BindingFlags.NonPublic);
+                object EventHandlersStore = EventHandlersStoreType.GetValue(MapControl, null);
+                Type storeType = EventHandlersStore.GetType();
+                MethodInfo GetEventHandlers = storeType.GetMethod("GetRoutedEventHandlers", BindingFlags.Instance | BindingFlags.Public);
+
+                var leftDownEvents = (System.Windows.RoutedEventHandlerInfo[])GetEventHandlers.Invoke(EventHandlersStore, new object[] { UIElement.MouseLeftButtonDownEvent as RoutedEvent });
+                var leftUpEvents = (System.Windows.RoutedEventHandlerInfo[])GetEventHandlers.Invoke(EventHandlersStore, new object[] { UIElement.MouseLeftButtonUpEvent as RoutedEvent });
+
+                // Swap them
+                //MapControl.RemoveHandler(leftDownRE, leftDownEvents.First().Handler);
+                //MapControl.RemoveHandler(leftUpRE, leftUpEvents.First().Handler);
+
+                //MapControl.AddHandler(rightDownRE, leftDownEvents.First().Handler);
+                //MapControl.AddHandler(rightUpRE, leftUpEvents.First().Handler);
+                //
+                //
+                //
+                //MapControl.MouseRightButtonDown += (x,y) =>
+                //{
+                //    MethodInfo doThing = MapControl.GetType().GetMethod("MapControlMouseLeftButtonDown", BindingFlags.Instance | BindingFlags.NonPublic);
+                //    doThing.Invoke(MapControl, new object[] { x, y });
+                //};
+                //MapControl.MouseLeftButtonUp += (x, y) =>
+                //{
+                //    MethodInfo doThing = MapControl.GetType().GetMethod("MapControlMouseLeftButtonUp", BindingFlags.Instance | BindingFlags.NonPublic);
+                //    doThing.Invoke(MapControl, new object[] { x, y });
+                //};
+
+
+
+
+
+            }
+
+
+            // The PerformanceWidget is created as part of the map.
+            var performanceWidget = MapControl.Map.Widgets.OfType<PerformanceWidget>().First();
+            // The default is ActiveMode.OnlyInDebugMode, which is usually the best option.
+            performanceWidget.Performance.IsActive = ActiveMode.Yes;
+            performanceWidget.BackColor = Color.FromRgba(255, 255, 32, 32);
+            performanceWidget.Opacity = 1;
+
+
+
+
+
             //MouseWheel += MapControlMouseWheel;
             MapControl.MouseLeftButtonDown += MapControlOnMouseLeftButtonDown;
             MapControl.MouseLeftButtonUp += MapControlOnMouseLeftButtonUp;
@@ -108,12 +191,35 @@ namespace TacControl
             MapControl.MouseEnter += MapControlOnMouseEnter;
             MapControl.MouseLeave += MapControlOnMouseLeave;
 
+            Mapsui.Experimental.Rendering.Skia.MapRenderer.RegisterStyleRenderer(typeof(SvgStyle), new SvgStyleRenderer());
+            Mapsui.Experimental.Rendering.Skia.MapRenderer.RegisterStyleRenderer(typeof(SvgStyleLazy), new SvgStyleRenderer());
+            Mapsui.Experimental.Rendering.Skia.MapRenderer.RegisterStyleRenderer(typeof(TiledBitmapStyle), new TiledBitmapRenderer());
+            Mapsui.Experimental.Rendering.Skia.MapRenderer.RegisterStyleRenderer(typeof(PolylineMarkerStyle), new PolylineMarkerRenderer());
+            Mapsui.Experimental.Rendering.Skia.MapRenderer.RegisterStyleRenderer(typeof(MarkerIconStyle), new MarkerIconRenderer());
+            Mapsui.Experimental.Rendering.Skia.MapRenderer.RegisterWidgetRenderer(typeof(GridWidget), new GridWidgetRenderer());
+
+            Mapsui.Logging.Logger.LogDelegate += (level, message, ex) =>
+            {
+                Console.WriteLine($"{message} {ex?.Message}"); // <-- Put a break point here, most UI platforms do not show the console logging.
+                                                               // todo: Forward to your own logger
+            };
             //MapControl.Map = new MyMap();
 
-            MapControl.MouseWheel += MapControlMouseWheel;
-            MapControl.MouseWheelAnimation.Duration = 0;
 
-            MapControl.Renderer = new Common.Maps.MapRenderer();
+            // Overwrite the default renderer for everything. This is important for RasterizingLayer, which uses default
+            Mapsui.Rendering.DefaultRendererFactory.Create = () => {
+
+                var rndr = new Mapsui.Experimental.Rendering.Skia.MapRenderer();
+                return rndr; //#TODO SKGLWpfControl. This renderer should actull
+            };
+            //MapControl.SetMapRenderer(new Common.Maps.MapRenderer());
+            MapControl.SetMapRenderer(new Mapsui.Experimental.Rendering.Skia.MapRenderer());
+            MapControl.MouseWheel += MapControlMouseWheel;
+            //MapControl.MouseWheelAnimation.Duration = 0;
+
+            MapControl.UseFling = false;
+
+
 
             Helper.WaitingForTerrain += OnWaitingForTerrainData;
 
@@ -135,17 +241,17 @@ namespace TacControl
             MapControl.Map.Widgets.Add(gridWidget);
             MapControl.Map.Navigator.OverrideZoomBounds = new MMinMax(0.01, 40);
 
-            MapMarkersLayer.IsMapInfoLayer = true;
             MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds, MarkerVisibilityManager);
             MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
+            MapInfoLayers.Add(MapMarkersLayer);
             MapMarkersLayer.DataChanged += (a, b) => MapControl.RefreshData();
             // ^ without this create/delete only updates when screen is moved
 
-            GPSTrackerLayer.IsMapInfoLayer = true;
             GPSTrackerLayer.DataSource = new GPSTrackerProvider(GPSTrackerLayer, currentBounds);
             GPSTrackerLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(GPSTrackerLayer);
+            MapInfoLayers.Add(GPSTrackerLayer);
             GPSTrackerLayer.DataChanged += (a, b) => MapControl.RefreshData();
             // ^ without this create/delete only updates when screen is moved
 
@@ -230,7 +336,7 @@ namespace TacControl
             MapControl.Map.Layers.Add(MapMarkersLayer);
             MapControl.Map.Layers.Add(GPSTrackerLayer);
 
-            Helper.ParseLayers().ContinueWith(x => Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
+            Helper.ParseLayers().ContinueWith(x => Common.Networking.Instance.MainThreadInvoke(() => GenerateLayers(x.Result)));
         }
 
 
@@ -252,7 +358,7 @@ namespace TacControl
         private void MapControlMouseWheel(object sender, MouseWheelEventArgs e)
         {
             var mouseWheelDelta = e.Delta;
-            var _currentMousePosition = e.GetPosition(this).ToMapsui();
+            var _currentMousePosition = e.GetPosition(this).ToScreenPosition();
             MapControl.Map.Navigator.MouseWheelZoom(mouseWheelDelta, _currentMousePosition);
         }
 
@@ -265,7 +371,7 @@ namespace TacControl
         private void GenerateLayers(List<Helper.SvgLayer> layers)
         {
             Console.WriteLine($"MapView Layerdata arrived, creating layers...");
-            List<(BaseLayer, Task)> layerLoadTasks = new List<(BaseLayer, Task)>();
+            List<(ILayer, Task)> layerLoadTasks = new List<(ILayer, Task)>();
             int terrainWidth = 0;
             int index = 0;
             foreach (var svgLayer in layers)
@@ -280,8 +386,8 @@ namespace TacControl
 
 
 
-                var layer = new Layer(svgLayer.name);
-                var renderLayer = new RasterizingLayer(layer, 100, MapControl.Renderer, 1F);
+                var layer = new Mapsui.Layers.Layer(svgLayer.name);
+                var renderLayer = new RasterizingLayer(layer, 100); //#TODO RasterizingTileLayer?
 
                 if (svgLayer.name == "forests" || svgLayer.name == "countLines" || svgLayer.name == "rocks" ||
                     svgLayer.name == "grid")
@@ -294,12 +400,13 @@ namespace TacControl
                 currentBounds = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
 
                 var features = new List<IFeature>();
-                var feature = new GeometryFeature() {Geometry = new BoundBox(currentBounds), ["Label"] = svgLayer.name};
+                var feature = new GeometryFeature() {Geometry = currentBounds.ToPolygon(), ["Label"] = svgLayer.name};
 
              
                 if (renderLayer.Enabled)
                 {
                     var x = new SvgStyle { image = new Svg.Skia.SKSvg() };
+                    x.dbgSrc = svgLayer.name;
                     renderLayer.Enabled = false;
                     layerLoadTasks.Add((renderLayer,
                         Task.Run(() =>
@@ -327,7 +434,7 @@ namespace TacControl
                             image.Load(stream);
                             x.image = image;
                         }
-
+                    
                         layer.DataHasChanged();
                     };
 
@@ -340,7 +447,13 @@ namespace TacControl
                 layer.DataSource = new MemoryProvider(features);
                 layer.MinVisible = 0;
                 layer.MaxVisible = double.MaxValue;
+                layer.Opacity = 0; // Opacity just turns our "transparent" from the SVG, into white..
                 MapControl.Map.Layers.Insert(index++, renderLayer);
+
+                //MapControl.Map.Layers.Insert(index++, layer);
+                layer.DataHasChanged();
+                renderLayer.ClearCache();
+                renderLayer.DataHasChanged();
             }
 
             MapControl.Map.Navigator.OverridePanBounds = new Mapsui.MRect(0, 0, terrainWidth, terrainWidth);
@@ -348,7 +461,7 @@ namespace TacControl
 
             Task.WhenAll(layerLoadTasks.Select(x => x.Item2).ToArray()).ContinueWith(x =>
             {
-                Networking.Instance.MainThreadInvoke(() =>
+                Common.Networking.Instance.MainThreadInvoke(() =>
                 {
                     foreach (var (memoryLayer, item2) in layerLoadTasks)
                     {
@@ -404,8 +517,8 @@ namespace TacControl
             if (args.ClickCount > 1)
             {
 
-                var mapsPos = args.GetPosition(MapControl).ToMapsui();
-                var info = MapControl.GetMapInfo(mapsPos, 12);
+                var mapsPos = args.GetPosition(MapControl).ToScreenPosition();
+                var info = MapControl.GetMapInfo(mapsPos, MapInfoLayers);
 
                 if (info.Feature is GPSTrackerFeature gpsTrackerFeature)
                 {
@@ -469,8 +582,8 @@ namespace TacControl
             }
             else if (Keyboard.IsKeyDown(Key.LeftCtrl))
             {
-                var mapsPos = args.GetPosition(MapControl).ToMapsui();
-                var info = MapControl.GetMapInfo(mapsPos, 12);
+                var mapsPos = args.GetPosition(MapControl).ToScreenPosition();
+                var info = MapControl.GetMapInfo(mapsPos, MapInfoLayers);
 
                 polyDraw = new ActiveMarker
                 {
@@ -500,8 +613,8 @@ namespace TacControl
             }
             else if (Keyboard.IsKeyDown(Key.LeftAlt))
             {
-                var mapsPos = args.GetPosition(MapControl).ToMapsui();
-                var info = MapControl.GetMapInfo(mapsPos, 12);
+                var mapsPos = args.GetPosition(MapControl).ToScreenPosition();
+                var info = MapControl.GetMapInfo(mapsPos, MapInfoLayers);
 
                 if (info.Feature is MarkerFeature marker)
                 {
@@ -538,7 +651,7 @@ namespace TacControl
         private void MapControlOnMouseMove(object sender, MouseEventArgs args)
         {
             var mapsPos = args.GetPosition(MapControl);
-            var info = MapControl.GetMapInfo(mapsPos.ToMapsui(), 12);
+            var info = MapControl.GetMapInfo(mapsPos.ToScreenPosition(), MapInfoLayers); //#TODO , 12 precision
 
             MapCursor.RenderTransform = new TranslateTransform(mapsPos.X - MapCursor.ActualWidth/2, mapsPos.Y - MapCursor.ActualHeight / 2);
             MapCursor.UnderCursor = info;

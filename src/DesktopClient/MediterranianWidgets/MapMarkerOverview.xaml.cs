@@ -21,7 +21,6 @@ using TacControl.Common;
 using TacControl.Common.Maps;
 using TacControl.Common.Modules;
 using Point = Mapsui.MPoint;
-using RasterizingLayer = TacControl.Common.Maps.RasterizingLayer;
 
 namespace TacControl.MediterranianWidgets
 {
@@ -60,21 +59,10 @@ namespace TacControl.MediterranianWidgets
 
         private void MapMarkerOverview_OnLoaded(object sender, RoutedEventArgs e)
         {
-
-            MapControl.Renderer = new Common.Maps.MapRenderer();
-
-            MapControl.Renderer.StyleRenderers[typeof(SvgStyle)] = new SvgStyleRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(SvgStyleLazy)] = new SvgStyleRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(TiledBitmapStyle)] = new TiledBitmapRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(VelocityIndicatorStyle)] = new VelocityIndicatorRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(PolylineMarkerStyle)] = new PolylineMarkerRenderer();
-            MapControl.Renderer.StyleRenderers[typeof(MarkerIconStyle)] = new MarkerIconRenderer();
-            MapControl.Renderer.WidgetRenders[typeof(GridWidget)] = new GridWidgetRenderer();
-
             MapControl.Map.Navigator.OverrideZoomBounds = new MMinMax(0.01, 40);
 
             MapMarkersLayer.DataSource = new MapMarkerProvider(MapMarkersLayer, currentBounds, VisibilityManager, ModuleMarkerRef);
-            MapMarkersLayer.IsMapInfoLayer = true;
+            //MapMarkersLayer.IsMapInfoLayer = true; // We cannot hover over markers anyway so this doesn't matter
             MapMarkersLayer.Style = null; // remove white circle https://github.com/Mapsui/Mapsui/issues/760
             MapControl.Map.Layers.Add(MapMarkersLayer);
 
@@ -99,7 +87,7 @@ namespace TacControl.MediterranianWidgets
 
 
                 var layer = new MemoryLayer(svgLayer.name);
-                var renderLayer = new RasterizingLayer(layer, 100, MapControl.Renderer, 1F);
+                var renderLayer = new RasterizingLayer(layer, 100, null, 1F);
 
                 terrainWidth = svgLayer.width;
 

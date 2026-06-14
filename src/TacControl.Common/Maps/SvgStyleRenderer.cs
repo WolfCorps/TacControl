@@ -1,21 +1,23 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Mapsui;
+using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Rendering;
-using Mapsui.Rendering.Skia.SkiaStyles;
 using Mapsui.Styles;
-using Mapsui.Extensions;
 using SkiaSharp;
+using Svg.Skia;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using TacControl.Common.Modules;
 
 namespace TacControl.Common.Maps
 {
-    public class SvgStyleRenderer : ISkiaStyleRenderer
+    public class SvgStyleRenderer : Mapsui.Experimental.Rendering.Skia.SkiaStyles.ISkiaStyleRenderer
     {
         public bool Draw(SKCanvas canvas, Viewport viewport, ILayer layer, IFeature feature, IStyle style,
-            IRenderCache symbolCache, long iteration)
+            RenderService renderService, long iteration)
         {
 
             var image = ((SvgStyle)style).GetImage();
@@ -51,16 +53,18 @@ namespace TacControl.Common.Maps
 
             canvas.RotateDegrees((float)viewport.Rotation, 0.0f, 0.0f);
 
+            //using var file = new System.IO.FileStream($"P:/{((SvgStyle)style).dbgSrc}.png", System.IO.FileMode.Create);
+            //var bm = image.Picture.ToBitmap(SKColors.Transparent, 1, 1, SKColorType.Rgba8888, SKAlphaType.Unpremul, SKColorSpace.CreateSrgbLinear());
+            //var dat = bm.Encode(SKEncodedImageFormat.Png, 1);
+            //file.Write(dat.AsSpan());
+            //file.Flush();
+            //file.Close();
 
             canvas.DrawPicture(image.Picture, new SKPaint()
             {
                 IsAntialias = true
             });
             canvas.Restore();
-
-
-
-
 
 
             return true;

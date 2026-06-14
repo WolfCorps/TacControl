@@ -81,7 +81,7 @@ namespace TacControl.Common.Maps
 
 
         public MPoint Point { get; private set; }
-        public MRect Extent => Point.MRect;
+        public MRect Extent => new MRect(Point.X, Point.Y);
 
         public void CoordinateVisitor(Action<double, double, CoordinateSetter> visit)
         {

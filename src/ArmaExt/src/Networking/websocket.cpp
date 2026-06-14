@@ -35,7 +35,7 @@ void
 shared_state::
 leave(websocket_session* session)
 {
-    OnClientLeft(session->GetRemoteEndpoint());
+    OnClientLeft(session->GetRemoteEndpoint()); // #TODO this can throw boost::system::system_error inside GetRemoteEndpoint
     std::lock_guard<std::mutex> lock(mutex_);
     sessions_.erase(session);
 }

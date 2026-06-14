@@ -8,15 +8,23 @@ namespace TacControl.Common.Maps
     public class SvgStyle : IStyle
     {
         public Svg.Skia.SKSvg image;
+        public string dbgSrc;
 
         public virtual Svg.Skia.SKSvg GetImage()
         {
             return image;
         }
 
+        public void Modified()
+        {
+            throw new NotImplementedException();
+        }
+
         public double MinVisible { get; set; } = 0.0f;
         public double MaxVisible { get; set; } = double.MaxValue;
         public bool Enabled { get; set; } = true;
         public float Opacity { get; set; } = 1f;
+
+        public long GenerationId => throw new NotImplementedException();
     }
 }

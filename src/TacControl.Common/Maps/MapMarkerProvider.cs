@@ -140,11 +140,11 @@ namespace TacControl.Common.Maps
             
 
         }
-        public override void Dispose()
+
+        public void Dispose()
         {
             marker.PropertyChanged -= OnMarkerOnPropertyChangedIcon;
             marker.PropertyChanged -= OnMarkerOnPropertyChangedTiled;
-            base.Dispose();
         }
 
         void OnMarkerOnPropertyChangedIcon(object a, PropertyChangedEventArgs e)

@@ -5,21 +5,20 @@ using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Providers;
 using Mapsui.Rendering;
-using Mapsui.Rendering.Skia.SkiaStyles;
 using Mapsui.Styles;
 using Mapsui.Extensions;
 using SkiaSharp;
 
 namespace TacControl.Common.Maps
 {
-    public class VelocityIndicatorRenderer : ISkiaStyleRenderer
+    public class VelocityIndicatorRenderer : Mapsui.Experimental.Rendering.Skia.SkiaStyles.ISkiaStyleRenderer
     {
         public bool Draw(SKCanvas canvas, Viewport viewport, ILayer layer, IFeature feature, IStyle istyle,
-            IRenderCache symbolCache, long iteration)
+            RenderService renderService, long iteration)
         {
             var style = ((VelocityIndicatorStyle)istyle);
 
-            var position = feature.Extent.BottomLeft;
+            var position = feature.Extent.GetBottomLeft();
             var dest = viewport.WorldToScreen(position);
 
             var zoom = 1 / (float)viewport.Resolution;

@@ -17,7 +17,7 @@ namespace TacControl.Common.Maps
             
             BackColor = null;
             Halo = null;
-            Offset = new Offset(type.size, 0, false);
+            Offset = new Offset(type.size, 0);
             Font = markerFont;
             ForeColor = color.ToMapsuiColor();
             HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left;

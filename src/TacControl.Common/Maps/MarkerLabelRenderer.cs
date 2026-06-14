@@ -3,13 +3,12 @@ using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Rendering;
 using Mapsui.Rendering.Skia.Extensions;
-using Mapsui.Rendering.Skia.SkiaStyles;
 using Mapsui.Styles;
 using SkiaSharp;
 
 namespace TacControl.Common.Maps
 {
-    internal class MarkerLabelRenderer : ISkiaStyleRenderer
+    internal class MarkerLabelRenderer : Mapsui.Experimental.Rendering.Skia.SkiaStyles.ISkiaStyleRenderer
     {
         private static SKPaint renderPaint = new SKPaint
         {
@@ -24,7 +23,7 @@ namespace TacControl.Common.Maps
             TextAlign = SKTextAlign.Left
         };
         public bool Draw(SKCanvas canvas, Viewport viewport, ILayer layer, IFeature feature, IStyle istyle,
-            IRenderCache symbolCache, long iteration)
+            RenderService renderService, long iteration)
         {
             var style = ((MarkerLabelStyle)istyle);
 
@@ -37,7 +36,7 @@ namespace TacControl.Common.Maps
                 return true;
 
             var position = feature.Extent as MRect;
-            var dest = viewport.WorldToScreen(position.BottomLeft);
+            var dest = viewport.WorldToScreen(position.GetBottomLeft());
 
 
             var zoom = 1 / (float)viewport.Resolution;

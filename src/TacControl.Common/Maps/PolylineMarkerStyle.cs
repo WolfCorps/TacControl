@@ -56,43 +56,50 @@ namespace TacControl.Common.Maps
         public double MaxVisible { get; set; } = double.MaxValue;
         public bool Enabled { get; set; } = true;
         public float Opacity { get; set; } = 1f;
+
+        public long GenerationId => throw new NotImplementedException();
+
+        public void Modified()
+        {
+            throw new NotImplementedException();
+        }
         /*
 
-          ParamEntryVal cfg = cls >> "LineMarker";
-  _thinLineWidth   = cfg >> "lineWidthThin";
-  _thickLineWidth  = cfg >> "lineWidthThick";
-  _minLineDistance = cfg >> "lineDistanceMin";
-  _minLineLength   = cfg >> "lineLengthMin";
+         ParamEntryVal cfg = cls >> "LineMarker";
+        _thinLineWidth   = cfg >> "lineWidthThin";
+        _thickLineWidth  = cfg >> "lineWidthThick";
+        _minLineDistance = cfg >> "lineDistanceMin";
+        _minLineLength   = cfg >> "lineLengthMin";
 
 
-        		class LineMarker
-		{
-			textureComboBoxColor = "#(argb,8,8,3)color(1,1,1,1)";
-			lineWidthThin = 0.008;
-			lineWidthThick = 0.014;
-			lineDistanceMin = 3e-005;
-			lineLengthMin = 5;
-		};
-
-
-
-          //set color and update alpha according to marker alpha property    
-  PackedColor fadedMarkerColor = ModAlpha(mInfo.color, mInfo.alpha * alpha);
+        class LineMarker
+        {
+           textureComboBoxColor = "#(argb,8,8,3)color(1,1,1,1)";
+           lineWidthThin = 0.008;
+           lineWidthThick = 0.014;
+           lineDistanceMin = 3e-005;
+           lineLengthMin = 5;
+        };
 
 
 
-               float width = mInfo.selected ? _markerCfg._thickLineWidth : _markerCfg._thinLineWidth;
-      width *= _wScreen;
-      for (int i = 0; i < mInfo.linePointCoodinates.Size() - 3; i += 2)
-      {
+         //set color and update alpha according to marker alpha property    
+        PackedColor fadedMarkerColor = ModAlpha(mInfo.color, mInfo.alpha * alpha);
+
+
+
+        float width = mInfo.selected ? _markerCfg._thickLineWidth : _markerCfg._thinLineWidth;
+        width *= _wScreen;
+        for (int i = 0; i < mInfo.linePointCoodinates.Size() - 3; i += 2)
+        {
         DrawLine(
-          Vector3(mInfo.linePointCoodinates.Get(i + 0), 0, mInfo.linePointCoodinates.Get(i + 1)),
-          Vector3(mInfo.linePointCoodinates.Get(i + 2), 0, mInfo.linePointCoodinates.Get(i + 3)),
-          fadedMarkerColor, width);
-      }
-         
-         
-         */
+         Vector3(mInfo.linePointCoodinates.Get(i + 0), 0, mInfo.linePointCoodinates.Get(i + 1)),
+         Vector3(mInfo.linePointCoodinates.Get(i + 2), 0, mInfo.linePointCoodinates.Get(i + 3)),
+         fadedMarkerColor, width);
+        }
+
+
+        */
 
     }
 }

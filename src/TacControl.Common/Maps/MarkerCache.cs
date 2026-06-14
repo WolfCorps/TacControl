@@ -24,19 +24,19 @@ namespace TacControl.Common.Maps
 
         private Dictionary<string, MarkerRequest> requests = new Dictionary<string, MarkerRequest>(StringComparer.InvariantCultureIgnoreCase);
 
-        public async Task<int> GetBitmapId(MarkerType type, MarkerColor color)
-        {
-            var image = await GetImage(type, color);
-
-            var content = new MemoryStream(image.Encode().ToArray());
-            int bitmapId;
-            lock (BitmapRegistry.Instance)
-            {
-                bitmapId = BitmapRegistry.Instance.Register(content);
-            }
-
-            return bitmapId;
-        }
+        //public async Task<int> GetBitmapId(MarkerType type, MarkerColor color)
+        //{
+        //    var image = await GetImage(type, color);
+        //
+        //    var content = new MemoryStream(image.Encode().ToArray());
+        //    int bitmapId;
+        //    lock (BitmapRegistry.Instance)
+        //    {
+        //        bitmapId = BitmapRegistry.Instance.Register(content);
+        //    }
+        //
+        //    return bitmapId;
+        //}
 
         public Task<SKImage> GetImage(MarkerType type, MarkerColor color)
         {
